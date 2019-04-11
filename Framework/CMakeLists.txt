@@ -139,6 +139,7 @@ set(
   src/runITSDPL.cxx
 #  src/runDummy.cxx
 #  src/runDummiest.cxx
+  src/runMC.cxx
   src/runAdvanced.cxx
   src/runReadout.cxx
   src/runMergerTest.cxx
@@ -155,6 +156,7 @@ set(
   qcRunDPL
 #  qcRunDummy
 #  qcRunDummiest
+  qcRunMC
   qcRunAdvanced
   qcRunReadout
   runMergerTest
