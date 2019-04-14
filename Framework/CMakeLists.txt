@@ -139,6 +139,7 @@ set(
   src/runITSDPL.cxx
 #  src/runDummy.cxx
 #  src/runDummiest.cxx
+  src/runCluster.cxx
   src/runAdvanced.cxx
   src/runReadout.cxx
   src/runMergerTest.cxx
@@ -155,6 +156,7 @@ set(
   qcRunDPL
 #  qcRunDummy
 #  qcRunDummiest
+  qcRunCluster
   qcRunAdvanced
   qcRunReadout
   runMergerTest
@@ -169,6 +171,7 @@ foreach(i RANGE ${count})
   list(GET EXE_NAMES ${i} name)
   add_executable(${name} ${src})
   target_link_libraries(${name} PRIVATE QualityControl)
+  target_include_directories(${name} PRIVATE ${O2_ROOT}/include/AliTPCCommon) 
 endforeach()
 
 # ---- Gui ----

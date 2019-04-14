@@ -7,3 +7,5 @@ add_subdirectory(Example)
 add_subdirectory(ITSQCTask)
 add_subdirectory(ITSDPLQCTask)
 #add_subdirectory(Dummy)
+add_subdirectory(ITSQCCluster)
+

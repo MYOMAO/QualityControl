@@ -1,11 +1,11 @@
 ///
-/// \file   ITSDPLQCTask.h
+/// \file   ITSQCMC.h
 /// \author Barthelemy von Haller
 /// \author Piotr Konopka
 ///
 
-#ifndef QC_MODULE_ITSDPLQCTASK_ITSDPLQCTASK_H
-#define QC_MODULE_ITSDPLQCTASK_ITSDPLQCTASK_H
+#ifndef QC_MODULE_ITSQCMC_ITSQCMC_H
+#define QC_MODULE_ITSQCMC_ITSQCMC_H
 
 #include "QualityControl/TaskInterface.h"
 
@@ -44,16 +44,15 @@ namespace o2
 {
 	namespace quality_control_modules
 	{
-		namespace itsdplqctask
+		namespace itsqcmc
 		{
 
 			/// \brief Example Quality Control DPL Task
 			/// It is final because there is no reason to derive from it. Just remove it if needed.
 			/// \author Barthelemy von Haller
 			/// \author Piotr Konopka
-			class ITSDPLQCTask /*final*/ : public TaskInterface // todo add back the "final" when doxygen is fixed
+			class ITSQCMC /*final*/ : public TaskInterface // todo add back the "final" when doxygen is fixed
 			{
-
 				using ChipPixelData = o2::ITSMFT::ChipPixelData;
 				using PixelReader = o2::ITSMFT::PixelReader;
 
@@ -120,7 +119,7 @@ namespace o2
 				UShort_t row;
 				UShort_t col; 
 				int lay, sta, ssta, mod, chip;
-			//	TH2D * ChipStave[NLayer]; 
+				//	TH2D * ChipStave[NLayer]; 
 				TH1D * OccupancyPlot[NLayer];
 				TH2D * LayEtaPhi[NLayer]; 
 				TH2D * LayChipStave[NLayer]; 
@@ -130,7 +129,7 @@ namespace o2
 				TH2D * Lay1HIG[12];
 				TH2D * HIGMAP6[18];
 				int ChipIndex6;
-				
+
 				void swapColumnBuffers()
 				{
 					int* tmp = mCurr;
@@ -168,14 +167,14 @@ namespace o2
 				TPaveText *pt[NError];
 				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError,0,NError);
 				//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
-				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 1: ErrRDHvsGBTHPageCnt","Error ID 2: ErrMissingGBTHeader","Error ID 3: ErrMissingGBTTrailer","Error ID 4: ErrNonZeroPageAfterStop","Error ID 5: ErrUnstoppedLanes","Error ID 6: ErrDataForStoppedLane","Error ID 7: ErrNoDataForActiveLane","Error ID 8: ErrIBChipLaneMismatch","Error ID 9: ErrCableDataHeadWrong"};
+				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 				TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
-			};
-				
 
-		} // namespace itsdplqctask
+			};
+
+		} // namespace itsqcmc
 	} // namespace quality_control_modules
 } // namespace o2
 
-#endif // QC_MODULE_ITSDPLQCTASK_ITSDPLQCTASK_H
+#endif // QC_MODULE_ITSQCMC_ITSQCMC_H
 

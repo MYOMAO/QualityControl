@@ -1,5 +1,5 @@
 ///
-/// \file   ITSDPLQCTask.cxx
+/// \file   ITSQCMC.cxx
 /// \author Barthelemy von Haller
 /// \author Piotr Konopka
 ///
@@ -8,43 +8,17 @@
 #include <TH1.h>
 
 #include "QualityControl/QcInfoLogger.h"
-#include "ITSDPLQCTask/ITSDPLQCTask.h"
-
-#include <sstream>
-
-#include <TStopwatch.h>
-#include "DataFormatsParameters/GRPObject.h"
-#include "FairLogger.h"
-#include "FairRunAna.h"
-#include "FairFileSource.h"
-#include "FairRuntimeDb.h"
-#include "FairParRootFileIo.h"
-#include "FairSystemInfo.h"
-
-#include "ITSMFTReconstruction/DigitPixelReader.h"
-#include "DetectorsBase/GeometryManager.h"
-#include <TCanvas.h>
-
-
-
-using o2::ITSMFT::Digit;
-
-
-
-using namespace std;
-using namespace o2::ITSMFT;
-using namespace o2::ITS;
-
-
+#include "ITSQCMC/ITSQCMC.h"
 
 namespace o2
 {
 	namespace quality_control_modules
 	{
-		namespace itsdplqctask
+		namespace itsqcmc
 		{
 
-			ITSDPLQCTask::ITSDPLQCTask() : TaskInterface(), mHistogram(nullptr) { 
+			ITSQCMC::ITSQCMC() : TaskInterface(), mHistogram(nullptr) { 
+
 				mHistogram = nullptr;
 
 				gStyle->SetPadRightMargin(0.15);
@@ -101,7 +75,7 @@ namespace o2
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
 						Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
-				//		Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
+						//		Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
 						Lay1HIG[i]->GetXaxis()->SetTitle("Column");
 						Lay1HIG[i]->GetYaxis()->SetTitle("Row");
 						Lay1HIG[i]->GetYaxis()->SetTitleOffset(1.10);
@@ -118,7 +92,7 @@ namespace o2
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
 						HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis,0,NColHis,NRowHis,0,NRowHis);
-				//		HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
+						//		HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
 						HIGMAP[i]->GetXaxis()->SetTitle("Column");
 						HIGMAP[i]->GetYaxis()->SetTitle("Row");
 						HIGMAP[i]->GetYaxis()->SetTitleOffset(1.10);
@@ -131,7 +105,7 @@ namespace o2
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
 						HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
-				//		HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
+						//		HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
 						HIGMAP6[i]->GetXaxis()->SetTitle("Column");
 						HIGMAP6[i]->GetYaxis()->SetTitle("Row");
 						HIGMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
@@ -148,13 +122,13 @@ namespace o2
 
 			}
 
-			ITSDPLQCTask::~ITSDPLQCTask() {
+			ITSQCMC::~ITSQCMC() {
 				if (mHistogram) {
 					delete mHistogram;
 				}
 			}
 
-			void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx)
+			void ITSQCMC::initialize(o2::framework::InitContext& ctx)
 			{
 				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
 
@@ -310,7 +284,7 @@ namespace o2
 				HIGMAP[0]->Draw("COLZ");
 				ReverseYAxis(HIGMAP[0]);
 				c6->SaveAs("HIGCheck1.png");
-		
+
 				for(int j = 0; j < 1; j++){
 					c6->Divide(3,4);
 					for(int i = 0; i < NStaves[j]; i++){
@@ -347,9 +321,9 @@ namespace o2
 				}
 
 
-			
+
 				TCanvas *c7 = new TCanvas ("c7", "c7", 600, 600);
-	
+
 				HIGMAP6[0]->GetXaxis()->SetNdivisions(-32);
 				HIGMAP6[0]->Draw("COLZ");
 				ReverseYAxis(HIGMAP[0]);
@@ -372,20 +346,21 @@ namespace o2
 				//	getObjectsManager()->addCheck(mHistogram, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
 				//getObjectsManager()->addCheck(ChipStave, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
 
+
 			}
 
-			void ITSDPLQCTask::startOfActivity(Activity& activity)
+			void ITSQCMC::startOfActivity(Activity& activity)
 			{
 				QcInfoLogger::GetInstance() << "startOfActivity" << AliceO2::InfoLogger::InfoLogger::endm;
 				mHistogram->Reset();
 			}
 
-			void ITSDPLQCTask::startOfCycle()
+			void ITSQCMC::startOfCycle()
 			{
 				QcInfoLogger::GetInstance() << "startOfCycle" << AliceO2::InfoLogger::InfoLogger::endm;
 			}
 
-			void ITSDPLQCTask::monitorData(o2::framework::ProcessingContext& ctx)
+			void ITSQCMC::monitorData(o2::framework::ProcessingContext& ctx)
 			{
 				// In this function you can access data inputs specified in the JSON config file, for example:
 				//  {
@@ -401,28 +376,17 @@ namespace o2
 				// Some examples:
 
 				// 1. In a loop
+				for (auto&& input : ctx.inputs()) {
+					// get message header
+					QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
 
-				/*
-				   QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
+					const auto* header = header::get<header::DataHeader*>(input.header);
+					// get payload of a specific input, which is a char array.
+					//    const char* payload = input.payload;
 
-				   auto digits = ctx.inputs().get<const std::vector<o2::ITSMFT::Digit>>("digits");
-				   QcInfoLogger::GetInstance() << "PASS DIGIT OK" << AliceO2::InfoLogger::InfoLogger::endm;
-				   LOG(INFO) << "ITSClusterer pulled " << digits.size() << " digits, ";
-				   o2::ITSMFT::DigitPixelReader reader;
-				   */
-				/*
-				   for (auto&& input : ctx.inputs()) {
-				// get message header
-				const auto* header = header::get<header::DataHeader*>(input.header);
-				// get payload of a specific input, which is a char array.
-				//    const char* payload = input.payload;
-
-				// for the sake of an example, let's fill the histogram with payload sizes
-				mHistogram->Fill(header->payloadSize);
-				QcInfoLogger::GetInstance()  << "PayLoadSize = " << header->payloadSize << AliceO2::InfoLogger::InfoLogger::endm;
-
+					// for the sake of an example, let's fill the histogram with payload sizes
+					mHistogram->Fill(header->payloadSize);
 				}
-				*/
 
 				// 2. Using get("<binding>")
 
@@ -433,7 +397,7 @@ namespace o2
 				//  const auto* header = header::get<header::DataHeader*>(ctx.inputs().get("random").header);
 				//  struct s {int a; double b;};
 				//  auto array = ctx.inputs().get<s*>("random");
-				//  for (int j = 0; j < header->payloadSize / sizeof(s); ++j) LayChipStave{
+				//  for (int j = 0; j < header->payloadSize / sizeof(s); ++j) {
 				//    int i = array.get()[j].a;
 				//  }
 
@@ -446,8 +410,7 @@ namespace o2
 			}
 
 
-			void ITSDPLQCTask::process (PixelReader & reader){
-
+			void ITSQCMC::process (PixelReader & reader){
 
 				cout << "START PROCESSING" << endl;
 
@@ -556,7 +519,7 @@ namespace o2
 				*/
 			}
 
-			void ITSDPLQCTask::ConfirmXAxis(TH1 *h)
+			void ITSQCMC::ConfirmXAxis(TH1 *h)
 			{
 				// Remove the current axis
 				h->GetXaxis()->SetLabelOffset(999);
@@ -564,7 +527,7 @@ namespace o2
 				// Redraw the new axis
 				gPad->Update();
 				XTicks = (h->GetXaxis()->GetXmax()-h->GetXaxis()->GetXmin())/DivisionStep;
-		
+
 				TGaxis *newaxis = new TGaxis(gPad->GetUxmin(),
 						gPad->GetUymin(),
 						gPad->GetUxmax(),
@@ -576,7 +539,7 @@ namespace o2
 				newaxis->Draw();
 				h->GetListOfFunctions()->Add(newaxis);	
 			}
-			void ITSDPLQCTask::ReverseYAxis(TH1 *h)
+			void ITSQCMC::ReverseYAxis(TH1 *h)
 			{
 				// Remove the current axis
 				h->GetYaxis()->SetLabelOffset(999);
@@ -597,23 +560,21 @@ namespace o2
 				newaxis->SetLabelOffset(0);
 				newaxis->Draw();
 				h->GetListOfFunctions()->Add(newaxis);
-			
+
 			}
 
 
-
-
-			void ITSDPLQCTask::endOfCycle()
+			void ITSQCMC::endOfCycle()
 			{
 				QcInfoLogger::GetInstance() << "endOfCycle" << AliceO2::InfoLogger::InfoLogger::endm;
 			}
 
-			void ITSDPLQCTask::endOfActivity(Activity& activity)
+			void ITSQCMC::endOfActivity(Activity& activity)
 			{
 				QcInfoLogger::GetInstance() << "endOfActivity" << AliceO2::InfoLogger::InfoLogger::endm;
 			}
 
-			void ITSDPLQCTask::reset()
+			void ITSQCMC::reset()
 			{
 				// clean all the monitor objects here
 
@@ -621,7 +582,7 @@ namespace o2
 				mHistogram->Reset();
 			}
 
-		} // namespace itsdplqctask
+		} // namespace itsqcmc
 	} // namespace quality_control_modules
 } // namespace o2
 
