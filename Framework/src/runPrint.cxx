@@ -97,7 +97,7 @@ WorkflowSpec defineDataProcessing(ConfigContext const&)
 	const std::string qcConfigurationSource = std::string("json://") + getenv("QUALITYCONTROL_ROOT") + "/etc/Print.json";
 /*
 	int fanoutsize = 0;
-	
+
 	std::vector<o2::detectors::DetID> detList;
 	detList.emplace_back(o2::detectors::DetID::ITS);
 	// connect the ITS digitization
@@ -106,7 +106,7 @@ WorkflowSpec defineDataProcessing(ConfigContext const&)
 	specs.emplace_back(o2::ITSMFT::getITSDigitWriterSpec());
 */
 
-	o2::Base::GeometryManager::loadGeometry();
+	o2::base::GeometryManager::loadGeometry();
 
 	LOG(INFO) << "START READER";
 

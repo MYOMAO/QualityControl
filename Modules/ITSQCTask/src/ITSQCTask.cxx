@@ -17,7 +17,8 @@
 
 
 
-#include "../../../O2/Detectors/ITSMFT/common/reconstruction/include/ITSMFTReconstruction/DigitPixelReader.h"
+//#include "../../../O2/Detectors/ITSMFT/common/reconstruction/include/ITSMFTReconstruction/DigitPixelReader.h"
+#include "ITSMFTReconstruction/DigitPixelReader.h"
 #include "DetectorsBase/GeometryManager.h"
 //#include "ITSBase/GeometryTGeo.h"
 #include <TCanvas.h>
@@ -48,11 +49,11 @@ namespace o2
 
 			//		o2::Base::GeometryManager::loadGeometry();
 
-			ITSQCTask::ITSQCTask() : TaskInterface(), mHistogram(nullptr) { 
+			ITSQCTask::ITSQCTask() : TaskInterface(), mHistogram(nullptr) {
 				mHistogram = nullptr;
 				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSBase.so");
 				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSSimulation.so");
-				o2::Base::GeometryManager::loadGeometry();
+				o2::base::GeometryManager::loadGeometry();
 				ChipStave->GetXaxis ()->SetTitle ("Chip ID");
 				ChipStave->GetYaxis ()->SetTitle ("Number of Hits");
 				ChipStave->SetTitle ("Occupancy for ITS Layer 1");
@@ -94,8 +95,8 @@ namespace o2
 				/*
 				   std::vector<ChipPixelData> mChips;
 				   std::vector<ChipPixelData> mChipsOld;
-				   o2::ITSMFT::PixelReader* mReader = nullptr; 
-				   std::unique_ptr<o2::ITSMFT::DigitPixelReader> mReaderMC;   
+				   o2::ITSMFT::PixelReader* mReader = nullptr;
+				   std::unique_ptr<o2::ITSMFT::DigitPixelReader> mReaderMC;
 				   const std::string inpName = "itsdigits.root";
 				   */
 				bool mRawDataMode = 0;
@@ -106,13 +107,13 @@ namespace o2
 					int a = 1;
 				}
 				else
-				{				
+				{
 					mReaderMC = std::make_unique < o2::ITSMFT::DigitPixelReader > ();
 					mReader = mReaderMC.get ();
 				}
 
 				o2::ITS::GeometryTGeo * geom = o2::ITS::GeometryTGeo::Instance ();
-				geom->fillMatrixCache (o2::utils::bit2Mask (o2::TransformType::L2G));	
+				geom->fillMatrixCache (o2::utils::bit2Mask (o2::TransformType::L2G));
 
 				QcInfoLogger::GetInstance() << "It WORK, PASS 3" <<  AliceO2::InfoLogger::InfoLogger::endm;
 
@@ -189,16 +190,16 @@ namespace o2
 				//cout << "START MCHIPDATA" << endl;
 				while ((mChipData = reader.getNextChipData (mChips)))
 				{
-					//	cout << "ChipID Before = " << ChipID << endl; 
+					//	cout << "ChipID Before = " << ChipID << endl;
 					ChipID = mChipData->getChipID ();
 
 					gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
 					// lay =  gm->GetLayer(ChipID);
 					// sta =  gm->getStave(ChipID);
 					gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
-					const Point3D<float> loc(0., 0.,0.); 
+					const Point3D<float> loc(0., 0.,0.);
 					auto glo = gm->getMatrixL2G(ChipID)(loc);
-			
+
 					if (lay < 1)
 					{
 
