@@ -253,6 +253,10 @@ namespace o2
 				// Some examples:
 
 				// 1. In a loop
+
+        o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("ITS_DIGITS_S");
+        LOG(INFO) << "got digit, chip index : " << digit.getChipIndex();
+
 	/*
 
 				cout << "START Here" << endl;
