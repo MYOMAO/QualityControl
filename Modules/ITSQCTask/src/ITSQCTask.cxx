@@ -51,8 +51,8 @@ namespace o2
 
 			ITSQCTask::ITSQCTask() : TaskInterface(), mHistogram(nullptr) {
 				mHistogram = nullptr;
-				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSBase.so");
-				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSSimulation.so");
+//				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSBase.so");
+//				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSSimulation.so");
 				o2::base::GeometryManager::loadGeometry();
 				ChipStave->GetXaxis ()->SetTitle ("Chip ID");
 				ChipStave->GetYaxis ()->SetTitle ("Number of Hits");
@@ -84,13 +84,13 @@ namespace o2
 
 				QcInfoLogger::GetInstance() << "initialize ITSQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
 
-				//auto filename = ctx.options().get < std::string > ("itsdigits.root");
-				auto filename = ctx.options().get<std::string>("its-digits");
+//				std::string filename = "itsdigits.root";
+//				auto filename = ctx.options().get<std::string>("its-digits");
 				//std::unique_ptr<TFile> mFile = nullptr;
 				//mFile = std::make_unique<TFile>(filename.c_str(), "OLD");
 
-				QcInfoLogger::GetInstance() << "Input File Name is " << filename.c_str () <<  AliceO2::InfoLogger::InfoLogger::endm;
-				QcInfoLogger::GetInstance() << "It WORK, we start plotting histograms" <<  AliceO2::InfoLogger::InfoLogger::endm;
+//				QcInfoLogger::GetInstance() << "Input File Name is " << filename.c_str () <<  AliceO2::InfoLogger::InfoLogger::endm;
+//				QcInfoLogger::GetInstance() << "It WORK, we start plotting histograms" <<  AliceO2::InfoLogger::InfoLogger::endm;
 
 				/*
 				   std::vector<ChipPixelData> mChips;
@@ -238,6 +238,7 @@ namespace o2
 
 			void ITSQCTask::monitorData(o2::framework::ProcessingContext& ctx)
 			{
+
 				// In this function you can access data inputs specified in the JSON config file, for example:
 				//  {
 				//    "binding": "random",
