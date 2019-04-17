@@ -23,7 +23,7 @@ BenchmarkTask::BenchmarkTask() : TaskInterface() {}
 
 BenchmarkTask::~BenchmarkTask() {}
 
-void BenchmarkTask::initialize(o2::framework::InitContext& ctx)
+void BenchmarkTask::initialize(o2::framework::InitContext& ctx,std::string infile)
 {
   QcInfoLogger::GetInstance() << "initialize benchmarktask \"" << getName() << "\""
                               << AliceO2::InfoLogger::InfoLogger::endm;

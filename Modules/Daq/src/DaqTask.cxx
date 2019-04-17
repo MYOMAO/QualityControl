@@ -45,7 +45,7 @@ DaqTask::~DaqTask()
   delete mSubPayloadSize;
 }
 
-void DaqTask::initialize(o2::framework::InitContext& ctx)
+void DaqTask::initialize(o2::framework::InitContext& ctx,std::string infile)
 {
   QcInfoLogger::GetInstance() << "initialize DaqTask" << AliceO2::InfoLogger::InfoLogger::endm;
 

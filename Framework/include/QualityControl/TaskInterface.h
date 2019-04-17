@@ -60,7 +60,10 @@ class TaskInterface
   TaskInterface& operator=(TaskInterface&& other) /* noexcept */ = default; // error with gcc if noexcept
 
   // Definition of the methods for the template method pattern
-  virtual void initialize(o2::framework::InitContext& ctx) = 0;
+
+ // virtual void initialize(o2::framework::InitContext& ctx) = 0;
+  virtual void initialize(o2::framework::InitContext& ctx, std::string infile) = 0;
+// virtual void initialize(o2::framework::InitContext& ctx) = 0;
   virtual void startOfActivity(Activity& activity) = 0;
   virtual void startOfCycle() = 0;
   virtual void monitorData(o2::framework::ProcessingContext& ctx) = 0;
@@ -75,6 +78,7 @@ class TaskInterface
 
  protected:
   std::shared_ptr<ObjectsManager> getObjectsManager();
+
 
  private:
   // TODO should we rather have a global/singleton for the objectsManager ?

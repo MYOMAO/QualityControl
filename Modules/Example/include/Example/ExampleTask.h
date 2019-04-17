@@ -31,7 +31,7 @@ class ExampleTask /*final*/ : public TaskInterface // todo add back the "final" 
   ~ExampleTask() override;
 
   // Definition of the methods for the template method pattern
-  void initialize(o2::framework::InitContext& ctx) override;
+  void initialize(o2::framework::InitContext& ctx,std::string infile) override;
   void startOfActivity(Activity& activity) override;
   void startOfCycle() override;
   void monitorData(o2::framework::ProcessingContext& ctx) override;

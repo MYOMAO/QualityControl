@@ -45,7 +45,7 @@ class TestTask : public TaskInterface
   ~TestTask() override {}
 
   // Definition of the methods for the template method pattern
-  void initialize(o2::framework::InitContext& ctx) override
+  void initialize(o2::framework::InitContext& ctx,std::string infile) override
   {
     cout << "initialize" << endl;
     test = 1;

@@ -32,251 +32,263 @@
 
 namespace o2
 {
-namespace quality_control
-{
-namespace core
-{
+	namespace quality_control
+	{
+		namespace core
+		{
 
-using namespace o2::configuration;
-using namespace o2::monitoring;
-using namespace std::chrono;
+			using namespace o2::configuration;
+			using namespace o2::monitoring;
+			using namespace std::chrono;
 
-TaskRunner::TaskRunner(std::string taskName, std::string configurationSource, size_t id)
-  : mTaskName(taskName),
-    mNumberBlocks(0),
-    mTotalNumberObjectsPublished(0),
-    mLastNumberObjects(0),
-    mCycleOn(false),
-    mCycleNumber(0),
-    mMonitorObjectsSpec({"mo"}, createTaskDataOrigin(), createTaskDataDescription(taskName), id),
-    mResetAfterPublish(false),
-    mTask(nullptr)
-{
-  // setup configuration
-  mConfigFile = ConfigurationFactory::getConfiguration(configurationSource);
-  populateConfig(mTaskName);
-}
+			TaskRunner::TaskRunner(std::string taskName, std::string configurationSource, size_t id)
+				: mTaskName(taskName),
+				mNumberBlocks(0),
+				mTotalNumberObjectsPublished(0),
+				mLastNumberObjects(0),
+				mCycleOn(false),
+				mCycleNumber(0),
+				mMonitorObjectsSpec({"mo"}, createTaskDataOrigin(), createTaskDataDescription(taskName), id),
+				mResetAfterPublish(false),
+				mTask(nullptr)
+				{
+					// setup configuration
+					mConfigFile = ConfigurationFactory::getConfiguration(configurationSource);
+					populateConfig(mTaskName);
+				}
 
-TaskRunner::~TaskRunner()
-{
-}
+			TaskRunner::~TaskRunner()
+			{
+			}
 
-void TaskRunner::initCallback(InitContext& iCtx)
-{
-  QcInfoLogger::GetInstance() << "initializing TaskRunner" << AliceO2::InfoLogger::InfoLogger::endm;
+			void TaskRunner::initCallback(InitContext& iCtx)
+			{
+				QcInfoLogger::GetInstance() << "initializing TaskRunner" << AliceO2::InfoLogger::InfoLogger::endm;
 
-  // registering state machine callbacks
-  iCtx.services().get<framework::CallbackService>().set(framework::CallbackService::Id::Start, [this]() { start(); });
-  iCtx.services().get<framework::CallbackService>().set(framework::CallbackService::Id::Stop, [this]() { stop(); });
-  iCtx.services().get<framework::CallbackService>().set(framework::CallbackService::Id::Reset, [this]() { reset(); });
+				// registering state machine callbacks
+				iCtx.services().get<framework::CallbackService>().set(framework::CallbackService::Id::Start, [this]() { start(); });
+				iCtx.services().get<framework::CallbackService>().set(framework::CallbackService::Id::Stop, [this]() { stop(); });
+				iCtx.services().get<framework::CallbackService>().set(framework::CallbackService::Id::Reset, [this]() { reset(); });
 
-  // setup monitoring
-  mCollector = MonitoringFactory::Get("infologger:///debug?qc");
-  //  mCollector = MonitoringFactory::Get("influxdb-udp://aido2mon-gpn.cern.ch:8087");
-  mCollector->enableProcessMonitoring();
+				// setup monitoring
+				mCollector = MonitoringFactory::Get("infologger:///debug?qc");
+				//  mCollector = MonitoringFactory::Get("influxdb-udp://aido2mon-gpn.cern.ch:8087");
+				mCollector->enableProcessMonitoring();
 
-  // setup publisher
-  mObjectsManager = std::make_shared<ObjectsManager>(mTaskConfig);
+				// setup publisher
+				mObjectsManager = std::make_shared<ObjectsManager>(mTaskConfig);
 
-  // setup user's task
-  TaskFactory f;
-  mTask.reset(f.create<TaskInterface>(mTaskConfig, mObjectsManager));
+				// setup user's task
+				TaskFactory f;
+				mTask.reset(f.create<TaskInterface>(mTaskConfig, mObjectsManager));
 
-  // init user's task
-  mTask->initialize(iCtx);
-}
+				auto tasksConfigList = mConfigFile->getRecursive("qc.tasks");
+				auto taskConfigTree = tasksConfigList.find(mTaskName);
+				if (taskConfigTree == tasksConfigList.not_found()) {
+					throw;
+				}
+			
+				QcInfoLogger::GetInstance() <<   "INFILE BEFORE IS = " << taskConfigTree->second.get<std::string>("infile") << AliceO2::InfoLogger::InfoLogger::endm;
+				std::string infile  = taskConfigTree->second.get<std::string>("infile");
 
-void TaskRunner::processCallback(ProcessingContext& pCtx)
-{
-  if (mTaskConfig.maxNumberCycles >= 0 && mCycleNumber >= mTaskConfig.maxNumberCycles) {
-    LOG(INFO) << "The maximum number of cycles (" << mTaskConfig.maxNumberCycles << ") has been reached.";
-    return;
-  }
+				//	mTask->declare(taskConfigTree->second.get<std::string>("infile");
+						// init user's task
+						mTask->initialize(iCtx,infile);
+					//	mTask->initialize(iCtx);
 
-  if (!mCycleOn) {
-    QcInfoLogger::GetInstance() << "cycle " << mCycleNumber << AliceO2::InfoLogger::InfoLogger::endm;
+						}
 
-    mTask->startOfCycle();
+						void TaskRunner::processCallback(ProcessingContext& pCtx)
+						{
+						if (mTaskConfig.maxNumberCycles >= 0 && mCycleNumber >= mTaskConfig.maxNumberCycles) {
+						LOG(INFO) << "The maximum number of cycles (" << mTaskConfig.maxNumberCycles << ") has been reached.";
+						return;
+						}
 
-    mNumberBlocks = 0;
-    mCycleOn = true;
-  }
+						if (!mCycleOn) {
+						QcInfoLogger::GetInstance() << "cycle " << mCycleNumber << AliceO2::InfoLogger::InfoLogger::endm;
 
-  mTask->monitorData(pCtx);
-  mNumberBlocks++;
+						mTask->startOfCycle();
 
-  // if 10 s we publish stats
-  if (mStatsTimer.isTimeout()) {
-    double current = mStatsTimer.getTime();
-    int objectsPublished = (mTotalNumberObjectsPublished - mLastNumberObjects);
-    mLastNumberObjects = mTotalNumberObjectsPublished;
-    mCollector->send({ objectsPublished / current, "QC_task_Rate_objects_published_per_10_seconds" });
-    mStatsTimer.increment();
+						mNumberBlocks = 0;
+						mCycleOn = true;
+						}
 
-    // temporarily here, until timer callback is implemented in dpl
-    timerCallback(pCtx);
-    if (mResetAfterPublish) {
-      mTask->reset();
-    }
-  }
-}
+						mTask->monitorData(pCtx);
+						mNumberBlocks++;
 
-void TaskRunner::timerCallback(ProcessingContext& pCtx) { finishCycle(pCtx.outputs()); }
+						// if 10 s we publish stats
+						if (mStatsTimer.isTimeout()) {
+							double current = mStatsTimer.getTime();
+							int objectsPublished = (mTotalNumberObjectsPublished - mLastNumberObjects);
+							mLastNumberObjects = mTotalNumberObjectsPublished;
+							mCollector->send({ objectsPublished / current, "QC_task_Rate_objects_published_per_10_seconds" });
+							mStatsTimer.increment();
 
-void TaskRunner::setResetAfterPublish(bool resetAfterPublish) { mResetAfterPublish = resetAfterPublish; }
+							// temporarily here, until timer callback is implemented in dpl
+							timerCallback(pCtx);
+							if (mResetAfterPublish) {
+								mTask->reset();
+							}
+						}
+						}
 
-header::DataOrigin TaskRunner::createTaskDataOrigin()
-{
-  return header::DataOrigin{ "QC" };
-}
+				void TaskRunner::timerCallback(ProcessingContext& pCtx) { finishCycle(pCtx.outputs()); }
 
-header::DataDescription TaskRunner::createTaskDataDescription(const std::string& taskName)
-{
-  o2::header::DataDescription description;
-  description.runtimeInit(std::string(taskName.substr(0, header::DataDescription::size - 3) + "-mo").c_str());
-  return description;
-}
+				void TaskRunner::setResetAfterPublish(bool resetAfterPublish) { mResetAfterPublish = resetAfterPublish; }
 
-void TaskRunner::start()
-{
-  startOfActivity();
+				header::DataOrigin TaskRunner::createTaskDataOrigin()
+				{
+					return header::DataOrigin{ "QC" };
+				}
 
-  mStatsTimer.reset(10000000); // 10 s.
-  mLastNumberObjects = 0;
+				header::DataDescription TaskRunner::createTaskDataDescription(const std::string& taskName)
+				{
+					o2::header::DataDescription description;
+					description.runtimeInit(std::string(taskName.substr(0, header::DataDescription::size - 3) + "-mo").c_str());
+					return description;
+				}
 
-  QcInfoLogger::GetInstance() << "cycle " << mCycleNumber << AliceO2::InfoLogger::InfoLogger::endm;
-  mNumberBlocks = 0;
-  mCycleOn = true;
-}
+				void TaskRunner::start()
+				{
+					startOfActivity();
 
-void TaskRunner::stop()
-{
-  if (mCycleOn) {
-    mTask->endOfCycle();
-    mCycleNumber++;
-    mCycleOn = false;
-  }
-  endOfActivity();
-  mTask->reset();
-}
+					mStatsTimer.reset(10000000); // 10 s.
+					mLastNumberObjects = 0;
 
-void TaskRunner::reset()
-{
-  mTask.reset();
-  mCollector.reset();
-  mObjectsManager.reset();
-}
+					QcInfoLogger::GetInstance() << "cycle " << mCycleNumber << AliceO2::InfoLogger::InfoLogger::endm;
+					mNumberBlocks = 0;
+					mCycleOn = true;
+				}
 
-void TaskRunner::populateConfig(std::string taskName)
-{
-  try {
-    auto tasksConfigList = mConfigFile->getRecursive("qc.tasks");
-    auto taskConfigTree = tasksConfigList.find(taskName);
-    if (taskConfigTree == tasksConfigList.not_found()) {
-      throw;
-    }
+				void TaskRunner::stop()
+				{
+					if (mCycleOn) {
+						mTask->endOfCycle();
+						mCycleNumber++;
+						mCycleOn = false;
+					}
+					endOfActivity();
+					mTask->reset();
+				}
 
-    mTaskConfig.taskName = taskName;
-    mTaskConfig.moduleName = taskConfigTree->second.get<std::string>("moduleName");
-    mTaskConfig.className = taskConfigTree->second.get<std::string>("className");
-    mTaskConfig.cycleDurationSeconds = taskConfigTree->second.get<int>("cycleDurationSeconds", 10);
-    mTaskConfig.maxNumberCycles = taskConfigTree->second.get<int>("maxNumberCycles", -1);
+				void TaskRunner::reset()
+				{
+					mTask.reset();
+					mCollector.reset();
+					mObjectsManager.reset();
+				}
 
-    std::string policiesFilePath = mConfigFile->get<std::string>("dataSamplingPolicyFile", "");
-    if (policiesFilePath.empty()) {
-      mInputSpecs = framework::DataSampling::InputSpecsForPolicy(mConfigFile.get(), taskConfigTree->second.get<std::string>("dataSamplingPolicy"));
-    } else {
-      mInputSpecs = framework::DataSampling::InputSpecsForPolicy(policiesFilePath, taskConfigTree->second.get<std::string>("dataSamplingPolicy"));
-    }
+				void TaskRunner::populateConfig(std::string taskName)
+				{
+					try {
+						auto tasksConfigList = mConfigFile->getRecursive("qc.tasks");
+						auto taskConfigTree = tasksConfigList.find(taskName);
+						if (taskConfigTree == tasksConfigList.not_found()) {
+							throw;
+						}
 
-  } catch (...) { // catch already here the configuration exception and print it
-    // because if we are in a constructor, the exception could be lost
-    std::string diagnostic = boost::current_exception_diagnostic_information();
-    LOG(ERROR) << "Unexpected exception, diagnostic information follows:\n" << diagnostic;
-    throw;
-  }
-  LOG(INFO) << "Configuration loaded : ";
-  LOG(INFO) << ">> Task name : " << mTaskConfig.taskName;
-  LOG(INFO) << ">> Module name : " << mTaskConfig.moduleName;
-  LOG(INFO) << ">> Cycle duration seconds : " << mTaskConfig.cycleDurationSeconds;
-  LOG(INFO) << ">> Max number cycles : " << mTaskConfig.maxNumberCycles;
-}
+						mTaskConfig.taskName = taskName;
+						mTaskConfig.moduleName = taskConfigTree->second.get<std::string>("moduleName");
+						mTaskConfig.className = taskConfigTree->second.get<std::string>("className");
+						mTaskConfig.cycleDurationSeconds = taskConfigTree->second.get<int>("cycleDurationSeconds", 10);
+						mTaskConfig.maxNumberCycles = taskConfigTree->second.get<int>("maxNumberCycles", -1);
 
-void TaskRunner::startOfActivity()
-{
-  mTimerTotalDurationActivity.reset();
-  Activity activity(mConfigFile->get<int>("qc.config.Activity.number"),
-                    mConfigFile->get<int>("qc.config.Activity.type"));
-  mTask->startOfActivity(activity);
-}
+						std::string policiesFilePath = mConfigFile->get<std::string>("dataSamplingPolicyFile", "");
+						if (policiesFilePath.empty()) {
+							mInputSpecs = framework::DataSampling::InputSpecsForPolicy(mConfigFile.get(), taskConfigTree->second.get<std::string>("dataSamplingPolicy"));
+						} else {
+							mInputSpecs = framework::DataSampling::InputSpecsForPolicy(policiesFilePath, taskConfigTree->second.get<std::string>("dataSamplingPolicy"));
+						}
 
-void TaskRunner::endOfActivity()
-{
-  Activity activity(mConfigFile->get<int>("qc.config.Activity.number"),
-                    mConfigFile->get<int>("qc.config.Activity.type"));
-  mTask->endOfActivity(activity);
+					} catch (...) { // catch already here the configuration exception and print it
+						// because if we are in a constructor, the exception could be lost
+						std::string diagnostic = boost::current_exception_diagnostic_information();
+						LOG(ERROR) << "Unexpected exception, diagnostic information follows:\n" << diagnostic;
+						throw;
+					}
+					LOG(INFO) << "Configuration loaded : ";
+					LOG(INFO) << ">> Task name : " << mTaskConfig.taskName;
+					LOG(INFO) << ">> Module name : " << mTaskConfig.moduleName;
+					LOG(INFO) << ">> Cycle duration seconds : " << mTaskConfig.cycleDurationSeconds;
+					LOG(INFO) << ">> Max number cycles : " << mTaskConfig.maxNumberCycles;
+				}
 
-  double rate = mTotalNumberObjectsPublished / mTimerTotalDurationActivity.getTime();
-  mCollector->send({ rate, "QC_task_Rate_objects_published_per_second_whole_run" });
-  mCollector->send({ ba::mean(mPCpus), "QC_task_Mean_pcpu_whole_run" });
-  mCollector->send({ ba::mean(mPMems), "QC_task_Mean_pmem_whole_run" });
-}
+				void TaskRunner::startOfActivity()
+				{
+					mTimerTotalDurationActivity.reset();
+					Activity activity(mConfigFile->get<int>("qc.config.Activity.number"),
+							mConfigFile->get<int>("qc.config.Activity.type"));
+					mTask->startOfActivity(activity);
+				}
 
-void TaskRunner::finishCycle(DataAllocator& outputs)
-{
-  mTask->endOfCycle();
+				void TaskRunner::endOfActivity()
+				{
+					Activity activity(mConfigFile->get<int>("qc.config.Activity.number"),
+							mConfigFile->get<int>("qc.config.Activity.type"));
+					mTask->endOfActivity(activity);
 
-  double durationCycle = 0; // (boost::posix_time::seconds(mTaskConfig.cycleDurationSeconds) -
-                            // mCycleTimer->expires_from_now()).total_nanoseconds() / double(1e9);
-  // mCycleTimer->expires_at(mCycleTimer->expires_at() +
-  // boost::posix_time::seconds(mTaskConfig.cycleDurationSeconds));
+					double rate = mTotalNumberObjectsPublished / mTimerTotalDurationActivity.getTime();
+					mCollector->send({ rate, "QC_task_Rate_objects_published_per_second_whole_run" });
+					mCollector->send({ ba::mean(mPCpus), "QC_task_Mean_pcpu_whole_run" });
+					mCollector->send({ ba::mean(mPMems), "QC_task_Mean_pmem_whole_run" });
+				}
 
-  // publication
-  unsigned long numberObjectsPublished = publish(outputs);
+				void TaskRunner::finishCycle(DataAllocator& outputs)
+				{
+					mTask->endOfCycle();
 
-  // monitoring metrics
-  double durationPublication = 0; // (boost::posix_time::seconds(mTaskConfig.cycleDurationSeconds) -
-                                  // mCycleTimer->expires_from_now()).total_nanoseconds() / double(1e9);
-  mCollector->send({ mNumberBlocks, "QC_task_Numberofblocks_in_cycle" });
-  mCollector->send({ durationCycle, "QC_task_Module_cycle_duration" });
-  mCollector->send({ durationPublication, "QC_task_Publication_duration" });
-  mCollector->send({ (int)numberObjectsPublished,
-                     "QC_task_Number_objects_published_in_cycle" }); // cast due to Monitoring accepting only int
-  double rate = numberObjectsPublished / (durationCycle + durationPublication);
-  mCollector->send({ rate, "QC_task_Rate_objects_published_per_second" });
-  mTotalNumberObjectsPublished += numberObjectsPublished;
-  // std::vector<std::string> pidStatus = mMonitor->getPIDStatus(::getpid());
-  // mPCpus(std::stod(pidStatus[3]));
-  // mPMems(std::stod(pidStatus[4]));
-  double whole_run_rate = mTotalNumberObjectsPublished / mTimerTotalDurationActivity.getTime();
-  mCollector->send({ mTotalNumberObjectsPublished, "QC_task_Total_objects_published_whole_run" });
-  mCollector->send({ mTimerTotalDurationActivity.getTime(), "QC_task_Total_duration_activity_whole_run" });
-  mCollector->send({ whole_run_rate, "QC_task_Rate_objects_published_per_second_whole_run" });
-  //    mCollector->send({std::stod(pidStatus[3]), "QC_task_Mean_pcpu_whole_run"});
-  mCollector->send({ ba::mean(mPMems), "QC_task_Mean_pmem_whole_run" });
+					double durationCycle = 0; // (boost::posix_time::seconds(mTaskConfig.cycleDurationSeconds) -
+					// mCycleTimer->expires_from_now()).total_nanoseconds() / double(1e9);
+					// mCycleTimer->expires_at(mCycleTimer->expires_at() +
+					// boost::posix_time::seconds(mTaskConfig.cycleDurationSeconds));
 
-  mCycleNumber++;
-  mCycleOn = false;
+					// publication
+					unsigned long numberObjectsPublished = publish(outputs);
 
-  if (mTaskConfig.maxNumberCycles == mCycleNumber) {
-    LOG(INFO) << "The maximum number of cycles (" << mTaskConfig.maxNumberCycles << ") has been reached."
-              << " The task will not do anything from now on.";
-  }
-}
+					// monitoring metrics
+					double durationPublication = 0; // (boost::posix_time::seconds(mTaskConfig.cycleDurationSeconds) -
+					// mCycleTimer->expires_from_now()).total_nanoseconds() / double(1e9);
+					mCollector->send({ mNumberBlocks, "QC_task_Numberofblocks_in_cycle" });
+					mCollector->send({ durationCycle, "QC_task_Module_cycle_duration" });
+					mCollector->send({ durationPublication, "QC_task_Publication_duration" });
+					mCollector->send({ (int)numberObjectsPublished,
+							"QC_task_Number_objects_published_in_cycle" }); // cast due to Monitoring accepting only int
+					double rate = numberObjectsPublished / (durationCycle + durationPublication);
+					mCollector->send({ rate, "QC_task_Rate_objects_published_per_second" });
+					mTotalNumberObjectsPublished += numberObjectsPublished;
+					// std::vector<std::string> pidStatus = mMonitor->getPIDStatus(::getpid());
+					// mPCpus(std::stod(pidStatus[3]));
+					// mPMems(std::stod(pidStatus[4]));
+					double whole_run_rate = mTotalNumberObjectsPublished / mTimerTotalDurationActivity.getTime();
+					mCollector->send({ mTotalNumberObjectsPublished, "QC_task_Total_objects_published_whole_run" });
+					mCollector->send({ mTimerTotalDurationActivity.getTime(), "QC_task_Total_duration_activity_whole_run" });
+					mCollector->send({ whole_run_rate, "QC_task_Rate_objects_published_per_second_whole_run" });
+					//    mCollector->send({std::stod(pidStatus[3]), "QC_task_Mean_pcpu_whole_run"});
+					mCollector->send({ ba::mean(mPMems), "QC_task_Mean_pmem_whole_run" });
 
-unsigned long TaskRunner::publish(DataAllocator& outputs)
-{
-  outputs.adopt(
-    Output{ mMonitorObjectsSpec.origin,
-            mMonitorObjectsSpec.description,
-            mMonitorObjectsSpec.subSpec,
-            mMonitorObjectsSpec.lifetime },
-    dynamic_cast<TObject*>(mObjectsManager->getNonOwningArray())
-  );
+					mCycleNumber++;
+					mCycleOn = false;
 
-  return 1;
-}
+					if (mTaskConfig.maxNumberCycles == mCycleNumber) {
+						LOG(INFO) << "The maximum number of cycles (" << mTaskConfig.maxNumberCycles << ") has been reached."
+							<< " The task will not do anything from now on.";
+					}
+				}
 
-} // namespace core
-} // namespace quality_control
+				unsigned long TaskRunner::publish(DataAllocator& outputs)
+				{
+					outputs.adopt(
+							Output{ mMonitorObjectsSpec.origin,
+							mMonitorObjectsSpec.description,
+							mMonitorObjectsSpec.subSpec,
+							mMonitorObjectsSpec.lifetime },
+							dynamic_cast<TObject*>(mObjectsManager->getNonOwningArray())
+							);
+
+					return 1;
+				}
+
+		} // namespace core
+	} // namespace quality_control
 } // namespace o2

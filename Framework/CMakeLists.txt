@@ -90,10 +90,6 @@ install(
 
 add_library(QualityControl SHARED ${SRCS} QualityControlDict.cxx)
 
-add_library( libDetectorsBase SHARED IMPORTED )
-set_target_properties( libDetectorsBase  PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../sw/slc7_x86-64/O2/1.0.0-1/lib/libDetectorsBase.so )
-
-
 target_include_directories(
   QualityControl
   PUBLIC $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -111,7 +107,6 @@ target_link_libraries(
     AliceO2::InfoLogger
     AliceO2::Monitoring
     AliceO2::Configuration
-    libDetectorsBase
     ROOT::Net
     AliceO2::AliceO2
     Boost::container
@@ -133,33 +128,33 @@ target_compile_definitions(QualityControl
 set(
   EXE_SRCS
   src/runInformationService.cxx
-  src/runInformationServiceDump.cxx
+#  src/runInformationServiceDump.cxx
 #  src/runBasic.cxx
-  src/runPrint.cxx
-  src/runITSDPL.cxx
+#  src/runPrint.cxx
+#  src/runITSDPL.cxx
 #  src/runDummy.cxx
 #  src/runDummiest.cxx
-  src/runAdvanced.cxx
-  src/runReadout.cxx
-  src/runMergerTest.cxx
-  src/runReadoutForDataDump.cxx
-  src/runRepositoryBenchmark.cxx
+#  src/runAdvanced.cxx
+#  src/runReadout.cxx
+#  src/runMergerTest.cxx
+#  src/runReadoutForDataDump.cxx
+#  src/runRepositoryBenchmark.cxx
 )
 
 set(
   EXE_NAMES
   qcInfoService
-  qcInfoServiceDump
+#  qcInfoServiceDump
 #  qcRunBasic
-  qcRunPrint
-  qcRunDPL
+#  qcRunPrint
+#  qcRunDPL
 #  qcRunDummy
 #  qcRunDummiest
-  qcRunAdvanced
-  qcRunReadout
-  runMergerTest
-  qcRunReadoutForDataDump
-  repositoryBenchmark
+#  qcRunAdvanced
+#  qcRunReadout
+#  runMergerTest
+#  qcRunReadoutForDataDump
+#  repositoryBenchmark
 )
 
 list(LENGTH EXE_SRCS count)
@@ -170,6 +165,14 @@ foreach(i RANGE ${count})
   add_executable(${name} ${src})
   target_link_libraries(${name} PRIVATE QualityControl)
 endforeach()
+
+add_executable(qcRunDPL src/runITSDPL.cxx)
+target_link_libraries(qcRunDPL PRIVATE QualityControl)
+target_include_directories(qcRunDPL PRIVATE ${O2_ROOT}/include/AliTPCCommon)
+
+#add_executable(qcRunPrint src/runPrint.cxx)
+#target_link_libraries(qcRunPrint PRIVATE QualityControl)
+#target_include_directories(qcRunPrint PRIVATE ${O2_ROOT}/include/AliTPCCommon)
 
 # ---- Gui ----
 
@@ -242,7 +245,7 @@ unset(isSystemDir)
 
 # Install library and binaries
 install(
-  TARGETS QualityControl ${EXE_NAMES} ${DATADUMP}
+  TARGETS QualityControl ${EXE_NAMES} ${DATADUMP} qcRunDPL 
   EXPORT QualityControlTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -301,5 +304,6 @@ install(
     advanced.json
     readout.json
     readoutForDataDump.json
+    Print.json
   DESTINATION etc
 )

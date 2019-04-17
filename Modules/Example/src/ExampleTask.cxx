@@ -33,7 +33,7 @@ ExampleTask::~ExampleTask()
   }
 }
 
-void ExampleTask::initialize(o2::framework::InitContext& ctx)
+void ExampleTask::initialize(o2::framework::InitContext& ctx,std::string infile)
 {
   QcInfoLogger::GetInstance() << "initialize ExampleTask" << AliceO2::InfoLogger::InfoLogger::endm;
 
