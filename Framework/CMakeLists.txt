@@ -304,6 +304,6 @@ install(
     advanced.json
     readout.json
     readoutForDataDump.json
-    Print.json
+    PrintTest.json
   DESTINATION etc
 )
