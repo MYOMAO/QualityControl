@@ -21,37 +21,40 @@ asdf
 
 # QuickStart for After Logging into aliceits@svmithi02 
 
-#GUI 
+First, we need to setup the environment: `source /data/ITSQC/setQCenv.sh`
+
+Then, we need to check if the global GUI is running. To do this, open a browser and click on the following link:
+
+`https://qcg-test.cern.ch`
+
+If the GUI is running, you should see an interface with Object and Layout button. In this case, you can skip the local GUI setup and directly jump to the QC part.
+
+If the GUI is not running, you should see the text '504 Gateway Time-out'. In this case, you need to setup your own local GUI
 
 
-Open a terminal and do: `ssh -L 8080:localhost:8080 aliceits@svmithi02`
-
-Loading the working environment: `source /data/ITSQC/setQCenv.sh`
-
-Open the QCG folder: `cd /data/zhaozhong/aliceQCG`
-
-Entering the QCG environment: `alienv enter qcg/latest-o2-dataflow`
-
-Run QCG: `qcg`
+##Local GUI Setup
 
 
+To set up the local GUI, simply login with port tunneling 
 
-# QC 
+ssh -L 8080:localhost:8080 aliceits@svmithi02
 
-Open a new terminal: `ssh -Y aliceits@svmithi02`
-
-Loading the working environment: `source /data/ITSQC/setQCenv.sh`
-
-Going to the QC directory: `cd /data/zhaozhong/alice`
-
-Entering the environment: `alienv enter flpproto/latest`
-
-Going to the working directory:  `cd O2/Detectors/ITSMFT/ITS/macros/test/`
-
-Running the QC Command: `qcRunDPL`
+and do `source StartLocalGUI.sh`
 
 
-# Viewing the Results of QC
 
-Open a browser and go to the link: http://localhost:8080/
+## QC Running
+
+Simply do `source RunQC.sh`
+
+
+## Viewing the Results of QC
+
+If you run the global GUI, open a browser and go to the link: https://qcg-test.cern.ch
+If you run your own local GUI, open a browser and go to the link: http://localhost:8080/
+
+
+##Changing Files
+
+To change your files, simply do modify the line named "infile" in the config (JSON) file:  
 
