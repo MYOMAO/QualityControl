@@ -58,7 +58,7 @@ If you run the global GUI, open a browser and go to the link: https://qcg-test.c
 If you run your own local GUI, open a browser and go to the link: http://localhost:8080/
 
 
-##Changing Files
+## Changing Files
 
 To change your files, simply do modify the line named "infile" in the config (JSON) file:  
 
