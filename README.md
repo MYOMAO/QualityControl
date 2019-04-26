@@ -21,52 +21,37 @@ asdf
 
 # QuickStart for After Logging into aliceits@svmithi02 
 
-## Enviornment Setup
-
-Open the working directory: `cd /data/ITSQC`
-
-Loading the working environment: `source setQCenv.sh`
+#GUI 
 
 
-## Installing QC with Docker (If you want a new copy of the QC codes on svmithi02)
+Open a terminal and do: `ssh -L 8080:localhost:8080 aliceits@svmithi02`
+
+Loading the working environment: `source /data/ITSQC/setQCenv.sh`
+
+Open the QCG folder: `cd /data/zhaozhong/aliceQCG`
+
+Entering the QCG environment: `alienv enter qcg/latest-o2-dataflow`
+
+Run QCG: `qcg`
 
 
-Creating the new folder for QC: `mkdir QC`     
 
-`cd QC`    
+# QC 
 
+Open a new terminal: `ssh -Y aliceits@svmithi02`
 
-Set the software path to be in the current folder: `export ALIBUILD_WORK_DIR="$PWD/sw"`       
+Loading the working environment: `source /data/ITSQC/setQCenv.sh`
 
+Going to the QC directory: `cd /data/zhaozhong/alice`
 
-Obtain the latest O2: `aliBuild init O2@dev --defaults o2`          
+Entering the environment: `alienv enter flpproto/latest`
 
+Going to the working directory:  `cd O2/Detectors/ITSMFT/ITS/macros/test/`
 
-Obtain the QC:  `git clone -b PathLinkFix https://github.com/MYOMAO/QualityControl.git`     
-
-Building O2: `aliBuild build O2 --defaults o2`    
-
-
-Building QC: `aliBuild build flpproto --default o2`     
+Running the QC Command: `qcRunDPL`
 
 
-Entering QC environment: `alienv enter flpproto/latest`     
+# Viewing the Results of QC
 
-Copying O2 Geometry to QC: `cp QualityControl/O2geometry.root  O2/Detectors/ITSMFT/ITS/macros/test/`   
+Open a browser and go to the link: http://localhost:8080/
 
-Opening the testing directory: `cd O2/Detectors/ITSMFT/ITS/macros/test/`      
-
-Assuming you have the input raw data file, the code will run :  `qcRunDPL` 
-
-
-#GUI and CCDB 
-
-## Tunneling GUI Port to the Local Browser
-
-
- `ssh -L 8080:localhost:8080 aliceits@svmithi02`
-
-
-## Clearing the Existing Histogram on the GUI
-
-For example, for ITSQcTask: `http://ccdb-test.cern.ch:8080/truncate/ITSQcTask/*`
