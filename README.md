@@ -67,6 +67,7 @@ If you run the global GUI, open a browser and go to the link: https://qcg-test.c
 
 If you run your own local GUI, open a browser and go to the link: http://localhost:8080/
 
+The plots on the GUI can be found under `ITSQcTask` at `Objects`
 
 ## Changing Files
 
