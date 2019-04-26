@@ -60,10 +60,11 @@ To run the QC: `qcRunDPL`
 ## Viewing the Results of QC
 
 If you run the global GUI, open a browser and go to the link: https://qcg-test.cern.ch
+
 If you run your own local GUI, open a browser and go to the link: http://localhost:8080/
 
 
 ## Changing Files
 
-To change your files, simply do modify the line named "infile" in the config (JSON) file: sw/slc7_x86-64/QualityControl/IBCommissioning-1/etc/PrintTest.json
+To change your files, simply do modify the line named "infile" in the config (JSON) file: ../alice/sw/slc7_x86-64/QualityControl/IBCommissioning-1/etc/PrintTest.json
 
