@@ -23,7 +23,7 @@ asdf
 
 ## Enviornment Setup
 
-Open the working directory: `cd /data/ITSQCq`
+Open the working directory: `cd /data/ITSQC`
 
 Loading the working environment: `source setQCenv.sh`
 
@@ -57,3 +57,16 @@ Copying O2 Geometry to QC: `cp QualityControl/O2geometry.root  O2/Detectors/ITSM
 Opening the testing directory: `cd O2/Detectors/ITSMFT/ITS/macros/test/`      
 
 Assuming you have the input raw data file, the code will run :  `qcRunDPL` 
+
+
+#GUI and CCDB 
+
+## Tunneling GUI Port to the Local Browser
+
+
+ `ssh -L 8080:localhost:8080 aliceits@svmithi02`
+
+
+## Clearing the Existing Histogram on the GUI
+
+For example, for ITSQcTask: `http://ccdb-test.cern.ch:8080/truncate/ITSQcTask/*`
