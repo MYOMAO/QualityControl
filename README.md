@@ -21,7 +21,11 @@ asdf
 
 # QuickStart for After Logging into aliceits@svmithi02 
 
+## QC Environment Setup
+
 First, we need to setup the environment: `source /data/ITSQC/setQCenv.sh`
+
+## Check GUI Functionality 
 
 Then, we need to check if the global GUI is running. To do this, open a browser and click on the following link:
 
