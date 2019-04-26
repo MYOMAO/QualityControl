@@ -23,7 +23,7 @@ asdf
 
 ## QC Environment Setup
 
-First, we need to setup the environment: `source /data/ITSQC/setQCenv.sh`
+First, we need to ALWAYS FIRST setup the environment: `source /data/ITSQC/setQCenv.sh`
 
 ## Check GUI Functionality 
 
@@ -43,6 +43,8 @@ To set up the local GUI, simply login with port tunneling
 
 `ssh -L 8080:localhost:8080 aliceits@svmithi02`
 
+`source /data/ITSQC/setQCenv.sh`
+
 To enter the GUI environment: `source StartLocalGUI.sh`
 
 To run the GUI: `qcg`
@@ -50,6 +52,8 @@ To run the GUI: `qcg`
 
 
 ## QC Running
+
+`source /data/ITSQC/setQCenv.sh`
 
 To enter the QC environment: `source RunQC.sh`
 
