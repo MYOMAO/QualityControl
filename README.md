@@ -43,14 +43,19 @@ To set up the local GUI, simply login with port tunneling
 
 `ssh -L 8080:localhost:8080 aliceits@svmithi02`
 
-and do `source StartLocalGUI.sh`
+To enter the GUI environment: `source StartLocalGUI.sh`
+
+To run the GUI: `qcg`
 
 
 
 ## QC Running
 
-Simply do `source RunQC.sh`
+To enter the QC environment: `source RunQC.sh`
 
+To go to the working directory: `cd ../workdir/`
+
+To run the QC: `qcRunDPL`
 
 ## Viewing the Results of QC
 
