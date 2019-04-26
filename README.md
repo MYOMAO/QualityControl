@@ -41,7 +41,7 @@ If the GUI is not running, you should see the text '504 Gateway Time-out'. In th
 
 To set up the local GUI, simply login with port tunneling 
 
-ssh -L 8080:localhost:8080 aliceits@svmithi02
+`ssh -L 8080:localhost:8080 aliceits@svmithi02`
 
 and do `source StartLocalGUI.sh`
 
