@@ -32,7 +32,7 @@ If the GUI is running, you should see an interface with Object and Layout button
 If the GUI is not running, you should see the text '504 Gateway Time-out'. In this case, you need to setup your own local GUI
 
 
-##Local GUI Setup
+## Local GUI Setup
 
 
 To set up the local GUI, simply login with port tunneling 
