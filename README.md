@@ -70,5 +70,7 @@ If you run your own local GUI, open a browser and go to the link: http://localho
 
 ## Changing Files
 
-To change your files, simply do modify the line named "infile" in the config (JSON) file: ../alice/sw/slc7_x86-64/QualityControl/IBCommissioning-1/etc/PrintTest.json
+To change your files, simply do modify the line named "infile" in the config (JSON) file: 
+
+`../alice/sw/slc7_x86-64/QualityControl/IBCommissioning-1/etc/PrintTest.json`
 
