@@ -32,10 +32,11 @@ set(O2_LIBRARIES_NAMES
         ITSSimulation
         ITSReconstruction
         ITSWorkflow
+ 	RawPixelWorkFlow
         ITSMFTReconstruction
         ITSMFTBase
         DetectorsCommonDataFormats
-        )
+	)
 foreach(lib_name ${O2_LIBRARIES_NAMES})
     find_library(AliceO2_LIBRARY_${lib_name} NAMES ${lib_name} HINTS ${O2_ROOT}/lib ENV LD_LIBRARY_PATH)
     list(APPEND AliceO2_LIBRARIES_VAR_NAMES AliceO2_LIBRARY_${lib_name})

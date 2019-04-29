@@ -51,8 +51,8 @@ namespace o2
 
 			ITSQCTask::ITSQCTask() : TaskInterface(), mHistogram(nullptr) {
 				mHistogram = nullptr;
-//				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSBase.so");
-//				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSSimulation.so");
+				//				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSBase.so");
+				//				gSystem->Load("/data/zhaozhong/alice/sw/slc7_x86-64/O2/1.0.0-1/lib/libITSSimulation.so");
 				o2::base::GeometryManager::loadGeometry();
 				ChipStave->GetXaxis ()->SetTitle ("Chip ID");
 				ChipStave->GetYaxis ()->SetTitle ("Number of Hits");
@@ -84,13 +84,13 @@ namespace o2
 
 				QcInfoLogger::GetInstance() << "initialize ITSQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
 
-//				std::string filename = "itsdigits.root";
-//				auto filename = ctx.options().get<std::string>("its-digits");
+				//				std::string filename = "itsdigits.root";
+				//				auto filename = ctx.options().get<std::string>("its-digits");
 				//std::unique_ptr<TFile> mFile = nullptr;
 				//mFile = std::make_unique<TFile>(filename.c_str(), "OLD");
 
-//				QcInfoLogger::GetInstance() << "Input File Name is " << filename.c_str () <<  AliceO2::InfoLogger::InfoLogger::endm;
-//				QcInfoLogger::GetInstance() << "It WORK, we start plotting histograms" <<  AliceO2::InfoLogger::InfoLogger::endm;
+				//				QcInfoLogger::GetInstance() << "Input File Name is " << filename.c_str () <<  AliceO2::InfoLogger::InfoLogger::endm;
+				//				QcInfoLogger::GetInstance() << "It WORK, we start plotting histograms" <<  AliceO2::InfoLogger::InfoLogger::endm;
 
 				/*
 				   std::vector<ChipPixelData> mChips;
@@ -254,22 +254,21 @@ namespace o2
 
 				// 1. In a loop
 
-        o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("ITS_DIGITS_S");
-        LOG(INFO) << "got digit, chip index : " << digit.getChipIndex();
 
-	/*
-
-				cout << "START Here" << endl;
+				QcInfoLogger::GetInstance()  << "START Here My ORBS"<< AliceO2::InfoLogger::InfoLogger::endm;
 				auto digits = ctx.inputs().get<const std::vector<o2::ITSMFT::Digit>>("digits");
-				auto labels = ctx.inputs().get<const o2::dataformats::MCTruthContainer<o2::MCCompLabel>*>("labels");
-				auto rofs = ctx.inputs().get<const std::vector<o2::ITSMFT::ROFRecord>>("ROframes");
-				auto mc2rofs = ctx.inputs().get<const std::vector<o2::ITSMFT::MC2ROFRecord>>("MC2ROframes");
+				QcInfoLogger::GetInstance()  << "ITSClusterer pulled"<< AliceO2::InfoLogger::InfoLogger::endm;
+				QcInfoLogger::GetInstance()  << "Finally FUCKING WORKED" <<  AliceO2::InfoLogger::InfoLogger::endm;	
+				/*
+				   auto labels = ctx.inputs().get<const o2::dataformats::MCTruthContainer<o2::MCCompLabel>*>("labels");
+				   auto rofs = ctx.inputs().get<const std::vector<o2::ITSMFT::ROFRecord>>("ROframes");
+				   auto mc2rofs = ctx.inputs().get<const std::vector<o2::ITSMFT::MC2ROFRecord>>("MC2ROframes");
 
-				LOG(INFO) << "ITSClusterer pulled " << digits.size() << " digits, "
-					<< labels->getIndexedSize() << " MC label objects, in "
-					<< rofs.size() << " RO frames and "
-					<< mc2rofs.size() << " MC events";
-	*/
+				   LOG(INFO) << "ITSClusterer pulled " << digits.size() << " digits, "
+				   << labels->getIndexedSize() << " MC label objects, in "
+				   << rofs.size() << " RO frames and "
+				   << mc2rofs.size() << " MC events";
+				   */
 				for (auto&& input : ctx.inputs()) {
 					// get message header
 					const auto* header = header::get<header::DataHeader*>(input.header);

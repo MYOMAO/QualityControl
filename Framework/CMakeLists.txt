@@ -174,6 +174,11 @@ add_executable(qcRunPrint src/runPrint.cxx)
 target_link_libraries(qcRunPrint PRIVATE QualityControl)
 target_include_directories(qcRunPrint PRIVATE ${O2_ROOT}/include/AliTPCCommon)
 
+add_executable(qcRunDS src/runRawDS.cxx)
+target_link_libraries(qcRunDS PRIVATE QualityControl)
+target_include_directories(qcRunDS PRIVATE ${O2_ROOT}/include/AliTPCCommon)
+target_include_directories(qcRunDS PRIVATE /data/zhaozhong/aliceInstall/O2/Detectors/ITSMFT/ITS/RawPixelReaderWorkflow/include)
+
 # ---- Gui ----
 
 set(DATADUMP "")
@@ -245,7 +250,7 @@ unset(isSystemDir)
 
 # Install library and binaries
 install(
-  TARGETS QualityControl ${EXE_NAMES} ${DATADUMP} qcRunDPL qcRunPrint
+  TARGETS QualityControl ${EXE_NAMES} ${DATADUMP} qcRunDPL qcRunPrint qcRunDS
   EXPORT QualityControlTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -304,6 +309,7 @@ install(
     advanced.json
     readout.json
     readoutForDataDump.json
+    PrintTest.json
     Print.json
   DESTINATION etc
 )
