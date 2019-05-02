@@ -1,5 +1,5 @@
 ///
-/// \file   testITSQCCluster.cxx
+/// \file   testSimpleDS.cxx
 /// \author
 ///
 
@@ -15,11 +15,11 @@ namespace o2
 {
 namespace quality_control_modules
 {
-namespace itsqccluster
+namespace simpleds
 {
 
 BOOST_AUTO_TEST_CASE(instantiate_task) { BOOST_CHECK(true); }
 
-} // namespace itsqccluster
+} // namespace simpleds
 } // namespace quality_control_modules
 } // namespace o2
