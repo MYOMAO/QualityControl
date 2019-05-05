@@ -27,12 +27,12 @@
 
 
 
-using o2::ITSMFT::Digit;
+using o2::itsmft::Digit;
 
 
 
 using namespace std;
-using namespace o2::ITSMFT;
+using namespace o2::itsmft;
 using namespace o2::ITS;
 
 
@@ -167,7 +167,7 @@ namespace o2
 				}
 				else
 				{				// clusterizer of digits needs input from the FairRootManager (at the moment)
-					mReaderMC = std::make_unique < o2::ITSMFT::DigitPixelReader > ();
+					mReaderMC = std::make_unique < o2::itsmft::DigitPixelReader > ();
 					mReader = mReaderMC.get ();
 				}
 
@@ -467,16 +467,16 @@ namespace o2
 					//printf("ErrorCount: %d\n", (int)statRU.errorCounts[o2::ITSMFT::RUDecodingStat::ErrPageCounterDiscontinuity] );
 
 					//Error[0] = Error[0]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrGarbageAfterPayload];
-					Error[0] = Error[0]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrPageCounterDiscontinuity];
-					Error[1] = Error[1]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrRDHvsGBTHPageCnt];
-					Error[2] = Error[2]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrMissingGBTHeader];
-					Error[3] = Error[3]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrMissingGBTTrailer];
-					Error[4] = Error[4]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrNonZeroPageAfterStop];
-					Error[5] = Error[5]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrUnstoppedLanes];  
-					Error[6] = Error[6]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrDataForStoppedLane];
-					Error[7] = Error[7]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrNoDataForActiveLane];
-					Error[8] = Error[8]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrIBChipLaneMismatch];
-					Error[9] = Error[9]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrCableDataHeadWrong];
+					Error[0] = Error[0]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrPageCounterDiscontinuity];
+					Error[1] = Error[1]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrRDHvsGBTHPageCnt];
+					Error[2] = Error[2]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrMissingGBTHeader];
+					Error[3] = Error[3]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrMissingGBTTrailer];
+					Error[4] = Error[4]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrNonZeroPageAfterStop];
+					Error[5] = Error[5]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrUnstoppedLanes];  
+					Error[6] = Error[6]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrDataForStoppedLane];
+					Error[7] = Error[7]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrNoDataForActiveLane];
+					Error[8] = Error[8]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrIBChipLaneMismatch];
+					Error[9] = Error[9]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrCableDataHeadWrong];
 
 					//cout << "Error 5 = " << Error[5]  << endl;
 

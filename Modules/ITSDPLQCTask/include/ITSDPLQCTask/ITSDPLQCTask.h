@@ -71,8 +71,8 @@ namespace o2
 			class ITSDPLQCTask /*final*/ : public TaskInterface // todo add back the "final" when doxygen is fixed
 			{
 
-				using ChipPixelData = o2::ITSMFT::ChipPixelData;
-				using PixelReader = o2::ITSMFT::PixelReader;
+				using ChipPixelData = o2::itsmft::ChipPixelData;
+				using PixelReader = o2::itsmft::PixelReader;
 
 				public:
 				/// \brief Constructor
@@ -91,8 +91,8 @@ namespace o2
 				void endOfCycle() override;
 				void endOfActivity(Activity& activity) override;
 				void reset() override;
-				std::vector<o2::ITSMFT::Digit> mDigitsArray;                     
-				std::vector<o2::ITSMFT::Digit>* mDigitsArrayPtr = &mDigitsArray; 
+				std::vector<o2::itsmft::Digit> mDigitsArray;                     
+				std::vector<o2::itsmft::Digit>* mDigitsArrayPtr = &mDigitsArray; 
 				UInt_t getCurrROF() const { return mCurrROF; }
 				void setNChips(int n)
 				{
@@ -109,12 +109,12 @@ namespace o2
 				ChipPixelData* mChipData = nullptr; 
 				std::vector<ChipPixelData> mChips;
 				std::vector<ChipPixelData> mChipsOld;
-				o2::ITSMFT::PixelReader* mReader = nullptr; 
-				std::unique_ptr<o2::ITSMFT::DigitPixelReader> mReaderMC;    
+				o2::itsmft::PixelReader* mReader = nullptr; 
+				std::unique_ptr<o2::itsmft::DigitPixelReader> mReaderMC;    
 				//std::unique_ptr<o2::ITSMFT::RawPixelReader<o2::ITSMFT::ChipMappingITS>> mReaderRaw; 
-				o2::ITSMFT::RawPixelReader<o2::ITSMFT::ChipMappingITS> mReaderRaw;		
-				o2::ITSMFT::ChipInfo chipInfo;
-				UInt_t mCurrROF = o2::ITSMFT::PixelData::DummyROF; 
+				o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS> mReaderRaw;		
+				o2::itsmft::ChipInfo chipInfo;
+				UInt_t mCurrROF = o2::itsmft::PixelData::DummyROF; 
 				int* mCurr; // pointer on the 1st row of currently processed mColumnsX
 				int* mPrev; // pointer on the 1st row of previously processed mColumnsX
 				static constexpr int   NCols = 1024;
@@ -156,7 +156,7 @@ namespace o2
 					mCurr = mPrev;
 					mPrev = tmp;
 				}
-				const std::vector<o2::ITSMFT::Digit>* mDigits = nullptr;
+				const std::vector<o2::itsmft::Digit>* mDigits = nullptr;
 				void resetColumn(int* buff)
 				{
 					std::memset(buff, -1, sizeof(int) * NRows);
@@ -186,7 +186,7 @@ namespace o2
 				unsigned int Error[NError];
 				double ErrorMax;
 				TPaveText *pt[NError];
-				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError,0,NError);
+				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+3,-1,NError+1);
 				//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 				TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
