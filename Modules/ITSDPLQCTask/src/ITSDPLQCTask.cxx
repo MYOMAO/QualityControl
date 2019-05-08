@@ -159,7 +159,7 @@ namespace o2
 			{
 				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
 				QcInfoLogger::GetInstance() << "infile is fucking = " << infile << AliceO2::InfoLogger::InfoLogger::endm;
-				inpName = infile;
+
 				bool mRawDataMode = 1;
 				if (mRawDataMode)
 				{
@@ -179,6 +179,8 @@ namespace o2
 				cout << "numOfChips = " << numOfChips << endl;
 				setNChips (numOfChips);
 				cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
+			
+				
 				mReaderRaw.openInput (inpName);
 				mReaderRaw.setPadding128(true);
 				mReaderRaw.setVerbosity(0);
@@ -496,6 +498,7 @@ namespace o2
 						//cout << "ChipNumber = " << ChipNumber << endl;
 						eta = glo.eta();
 						phi = glo.phi();
+						//if(ActPix > 0 ) cout << "Chip ID = " << ChipID << "   Occupancy = " << ActPix << endl;
 						//			Occupancy[ChipID] = Occupancy[ChipID] + ActPix;
 						OccupancyPlot[lay]->Fill(ActPix);
 						ChipStave->Fill(ChipID, ActPix);
