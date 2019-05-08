@@ -62,13 +62,53 @@ namespace o2
 
 				for(int i = 0; i < NLayer; i++){
 
-					LayEtaPhiClus[i] = new TH2D(Form("Lay1EtaPhiLay%d",i),Form("Lay1EtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhiClus[i] = new TH2D(Form("ClusEtaPhiLay%d",i),Form("ClusEtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
 					LayEtaPhiClus[i]->GetXaxis()->SetTitle("#eta");
 					LayEtaPhiClus[i]->GetYaxis()->SetTitle("#phi");
 					LayEtaPhiClus[i]->GetZaxis()->SetTitle("Cluster Size");
 					LayEtaPhiClus[i]->GetZaxis()->SetTitleOffset(1.4);
 					LayEtaPhiClus[i]->GetYaxis()->SetTitleOffset(1.10);	
 					LayEtaPhiClus[i]->SetTitle(Form("Cluster Size for Layer %d #eta and #phi Distribution",i));
+					
+					LayClusDis[i] = new TH1D(Form("ClusDisLay%d",i),Form("ClusDisLay%d",i),NClusBin,0,NClusMax);
+					LayClusDis[i]->GetXaxis()->SetTitle("Cluster Size");
+					LayClusDis[i]->GetYaxis()->SetTitle("Counts");
+					LayClusDis[i]->SetTitle(Form("Cluster Size Distribution for Layer %d",i));
+					LayClusDis[i]->GetYaxis()->SetTitleOffset(1.40);	
+
+
+					LayEtaPhiClusNum[i] = new TH2D(Form("ClusNumEtaPhiLay%d",i),Form("ClusNumEtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhiClusNum[i]->GetXaxis()->SetTitle("#eta");
+					LayEtaPhiClusNum[i]->GetYaxis()->SetTitle("#phi");
+					LayEtaPhiClusNum[i]->GetZaxis()->SetTitle("Number of Clusters");
+					LayEtaPhiClusNum[i]->GetZaxis()->SetTitleOffset(1.4);
+					LayEtaPhiClusNum[i]->GetYaxis()->SetTitleOffset(1.10);	
+					LayEtaPhiClusNum[i]->SetTitle(Form("Cluster Number for Layer %d #eta and #phi Distribution",i));
+				
+					LayClusNumDis[i] = new TH1D(Form("ClusNumDisLay%d",i),Form("ClusNumDisLay%d",i),NClusNumBin,0,NClusNumMax);
+					LayClusNumDis[i]->GetXaxis()->SetTitle("Number of Clusters");
+					LayClusNumDis[i]->GetYaxis()->SetTitle("Counts");
+					LayClusNumDis[i]->SetTitle(Form("Cluster Number Distribution for Layer %d",i));
+					LayClusNumDis[i]->GetYaxis()->SetTitleOffset(1.40);	
+
+
+					LayEtaPhiClusID[i] = new TH2D(Form("ClusIDEtaPhiLay%d",i),Form("ClusIDEtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhiClusID[i]->GetXaxis()->SetTitle("#eta");
+					LayEtaPhiClusID[i]->GetYaxis()->SetTitle("#phi");
+					LayEtaPhiClusID[i]->GetZaxis()->SetTitle("Clusters Pattern ID");
+					LayEtaPhiClusID[i]->GetZaxis()->SetTitleOffset(1.4);
+					LayEtaPhiClusID[i]->GetYaxis()->SetTitleOffset(1.10);	
+					LayEtaPhiClusID[i]->SetTitle(Form("Cluster Pattern ID for Layer %d #eta and #phi Distribution",i));
+
+
+			
+					LayClusIDDis[i] = new TH1D(Form("ClusIDDisLay%d",i),Form("ClusIDDisLay%d",i),NClusIDBin,0,NClusIDMax);
+					LayClusIDDis[i]->GetXaxis()->SetTitle("Cluster Pattern ID");
+					LayClusIDDis[i]->GetYaxis()->SetTitle("Counts");
+					LayClusIDDis[i]->SetTitle(Form("Cluster Pattern ID Distribution for Layer %d",i));
+					LayClusIDDis[i]->GetYaxis()->SetTitleOffset(1.40);	
+
+
 				}
 
 			}
@@ -94,7 +134,10 @@ namespace o2
 					LOG(FATAL) << "Did not find ITS clusters branch ITSCluster in the input tree" << FairLogger::endl;
 				}
 				std::vector<o2::ITSMFT::Cluster>* clusters = nullptr;
+		     	std::vector<o2::ITSMFT::CompClusterExt> *CompClus = nullptr;
+
 				itsClusters.SetBranchAddress("ITSCluster", &clusters);
+				itsClusters.SetBranchAddress("ITSClusterComp", &CompClus);
 
 				NEvents = itsClusters.GetEntries();
 				NEvents = 1;
@@ -107,6 +150,8 @@ namespace o2
 					cout << "TotalClusterSize = " <<  TotalClusterSize << endl;
 					for(int i = 0; i< TotalClusterSize; i++){
 						Cluster& c = (*clusters)[i];
+						CompClusterExt & cc = (*CompClus)[i];
+
 						ChipID = c.getSensorID();
 						//int Byte = c.getBits();
 						//int Count = c.getCount();
@@ -116,9 +161,13 @@ namespace o2
 						Clusy = c.getY();
 						Clusz = c.getZ();
 						ClusSize = c.getNPix();
+						//cout << "Pass Here" << endl;
 
-					//	cout << "X = " <<  Clusx << "  Y = " << Clusy <<  "   Z = " << Clusz << "  Cluster Size = " <<  ClusSize << endl;
-					
+						ClusterID = cc.getPatternID();
+						
+	
+						//cout << "X = " <<  Clusx << "  Y = " << Clusy <<  "   Z = " << Clusz << "  Cluster Size = " <<  ClusSize << "   ClusterID = "  <<  cc.getPatternID() << endl;
+				
 
 						Clusphi = TMath::ATan(Clusy/Clusx);
 						Clustheta = TMath::ATan(TMath::Sqrt(Clusx*Clusx + Clusy*Clusy)/TMath::Abs(Clusz));
@@ -126,7 +175,7 @@ namespace o2
 
 
 
-						cout << "Eta = " <<  Cluseta << "  Phi = " << Clusphi <<  "  Cluster Size = " <<  ClusSize << endl;
+					//	cout << "Eta = " <<  Cluseta << "  Phi = " << Clusphi <<  "  Cluster Size = " <<  ClusSize << endl;
 
 						geom->getChipId (ChipID, lay, sta, ssta, mod, chip);
 						geom->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
@@ -137,9 +186,13 @@ namespace o2
 
 
 						LayEtaPhiClus[lay]->Fill(Cluseta,Clusphi,ClusSize);
-					
+						LayClusDis[lay]->Fill(ClusSize);
+						LayEtaPhiClusNum[lay]->Fill(Cluseta,Clusphi,1);
+						LayEtaPhiClusID[lay]->Fill(Cluseta,Clusphi,ClusterID);	
+						LayClusIDDis[lay]->Fill(ClusterID);	
 
 					}
+
 
 				}
 
@@ -147,13 +200,45 @@ namespace o2
 				for(int j = 0; j < NLayer; j++){ 
 					LayEtaPhiClus[j]->Draw("COLZ");
 					cout << "Eta Phi Total = " << 	LayEtaPhiClus[j]->Integral() << endl;
-					c1->SaveAs(Form("EtaPhiLayClus%d.png",j));
+					c1->SaveAs(Form("Cluster/EtaPhiLayClus%d.png",j));
+				}
+		
+
+				for(int j = 0; j < NLayer; j++){ 
+					LayEtaPhiClusNum[j]->Draw("COLZ");
+					cout << "Eta Phi Total = " << 	LayEtaPhiClusNum[j]->Integral() << endl;
+					c1->SaveAs(Form("Cluster/LayEtaPhiClusNum%d.png",j));
+				}
+
+				
+				for(int j = 0; j < NLayer; j++){ 
+					LayEtaPhiClusID[j]->Draw("COLZ");
+					cout << "Eta Phi Total = " << 	LayEtaPhiClusNum[j]->Integral() << endl;
+					c1->SaveAs(Form("Cluster/LayEtaPhiClusID%d.png",j));
+				}
+
+				c1->SetLogy();
+
+				for(int j = 0; j < NLayer; j++){ 
+					LayClusDis[j]->Draw();
+					cout << "Clus Dis Lay " <<  LayClusDis[j]->Integral() << endl;
+					c1->SaveAs(Form("Cluster/LayClusDis%d.png",j));
 				}
 
 
+				for(int j = 0; j < NLayer; j++){ 
+					LayClusIDDis[j]->Draw();
+					cout << "Clus Dis ID Lay " <<  	LayClusIDDis[j]->Integral() << endl;
+					c1->SaveAs(Form("Cluster/LayClusIDDis%d.png",j));
+				}
 
 				for(int i = 0; i < NLayer; i++){
 					getObjectsManager()->startPublishing(LayEtaPhiClus[i]);
+					getObjectsManager()->startPublishing(LayClusDis[i]);
+					getObjectsManager()->startPublishing(LayEtaPhiClusNum[i]);
+					getObjectsManager()->startPublishing(LayEtaPhiClusID[i]);
+					getObjectsManager()->startPublishing(LayClusIDDis[i]);
+
 				}
 
 

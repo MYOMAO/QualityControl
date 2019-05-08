@@ -19,17 +19,18 @@
 #include "ITSBase/GeometryTGeo.h"
 #include "DetectorsBase/GeometryManager.h"
 #include "uti.h"
+#include "DataFormatsITSMFT/CompCluster.h"
 
-#include "../../../../O2/Detectors/ITSMFT/common/reconstruction/include/ITSMFTReconstruction/PixelReader.h"
-#include "../../../../O2/Detectors/ITSMFT/common/reconstruction/include/ITSMFTReconstruction/PixelData.h"
-#include "../../../../O2/Detectors/ITSMFT/common/reconstruction/include/ITSMFTReconstruction/LookUp.h"
-#include "../../../../O2/DataFormats/Detectors/ITSMFT/common/include/DataFormatsITSMFT/Cluster.h"
-#include "../../../../O2/DataFormats/Detectors/ITSMFT/common/include/DataFormatsITSMFT/CompCluster.h"
-#include "../../../../O2/DataFormats/Detectors/ITSMFT/common/include/DataFormatsITSMFT/ROFRecord.h"
+#include "ITSMFTReconstruction/PixelReader.h"
+#include "ITSMFTReconstruction/PixelData.h"
+#include "ITSMFTReconstruction/LookUp.h"
+#include "DataFormatsITSMFT/Cluster.h"
+#include "DataFormatsITSMFT/CompCluster.h"
+#include "DataFormatsITSMFT/ROFRecord.h"
 
-#include "../../../../O2/DataFormats/simulation/include/SimulationDataFormat/MCCompLabel.h"
-#include "../../../../O2/DataFormats/simulation/include/SimulationDataFormat/MCTruthContainer.h"
-#include "../../../../O2/DataFormats/Reconstruction/include/ReconstructionDataFormats/BaseCluster.h"
+#include "SimulationDataFormat/MCCompLabel.h"
+#include "SimulationDataFormat/MCTruthContainer.h"
+#include "ReconstructionDataFormats/BaseCluster.h"
 
 class TH1F;
 
@@ -73,14 +74,20 @@ namespace o2
 					TString clusterinfile = "o2clus_its.root";
 					o2::ITS::GeometryTGeo* geom = o2::ITS::GeometryTGeo::Instance();
 					int ChipID;
+					TH1D * LayClusDis[NLayer]; 	
 					TH2D * LayEtaPhiClus[NLayer]; 
+					TH1D * LayClusNumDis[NLayer]; 	
+					TH2D * LayEtaPhiClusNum[NLayer]; 
+					TH1D * LayClusIDDis[NLayer]; 	
+					TH2D * LayEtaPhiClusID[NLayer]; 
+
 					int lay, sta, ssta, mod, chip;		
-					const int NEta = 100;
-					const double EtaMin = -1;
-					const double EtaMax = 2;
+					const int NEta = 500;
+					const double EtaMin = 0;
+					const double EtaMax = 5;
 					const int NPhi = 100;
-					const double PhiMin = -1.00;
-					const double PhiMax = 1.00;
+					const double PhiMin = 0.4;
+					const double PhiMax = 0.6;
 					const int NChipsSta = 9;
 					double eta;
 					double phi;
@@ -91,7 +98,23 @@ namespace o2
 					double Cluseta;
 					double Clustheta;	
 					double Clusphi;
+					int NClusStep = 1;
+					int NClusMax = 20;
+					int NClusBin = NClusMax/NClusStep;
 	
+					int NClusNumStep = 1;
+					int NClusNumMax = 5;
+					int NClusNumBin = NClusNumMax/NClusNumStep;
+
+					int NClusIDStep = 1;
+					int NClusIDMax = 50;
+					int NClusIDBin = NClusIDMax/NClusIDStep;
+
+
+					int ClusterNumber;
+					int ClusterID;
+
+
 			};
 
 		} // namespace itsqccluster
