@@ -182,7 +182,7 @@ namespace o2
 				mReaderRaw.openInput (inpName);
 				mReaderRaw.setPadding128(true);
 				mReaderRaw.setVerbosity(0);
-
+                mReaderRaw.setMinTriggersToCache(1025);
 
 				process (mReaderRaw);
 
@@ -265,8 +265,8 @@ namespace o2
 					OccupancyPlot[j]->SetMarkerStyle (22);
 					OccupancyPlot[j]->SetMarkerSize (1.5);
 					OccupancyPlot[j]->Draw ("ep");
-
-					c->SaveAs(Form("OccupancyLay%d.png",j));
+                    cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
+    				c->SaveAs(Form("OccupancyLay%d.png",j));
 
 				}
 
@@ -497,6 +497,7 @@ namespace o2
 						eta = glo.eta();
 						phi = glo.phi();
 						//			Occupancy[ChipID] = Occupancy[ChipID] + ActPix;
+						//if(ActPix > 0 ) cout << "Chip ID = " << ChipID << "   Occupancy = " << ActPix << endl;
 						OccupancyPlot[lay]->Fill(ActPix);
 						ChipStave->Fill(ChipID, ActPix);
 						LayEtaPhi[lay]->Fill(eta,phi,ActPix);

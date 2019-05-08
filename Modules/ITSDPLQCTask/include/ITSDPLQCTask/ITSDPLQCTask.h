@@ -131,7 +131,8 @@ namespace o2
 				const int NLay1 = 108;
 				double Occupancy[24120];
 				static constexpr int NLayer = 7;
-				const int NEventMax[NLayer] = {150,150,150,150,150,150,150};
+				const int NEventMax[NLayer] = {3000,150,150,150,150,150,150};
+				const int OccBinWidth[NLayer] = {10,1,1,1,1,1,1};
 
 				int ChipBoundary[NLayer + 1] ={0,108,252,432,3120,6480,14712,24120}; 
 				int NChipLay[NLayer];
@@ -187,7 +188,7 @@ namespace o2
 				double ErrorMax;
 				TPaveText *pt[NError];
 				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+3,-1,NError+1);
-				//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
+			//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 				TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
 			};
