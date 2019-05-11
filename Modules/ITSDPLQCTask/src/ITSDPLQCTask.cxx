@@ -182,7 +182,7 @@ namespace o2
 				mReaderRaw.openInput (inpName);
 				mReaderRaw.setPadding128(true);
 				mReaderRaw.setVerbosity(0);
-                mReaderRaw.setMinTriggersToCache(1025);
+				mReaderRaw.setMinTriggersToCache(1025);
 
 				process (mReaderRaw);
 
@@ -450,33 +450,48 @@ namespace o2
 
 			void ITSDPLQCTask::process (PixelReader & reader){
 
-
+				using RawReader=o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS>;
+				auto &rawReader = reinterpret_cast<RawReader&>(reader);
 				cout << "START PROCESSING" << endl;
 
 				int Index = 0;
 				int IndexMax = -1;
+				int TimeFrame = 1;
+				
+				/*
+				cout << "Counting Time Frame" << endl;
+				while ((mChipData = reader.getNextChipData (mChips)))
+				{
+					TimeFrame = TimeFrame + 1;
+				}
+				*/
+				cout << "TimeFrame = " << TimeFrame << endl;
 
 				cout << "START MCHIPDATA" << endl;
 				while ((mChipData = reader.getNextChipData (mChips)))
 				{
+
 					if(Index < IndexMax) break;
 					//      cout << "ChipID Before = " << ChipID << endl; 
 					ChipID = mChipData->getChipID ();
 					mReaderRaw.getMapping().getChipInfoSW( ChipID, chipInfo );
-					const auto& statRU =  mReaderRaw.getRUDecodingStatSW( chipInfo.ru );
+					//const auto& statRU =  mReaderRaw.getRUDecodingStatSW( chipInfo.ru );
+
+					const auto* ruInfo = rawReader.getCurrRUDecodeData()->ruInfo;	
+					const auto& statRU =  rawReader.getRUDecodingStatSW( ruInfo->idSW );
 					//printf("ErrorCount: %d\n", (int)statRU.errorCounts[o2::ITSMFT::RUDecodingStat::ErrPageCounterDiscontinuity] );
 
 					//Error[0] = Error[0]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrGarbageAfterPayload];
-					Error[0] = Error[0]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrPageCounterDiscontinuity];
-					Error[1] = Error[1]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrRDHvsGBTHPageCnt];
-					Error[2] = Error[2]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrMissingGBTHeader];
-					Error[3] = Error[3]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrMissingGBTTrailer];
-					Error[4] = Error[4]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrNonZeroPageAfterStop];
-					Error[5] = Error[5]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrUnstoppedLanes];  
-					Error[6] = Error[6]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrDataForStoppedLane];
-					Error[7] = Error[7]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrNoDataForActiveLane];
-					Error[8] = Error[8]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrIBChipLaneMismatch];
-					Error[9] = Error[9]  + (int)statRU->errorCounts[o2::itsmft::RUDecodingStat::ErrCableDataHeadWrong];
+					Error[0] = Error[0]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrPageCounterDiscontinuity];
+					Error[1] = Error[1]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrRDHvsGBTHPageCnt];
+					Error[2] = Error[2]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrMissingGBTHeader];
+					Error[3] = Error[3]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrMissingGBTTrailer];
+					Error[4] = Error[4]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrNonZeroPageAfterStop];
+					Error[5] = Error[5]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrUnstoppedLanes];  
+					Error[6] = Error[6]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrDataForStoppedLane];
+					Error[7] = Error[7]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrNoDataForActiveLane];
+					Error[8] = Error[8]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrIBChipLaneMismatch];
+					Error[9] = Error[9]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrCableDataHeadWrong];
 
 					//cout << "Error 5 = " << Error[5]  << endl;
 
@@ -492,16 +507,17 @@ namespace o2
 
 						int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
 						ActPix = mChipData->getData().size();
+						AveActPix = ActPix/TimeFrame;
 
 						//cout << "ChipNumber = " << ChipNumber << endl;
 						eta = glo.eta();
 						phi = glo.phi();
 						//			Occupancy[ChipID] = Occupancy[ChipID] + ActPix;
 						//if(ActPix > 0 ) cout << "Chip ID = " << ChipID << "   Occupancy = " << ActPix << endl;
-						OccupancyPlot[lay]->Fill(ActPix);
-						ChipStave->Fill(ChipID, ActPix);
-						LayEtaPhi[lay]->Fill(eta,phi,ActPix);
-						LayChipStave[lay]->Fill(ChipNumber,sta,ActPix);
+						OccupancyPlot[lay]->Fill(AveActPix);
+						ChipStave->Fill(ChipID, AveActPix);
+						LayEtaPhi[lay]->Fill(eta,phi,AveActPix);
+						LayChipStave[lay]->Fill(ChipNumber,sta,AveActPix);
 						if(sta == 0  && ChipID < NLay1){
 							//cout << "ChipID in Stave 0/data/zhaozhong/aliceTest/sw/BUILD/QualityControl-latest/QualityControl = " << ChipID << endl; 
 							for(int ip = 0; ip < ActPix; ip++){

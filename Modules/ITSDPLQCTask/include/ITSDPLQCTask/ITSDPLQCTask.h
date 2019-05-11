@@ -74,6 +74,7 @@ namespace o2
 				using ChipPixelData = o2::itsmft::ChipPixelData;
 				using PixelReader = o2::itsmft::PixelReader;
 
+
 				public:
 				/// \brief Constructor
 				ITSDPLQCTask();
@@ -172,6 +173,7 @@ namespace o2
 				double AveOcc;
 				UShort_t ChipID; 
 				int ActPix;
+				double AveActPix;
 				TFile * fout;
 				const int NEta = 9;
 				const double EtaMin = -2.40;
