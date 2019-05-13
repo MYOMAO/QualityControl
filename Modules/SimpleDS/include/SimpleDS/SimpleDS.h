@@ -78,8 +78,8 @@ namespace o2
 					}
 					void ConfirmXAxis(TH1 *h);
 					void ReverseYAxis(TH1 *h);
-
-
+				
+	
 
 				private:
 					TH1F* mHistogram;
@@ -123,6 +123,7 @@ namespace o2
 					const int NStaves[NLayer] = {12,16,20,24,30,42,48};
 					int NStaveChip[NLayer];
 					TH2D * HIGMAP[9];
+
 					TH2D * Lay1HIG[12];
 					TH2D * HIGMAP6[18];
 					int ChipIndex6;
@@ -142,7 +143,7 @@ namespace o2
 					Int_t mIdx = 0;
 					//const std::string inpName = "rawits.bin";
 					//const std::string inpName = "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw";
-					std::string inpName = "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw";
+					std::string inpName = "Split9.bin";
 
 					o2::ITS::GeometryTGeo * gm = o2::ITS::GeometryTGeo::Instance();
 					double AveOcc;
@@ -167,7 +168,6 @@ namespace o2
 					//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
 					TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 					TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
-
 
 			};
 
