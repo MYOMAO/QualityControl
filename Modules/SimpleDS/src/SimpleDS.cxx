@@ -202,6 +202,12 @@ namespace o2
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
 
+
+
+				if(ResetDecision == 1) reset();
+
+
+
 				//QcInfoLogger::GetInstance() << "Digit Size Got = " << digit.size() << AliceO2::InfoLogger::InfoLogger::endm;
 
 				//auto digits = ctx.inputs().get<const std::vector<o2::ITSMFT::Digit>>("digits");
@@ -215,13 +221,17 @@ namespace o2
 
 				   QcInfoLogger::GetInstance() << "DONE" << AliceO2::InfoLogger::InfoLogger::endm;
 				   */
-				
-				for (auto&& input : ctx.inputs()) {
-				
-					
-
 
 					o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("digits");
+					LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
+
+
+				for (auto&& input : ctx.inputs()) {
+
+
+
+
+				//	o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("digits");
 					//	LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
 					ChipID = digit.getChipIndex();
 					col = digit.getColumn();
@@ -233,7 +243,7 @@ namespace o2
 					LOG(INFO) << "ChipID = " << ChipID << "  row = " << row << "  Column = " << col << "   OCCCUPANCY = " << Occupancy[ChipID];
 
 
-						
+
 					int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
 					if(sta == 0  && ChipID < NLay1){
 						HIGMAP[ChipID]->Fill(col,row);
@@ -271,7 +281,7 @@ namespace o2
 					c1->SaveAs(Form("HIGMAPStave%d.png",j+1));
 				}
 
-	
+
 				OccupancyPlot[lay]->Reset();
 				LayEtaPhi[lay]->Reset();
 				LayChipStave[lay]->Reset();
@@ -282,22 +292,22 @@ namespace o2
 
 				for(int i = 0; i < ChipBoundary[7]; i++){
 					gm->getChipId (i, lay, sta, ssta, mod, chip);
-			
+
 					const Point3D<float> loc(0., 0.,0.); 
 					auto glo = gm->getMatrixL2G(ChipID)(loc);
-						
+
 					int ChipNumber = (i - ChipBoundary[lay])- sta*	NStaveChip[lay];
 
 					eta = glo.eta();
 					phi = glo.phi();
-	
+
 					OccupancyPlot[lay]->Fill(Occupancy[ChipID]);
 					LayEtaPhi[lay]->Fill(eta,phi,Occupancy[ChipID]);
 					LayChipStave[lay]->Fill(ChipNumber,sta,Occupancy[ChipID]);
 				}
 
 				QcInfoLogger::GetInstance() << "DONE Occupancy Filling" << AliceO2::InfoLogger::InfoLogger::endm;
-			
+
 				TCanvas *c = new TCanvas("c","c",600,600);
 
 				for(int j = 0; j < NLayer; j++){ 
@@ -306,7 +316,7 @@ namespace o2
 					OccupancyPlot[j]->Draw ("ep");
 					c->SaveAs(Form("OccupancyLay%d.png",j));
 					getObjectsManager()->startPublishing(OccupancyPlot[j]);
-
+					getObjectsManager()->addMetadata(OccupancyPlot[j]->GetName(), "custom", "34");
 
 				}
 
@@ -324,7 +334,7 @@ namespace o2
 
 
 				QcInfoLogger::GetInstance() << "DONE Saving the Histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-				
+
 				// 2. Using get("<binding>")
 
 				// get the payload of a specific input, which is a char array. "random" is the binding specified in the config file.
@@ -410,6 +420,34 @@ namespace o2
 
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
 				mHistogram->Reset();
+				ChipStave->Reset();
+				for(int i = 0; i < NLayer; i++){
+					OccupancyPlot[i]->Reset();
+					LayEtaPhi[i]->Reset();
+					LayChipStave[i]->Reset();
+				}
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i< NStaves[j]; i++){
+						Lay1HIG[i]->Reset();
+					}
+				}
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaveChip[j]; i++){
+						HIGMAP[i]->Reset();
+					}
+				}
+
+				for(int j = 6; j < 7; j++){
+					for(int i = 0; i < 18; i++){
+						HIGMAP6[i]->Reset();
+					}
+				}
+				ErrorPlots->Reset();
+
+				QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
+
 			}
 
 		} // namespace simpleds
