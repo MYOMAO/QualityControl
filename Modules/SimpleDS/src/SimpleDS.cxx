@@ -198,13 +198,15 @@ namespace o2
 				QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
 				// 1. In a loop
 				QcInfoLogger::GetInstance() << "Now We Start Looping the INFILE" << AliceO2::InfoLogger::InfoLogger::endm;
-
+				
+				/*
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
 
 
 
 				if(ResetDecision == 1) reset();
+				*/
 
 
 
