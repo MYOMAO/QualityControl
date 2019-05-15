@@ -24,6 +24,14 @@
 #include "ITSMFTReconstruction/DigitPixelReader.h"
 #include "DetectorsBase/GeometryManager.h"
 #include <TCanvas.h>
+#include <iostream>
+#include <dirent.h> 
+#include <stdio.h> 
+#include <algorithm>
+#include <iterator>
+#include <chrono>
+#include <thread>
+
 
 
 
@@ -146,6 +154,34 @@ namespace o2
 				cout << "Clear " << endl;
 
 
+				//Initiate Looping Files//
+
+
+				FolderNames = GetFName(workdir);
+
+				cout << "NFolder = " << FolderNames.size() << endl;
+				for (int i = 0; i < FolderNames.size(); i++){
+
+					cout << "FDN = " << FolderNames[i] << endl;
+
+					FileNames.push_back(GetFName(FolderNames[i]));
+
+					cout << "FDN File Size = " << FileNames[i].size() << endl;
+
+
+					for(int j = 0; j < FileNames[i].size(); j++){
+
+						cout << "FDN File = " << FileNames[i][j] << endl;
+
+					}
+
+				}
+
+
+
+
+
+
 			}
 
 			ITSDPLQCTask::~ITSDPLQCTask() {
@@ -159,7 +195,7 @@ namespace o2
 			{
 				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
 				QcInfoLogger::GetInstance() << "infile is fucking = " << infile << AliceO2::InfoLogger::InfoLogger::endm;
-				inpName = infile;
+				//inpName = infile;
 				bool mRawDataMode = 1;
 				if (mRawDataMode)
 				{
@@ -175,198 +211,14 @@ namespace o2
 
 				o2::ITS::GeometryTGeo * geom = o2::ITS::GeometryTGeo::Instance ();
 				geom->fillMatrixCache (o2::utils::bit2Mask (o2::TransformType::L2G));	
-				const Int_t numOfChips = geom->getNumberOfChips ();
+				numOfChips = geom->getNumberOfChips ();
 				cout << "numOfChips = " << numOfChips << endl;
 				setNChips (numOfChips);
 				cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
-				mReaderRaw.openInput (inpName);
 				mReaderRaw.setPadding128(true);
 				mReaderRaw.setVerbosity(0);
-				mReaderRaw.setMinTriggersToCache(1025);
+				mReaderRaw.setMinTriggersToCache(256);
 
-				process (mReaderRaw);
-
-
-
-				/*
-				   int IndexNow = 0;
-				   while (mReaderMC->readNextEntry()) {
-				   cout << "Now Working on Event = " << IndexNow << endl;
-				   process(* mReader);
-				   IndexNow = IndexNow + 1;
-				   }
-				   */
-
-				TCanvas *c5 = new TCanvas("c5","c5",600,600);
-				c5->cd();
-				c5->SetLogz();
-				ChipStave->SetMinimum(1);
-				ChipStave->Draw("COLZ");
-				c5->SaveAs("Stave1ChipStaveCheck.png");
-
-				getObjectsManager()->startPublishing(ChipStave);
-
-				TCanvas * c2 = new TCanvas("c2","c2",600,600);
-				c2->cd();
-				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
-				for(int i =0; i< NError;i++){
-					cout << "i = " << i << "  Error Number = " << Error[i] << endl;
-					ErrorPlots->SetBinContent(i+1,Error[i]);
-					pt[i] = new TPaveText(0.20,0.80 -i*0.05,0.85,0.85-i*0.05,"NDC");
-					pt[i]->SetTextSize(0.04);
-					pt[i]->SetFillColor(0);
-					pt[i]->SetTextAlign(12);
-					pt[i]->AddText(ErrorType[i].Data());
-					ErrorPlots->GetListOfFunctions()->Add(pt[i]);
-				}
-
-				ErrorMax = ErrorPlots->GetMaximum();
-				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
-				ErrorPlots->Draw();
-				gStyle->SetOptStat(0);
-				c2->SaveAs("ErrorChecker.png");
-				getObjectsManager()->startPublishing(ErrorPlots);
-
-
-				TCanvas *c = new TCanvas ("c", "c", 600, 600);				
-				c->cd ();
-
-				/*
-				   for(int j = 0; j < NLayer; j++){ 
-				   ChipStave[j]->SetMarkerSize(1.2);
-				   ChipStave[j]->SetMarkerStyle(24);
-				   ChipStave[j]->Draw();
-				   cout << "j = " << j << "   Number of ChipStave = " << ChipStave[j]->GetEntries() << endl;
-				   c->SaveAs (Form("Occupancy%d.png",j));
-				   }
-				   cout << "Plot Draw" << endl;
-
-
-				   for(int j = 0; j < NLayer; j++){ 
-				   for (int i = ChipBoundary[j]; i < ChipBoundary[j+1]; i++)
-				   {
-				   TH1D *Proj = new TH1D ("Proj", "CProj", NEventMax[j], 0, NEventMax[j]);
-
-				   int XBin = ChipStave[j]->GetXaxis ()->FindBin (i);
-				   ChipStave[j]->ProjectionY ("Proj", XBin, XBin);
-				//			cout << "Mean = " << Proj->GetMean () << endl;
-				//			cout << "RMS = " << Proj->GetRMS () << endl;
-				ChipProj[j]->Fill (i, Proj->GetMean());
-				ChipProj[j]->SetBinError (XBin, Proj->GetRMS () / Proj->Integral ());
-				}
-				ChipProj[j]->SetMarkerStyle (22);
-				ChipProj[j]->SetMarkerSize (1.5);
-				ChipProj[j]->Draw ("p");
-				c->SaveAs(Form("OccupancyProj%d.png",j));
-				}
-				*/
-				//c->SetLogy();	
-				for(int j = 0; j < NLayer; j++){ 
-					OccupancyPlot[j]->SetMarkerStyle (22);
-					OccupancyPlot[j]->SetMarkerSize (1.5);
-					OccupancyPlot[j]->Draw ("ep");
-                    cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
-    				c->SaveAs(Form("OccupancyLay%d.png",j));
-
-				}
-
-				fout = new TFile("Hist.root","RECREATE");
-				fout->cd();
-				for(int j = 0; j < NLayer; j++){ 
-					//ChipStave[j]->Write();
-					OccupancyPlot[j]->Write();
-				}
-				fout->Close();
-
-				for(int j = 0; j < NLayer; j++){ 
-					LayEtaPhi[j]->Draw("COLZ");
-					cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
-					c->SaveAs(Form("EtaPhiLay%d.png",j));
-				}
-
-				for(int j = 0; j < NLayer; j++){ 
-					LayChipStave[j]->Draw("COLZ");
-					cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
-					c->SaveAs(Form("LayChipStave%d.png",j));
-				}
-
-				TCanvas *c1 = new TCanvas ("c1", "c1", 600, 600);
-
-				for(int j = 0; j < 1; j++){
-					c1->Divide(3,3);
-					for(int i = 0; i < NStaveChip[j]; i++){
-						c1->cd(i+1);
-						HIGMAP[i]->GetZaxis()->SetTitle("Number of Hits");
-						HIGMAP[i]->GetXaxis()->SetNdivisions(-32);
-						HIGMAP[i]->Draw("COLZ");
-						ConfirmXAxis(HIGMAP[i]);
-						ReverseYAxis(HIGMAP[i]);
-						getObjectsManager()->startPublishing(HIGMAP[i]);
-					}
-					c1->SaveAs(Form("HIGMAPStave%d.png",j+1));
-				}
-
-				TCanvas *c6 = new TCanvas ("c6", "c6", 600, 600);
-
-				HIGMAP[0]->GetXaxis()->SetNdivisions(-32);
-				HIGMAP[0]->Draw("COLZ");
-				ReverseYAxis(HIGMAP[0]);
-				c6->SaveAs("HIGCheck1.png");
-
-				for(int j = 0; j < 1; j++){
-					c6->Divide(3,4);
-					for(int i = 0; i < NStaves[j]; i++){
-						c6->cd(i+1);
-						Lay1HIG[i]->GetZaxis()->SetTitle("Number of Hits");
-						Lay1HIG[i]->GetXaxis()->SetNdivisions(-32);
-						Lay1HIG[i]->Draw("COLZ");
-						ConfirmXAxis(Lay1HIG[i]);
-						ReverseYAxis(Lay1HIG[i]);
-						getObjectsManager()->startPublishing(Lay1HIG[i]);
-					}
-					c6->SaveAs(Form("HIGMAPLay%d.png",j+1));
-				}
-
-
-
-
-				TCanvas *c3 = new TCanvas ("c3", "c3", 3600, 7200);
-
-
-
-				for(int j = 6; j < 7; j++){
-					c3->Divide(3,6);
-					for(int i = 0; i < 18; i++){
-						c3->cd(i+1);
-						HIGMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
-						HIGMAP6[i]->GetXaxis()->SetNdivisions(-32);
-						HIGMAP6[i]->Draw("COLZ");
-						ConfirmXAxis(HIGMAP6[i]);
-						ReverseYAxis(HIGMAP6[i]);	
-						getObjectsManager()->startPublishing(HIGMAP6[i]);
-					}
-					c3->SaveAs(Form("HIGMAPStave%d.png",j+1));
-				}
-
-
-
-				TCanvas *c7 = new TCanvas ("c7", "c7", 600, 600);
-
-				HIGMAP6[0]->GetXaxis()->SetNdivisions(-32);
-				HIGMAP6[0]->Draw("COLZ");
-				ReverseYAxis(HIGMAP[0]);
-				c7->SaveAs("HIGCheck6.png");
-
-
-				for(int i = 0; i < NLayer; i++){
-
-
-					getObjectsManager()->startPublishing(LayEtaPhi[i]);
-					getObjectsManager()->startPublishing(LayChipStave[i]);
-					getObjectsManager()->startPublishing(OccupancyPlot[i]);
-
-
-				}
 
 
 
@@ -375,6 +227,38 @@ namespace o2
 				//getObjectsManager()->addCheck(ChipStave, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
 
 			}
+
+
+
+
+			std::vector<string> ITSDPLQCTask::GetFName(std::string folder)
+			{
+
+				DIR           *dirp;
+				struct dirent *directory;
+
+				char cstr[folder.size()+1];
+				strcpy(cstr, folder.c_str());
+				dirp = opendir(cstr);
+				std::vector<string> names;
+				//string search_path = folder + "/*";
+				if(dirp){
+
+					while((directory = readdir(dirp)) != NULL){
+
+						//printf("%s\n", directory->d_name);
+
+						if ( !(!strcmp(directory->d_name, ".") || !strcmp(directory->d_name, ".."))) names.push_back(folder + "/" + directory->d_name);
+
+					}
+
+					closedir(dirp);
+				}
+
+				cout << "names size = " << names.size() << endl;
+				return(names);
+			}
+
 
 			void ITSDPLQCTask::startOfActivity(Activity& activity)
 			{
@@ -389,67 +273,262 @@ namespace o2
 
 			void ITSDPLQCTask::monitorData(o2::framework::ProcessingContext& ctx)
 			{
-				// In this function you can access data inputs specified in the JSON config file, for example:
-				//  {
-				//    "binding": "random",
-				//    "dataOrigin": "ITS",
-				//    "dataDescription": "RAWDATA"
-				//  }
+					
 
-				// Use Framework/DataRefUtils.h or Framework/InputRecord.h to access and unpack inputs (both are documented)
-				// One can find additional examples at:
-				// https://github.com/AliceO2Group/AliceO2/blob/dev/Framework/Core/README.md#using-inputs---the-inputrecord-api
 
-				// Some examples:
+					
+					//Getting Latest Folders//
 
-				// 1. In a loop
 
-				/*
-				   QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
+					cout << "------------------------------------------------------------------------------------------" << endl;
+					cout << "------------------------------------------------------------------------------------------" << endl;
 
-				   auto digits = ctx.inputs().get<const std::vector<o2::ITSMFT::Digit>>("digits");
-				   QcInfoLogger::GetInstance() << "PASS DIGIT OK" << AliceO2::InfoLogger::InfoLogger::endm;
-				   LOG(INFO) << "ITSClusterer pulled " << digits.size() << " digits, ";
-				   o2::ITSMFT::DigitPixelReader reader;
-				   */
-				/*
-				   for (auto&& input : ctx.inputs()) {
-				// get message header
-				const auto* header = header::get<header::DataHeader*>(input.header);
-				// get payload of a specific input, which is a char array.
-				//    const char* payload = input.payload;
+					cout << "New Cycle" << endl;	
 
-				// for the sake of an example, let's fill the histogram with payload sizes
-				mHistogram->Fill(header->payloadSize);
-				QcInfoLogger::GetInstance()  << "PayLoadSize = " << header->payloadSize << AliceO2::InfoLogger::InfoLogger::endm;
+					cout << "Wake Up Bro" << endl;
 
-				}
-				*/
+					cout << "Old Folder Size = " << FolderNames.size() << endl;
 
-				// 2. Using get("<binding>")
 
-				// get the payload of a specific input, which is a char array. "random" is the binding specified in the config file.
-				//   auto payload = ctx.inputs().get("random").payload;
+					NowFolderNames = GetFName(workdir);
 
-				// get payload of a specific input, which is a structure array:
-				//  const auto* header = header::get<header::DataHeader*>(ctx.inputs().get("random").header);
-				//  struct s {int a; double b;};
-				//  auto array = ctx.inputs().get<s*>("random");
-				//  for (int j = 0; j < header->payloadSize / sizeof(s); ++j) LayChipStave{
-				//    int i = array.get()[j].a;
-				//  }
 
-				// get payload of a specific input, which is a root object
-				//   auto h = ctx.inputs().get<TH1F*>("histos");
-				//   Double_t stats[4];
-				//   h->GetStats(stats);
-				//   auto s = ctx.inputs().get<TObjString*>("string");
-				//   LOG(INFO) << "String is " << s->GetString().Data();
+
+					cout << "Now NFolder = " << NowFolderNames.size() << endl;
+					for (int i = 0; i < NowFolderNames.size(); i++){
+
+						//	cout << "FDN = " << NowFolderNames[i] << endl;
+
+						NowFileNames.push_back(GetFName(NowFolderNames[i]));
+
+						//cout << "Now FDN File Size = " << NowFileNames[i].size() << endl;
+
+
+						for(int j = 0; j < NowFileNames[i].size(); j++){
+
+							//	cout << "Now FDN File = " << NowFileNames[i][j] << endl;
+
+						}
+
+					}
+
+					std::set_difference(NowFolderNames.begin(), NowFolderNames.end(), FolderNames.begin(), FolderNames.end(),std::inserter(DiffFolderName, DiffFolderName.begin()));
+
+					cout << "Difference Size Between New and Initial Runs = " <<   DiffFolderName.size() << endl;
+
+
+					if( DiffFolderName.size() == 0 ){
+						cout << "No New Run -- No Need to Fucking Reset" << endl;
+						ResetCommand = 0;
+					}
+
+
+					if( DiffFolderName.size() > 0){
+						cout << "New Run Started -- Reset All Histograms" << endl;
+						ResetCommand = 1;	
+						LOG(INFO) << "DONE Reset Histogram Decision";
+						ITSDPLQCTask::reset();
+						LOG(INFO) << "Decision DONE";
+						ResetCommand = 0;
+					}
+
+
+
+
+
+
+					LOG(INFO) << "Start Creating New Now Vector";
+
+
+
+
+					LOG(INFO) << "Get IN LOOP";
+					for(int i = 0;  i < FolderNames.size(); i++){
+						std::set_difference(NowFileNames[i].begin(), NowFileNames[i].end(), FileNames[i].begin(), FileNames[i].end(),std::inserter(DiffFileNamePush, DiffFileNamePush.begin()));
+						DiffFileNames.push_back(DiffFileNamePush);
+						cout << "Difference File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
+						DiffFileNamePush.clear();
+					}
+
+					LOG(INFO) << "DONE GRABING Existing";
+
+					for(int i = FolderNames.size();  i < NowFolderNames.size(); i++){
+						DiffFileNames.push_back(NowFileNames[i]);
+						cout << "New File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
+					}	
+
+					LOG(INFO) << "DONE Creating Difference";
+
+
+
+
+
+					for (int i = 0; i < NowFolderNames.size(); i++){
+
+
+						for(int j = 0; j < DiffFileNames[i].size(); j++){
+
+							inpName = DiffFileNames[i][j];
+
+							LOG(INFO) << "inpName = " << inpName;
+
+							mReaderRaw.openInput (inpName);
+							
+
+							process (mReaderRaw);
+
+
+							LOG(INFO) << "DONE HIS Update = ";
+						
+							mReaderRaw.clear(true);
+							LOG(INFO) << "READER RESET = ";
+
+	
+							ChipStave->SetMinimum(1);
+
+							getObjectsManager()->startPublishing(ChipStave);
+
+							//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
+							for(int i =0; i< NError;i++){
+								cout << "i = " << i << "  Error Number = " << Error[i] << endl;
+								ErrorPlots->SetBinContent(i+1,Error[i]);
+								pt[i] = new TPaveText(0.20,0.80 -i*0.05,0.85,0.85-i*0.05,"NDC");
+								pt[i]->SetTextSize(0.04);
+								pt[i]->SetFillColor(0);
+								pt[i]->SetTextAlign(12);
+								pt[i]->AddText(ErrorType[i].Data());
+								ErrorPlots->GetListOfFunctions()->Add(pt[i]);
+							}
+
+							ErrorMax = ErrorPlots->GetMaximum();
+							ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
+							getObjectsManager()->startPublishing(ErrorPlots);
+
+
+							for(int j = 0; j < NLayer; j++){ 
+								OccupancyPlot[j]->SetMarkerStyle (22);
+								OccupancyPlot[j]->SetMarkerSize (1.5);
+								OccupancyPlot[j]->Draw ("ep");
+								cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
+
+							}
+
+
+							for(int j = 0; j < NLayer; j++){ 
+								LayEtaPhi[j]->Draw("COLZ");
+								cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
+
+							}
+
+							for(int j = 0; j < NLayer; j++){ 
+								LayChipStave[j]->Draw("COLZ");
+								cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
+							}
+
+
+							for(int j = 0; j < 1; j++){
+								for(int i = 0; i < NStaveChip[j]; i++){
+									HIGMAP[i]->GetZaxis()->SetTitle("Number of Hits");
+									HIGMAP[i]->GetXaxis()->SetNdivisions(-32);
+									HIGMAP[i]->Draw("COLZ");
+									ConfirmXAxis(HIGMAP[i]);
+									ReverseYAxis(HIGMAP[i]);
+									getObjectsManager()->startPublishing(HIGMAP[i]);
+								}
+							}
+
+							ReverseYAxis(HIGMAP[0]);
+
+							for(int j = 0; j < 1; j++){
+								for(int i = 0; i < NStaves[j]; i++){
+
+									Lay1HIG[i]->GetZaxis()->SetTitle("Number of Hits");
+									Lay1HIG[i]->GetXaxis()->SetNdivisions(-32);
+									Lay1HIG[i]->Draw("COLZ");
+									ConfirmXAxis(Lay1HIG[i]);
+									ReverseYAxis(Lay1HIG[i]);
+									getObjectsManager()->startPublishing(Lay1HIG[i]);
+								}
+							}
+
+
+
+
+							for(int j = 6; j < 7; j++){
+								for(int i = 0; i < 18; i++){
+									HIGMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
+									HIGMAP6[i]->GetXaxis()->SetNdivisions(-32);
+									HIGMAP6[i]->Draw("COLZ");
+									ConfirmXAxis(HIGMAP6[i]);
+									ReverseYAxis(HIGMAP6[i]);	
+									getObjectsManager()->startPublishing(HIGMAP6[i]);
+								}
+							}
+
+
+
+							for(int i = 0; i < NLayer; i++){
+
+
+								getObjectsManager()->startPublishing(LayEtaPhi[i]);
+								getObjectsManager()->startPublishing(LayChipStave[i]);
+								getObjectsManager()->startPublishing(OccupancyPlot[i]);
+
+
+							}
+
+						}
+					}
+
+
+					LOG(INFO) << "START Updateing Vectors";
+
+
+					FolderNames.clear();
+					FileNames.clear();
+
+					FolderNames = NowFolderNames;
+					FileNames = NowFileNames;
+
+					LOG(INFO) << "DONE Updateing Vectors";
+
+
+
+
+
+					NowFolderNames.clear();
+					NowFileNames.clear();
+					DiffFileNames.clear();
+					DiffFolderName.clear();
+
+
+					LOG(INFO) << "Pushing Reset Histogram Decision";
+
+					LOG(INFO) << "Start Ending Cycle";
+
+
+				
+					cout << "Start Sleeping Bro" << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;
+					cout << " " << endl;	
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
 			}
 
 
 			void ITSDPLQCTask::process (PixelReader & reader){
-
+				cout << "RESET READER" << endl;
+				mChips.clear();
+				mChipData = nullptr; 
 				using RawReader=o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS>;
 				auto &rawReader = reinterpret_cast<RawReader&>(reader);
 				cout << "START PROCESSING" << endl;
@@ -457,19 +536,22 @@ namespace o2
 				int Index = 0;
 				int IndexMax = -1;
 				int TimeFrame = 1;
-				
+
 				/*
-				cout << "Counting Time Frame" << endl;
-				while ((mChipData = reader.getNextChipData (mChips)))
-				{
-					TimeFrame = TimeFrame + 1;
-				}
-				*/
+				   cout << "Counting Time Frame" << endl;
+				   while ((mChipData = reader.getNextChipData (mChips)))
+				   {
+				   TimeFrame = TimeFrame + 1;
+				   }
+				   */
 				cout << "TimeFrame = " << TimeFrame << endl;
 
 				cout << "START MCHIPDATA" << endl;
+
+
 				while ((mChipData = reader.getNextChipData (mChips)))
 				{
+		//			cout << " reader.getNextChipData (mChips) = " <<  reader.getNextChipData (mChips) << endl;
 
 					if(Index < IndexMax) break;
 					//      cout << "ChipID Before = " << ChipID << endl; 
@@ -560,7 +642,7 @@ namespace o2
 					Index = Index + 1;
 				}
 				cout << "Start Filling" << endl;
-
+				cout << "mChips Size = " << mChips.size() << endl;
 				/*
 				   for(int j = 0; j < NLayer; j++){ 
 				   for (int i = ChipBoundary[j]; i < ChipBoundary[j+1]; i++)
@@ -635,6 +717,37 @@ namespace o2
 			void ITSDPLQCTask::reset()
 			{
 				// clean all the monitor objects here
+
+				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
+				mHistogram->Reset();
+				ChipStave->Reset();
+				for(int i = 0; i < NLayer; i++){
+					OccupancyPlot[i]->Reset();
+					LayEtaPhi[i]->Reset();
+					LayChipStave[i]->Reset();
+				}
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i< NStaves[j]; i++){
+						Lay1HIG[i]->Reset();
+					}
+				}
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaveChip[j]; i++){
+						HIGMAP[i]->Reset();
+					}
+				}
+
+				for(int j = 6; j < 7; j++){
+					for(int i = 0; i < 18; i++){
+						HIGMAP6[i]->Reset();
+					}
+				}
+				ErrorPlots->Reset();
+
+				QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
+
 
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
 				mHistogram->Reset();

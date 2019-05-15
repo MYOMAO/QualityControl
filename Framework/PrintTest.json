@@ -18,8 +18,8 @@
         "active": "true",
         "className": "o2::quality_control_modules::itsdplqctask::ITSDPLQCTask",
         "moduleName": "QcITSDPLQCTask",
-        "cycleDurationSeconds": "10",
-        "maxNumberCycles": "1",
+        "cycleDurationSeconds": "60",
+        "maxNumberCycles": "-1",
         "dataSamplingPolicy": "its-raw",
 		"infile": "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw",
         "taskParameters": {

@@ -102,6 +102,8 @@ namespace o2
 				}
 				void ConfirmXAxis(TH1 *h);
 				void ReverseYAxis(TH1 *h);
+				std::vector<std::string> GetFName(std::string folder);
+
 
 
 
@@ -141,7 +143,7 @@ namespace o2
 				UShort_t row;
 				UShort_t col; 
 				int lay, sta, ssta, mod, chip;
-			//	TH2D * ChipStave[NLayer]; 
+				//	TH2D * ChipStave[NLayer]; 
 				TH1D * OccupancyPlot[NLayer];
 				TH2D * LayEtaPhi[NLayer]; 
 				TH2D * LayChipStave[NLayer]; 
@@ -151,7 +153,7 @@ namespace o2
 				TH2D * Lay1HIG[12];
 				TH2D * HIGMAP6[18];
 				int ChipIndex6;
-				
+
 				void swapColumnBuffers()
 				{
 					int* tmp = mCurr;
@@ -174,6 +176,7 @@ namespace o2
 				UShort_t ChipID; 
 				int ActPix;
 				double AveActPix;
+				int numOfChips;
 				TFile * fout;
 				const int NEta = 9;
 				const double EtaMin = -2.40;
@@ -190,11 +193,24 @@ namespace o2
 				double ErrorMax;
 				TPaveText *pt[NError];
 				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+3,-1,NError+1);
-			//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
+				//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 				TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
+
+				//Lopping Declares//
+
+				std::vector<std::string> FolderNames;
+				std::vector<std::vector<std::string>> FileNames;
+				std::string workdir = "infiles";
+				std::vector<std::string> NowFolderNames;
+				std::vector<std::vector<std::string>> NowFileNames;
+				std::vector<std::string> DiffFolderName;
+				std::vector<std::string> DiffFileNamePush;
+				std::vector<std::vector<std::string>> DiffFileNames;
+				int ResetCommand;
+
 			};
-				
+
 
 		} // namespace itsdplqctask
 	} // namespace quality_control_modules
