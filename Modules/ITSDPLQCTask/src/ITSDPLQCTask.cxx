@@ -53,6 +53,8 @@ namespace o2
 		{
 
 			ITSDPLQCTask::ITSDPLQCTask() : TaskInterface(), mHistogram(nullptr) { 
+
+
 				mHistogram = nullptr;
 
 				gStyle->SetPadRightMargin(0.15);
@@ -152,8 +154,9 @@ namespace o2
 				HIGMAP[6]->SetMaximum(2);	
 				HIGMAP[6]->SetMinimum(0);	
 				cout << "Clear " << endl;
-
-
+				FileNameInfo->GetXaxis()->SetTitle("InputFile");
+				FileNameInfo->GetYaxis()->SetTitle("Total Files Proccessed");
+				FileNameInfo->GetXaxis()->SetTitleOffset(1.10);
 				//Initiate Looping Files//
 
 
@@ -217,7 +220,7 @@ namespace o2
 				cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
 				mReaderRaw.setPadding128(true);
 				mReaderRaw.setVerbosity(0);
-				mReaderRaw.setMinTriggersToCache(256);
+				mReaderRaw.setMinTriggersToCache(1025);
 
 
 
@@ -225,6 +228,95 @@ namespace o2
 				mHistogram = new TH1F("example", "example", 20, 0, 30000);
 				//	getObjectsManager()->addCheck(mHistogram, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
 				//getObjectsManager()->addCheck(ChipStave, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
+
+				//Setting Up Histogram for Publication to the Database and GUI//
+				cout << "START Inititing Publication " << endl;
+				getObjectsManager()->startPublishing(FileNameInfo);
+
+
+
+				ChipStave->SetMinimum(1);
+				getObjectsManager()->startPublishing(ChipStave);
+
+				for(int i =0; i< NError;i++){
+					pt[i] = new TPaveText(0.20,0.80 -i*0.05,0.85,0.85-i*0.05,"NDC");
+					pt[i]->SetTextSize(0.04);
+					pt[i]->SetFillColor(0);
+					pt[i]->SetTextAlign(12);
+					pt[i]->AddText(ErrorType[i].Data());
+					ErrorPlots->GetListOfFunctions()->Add(pt[i]);
+				}
+
+
+				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
+				ErrorMax = ErrorPlots->GetMaximum();
+				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
+				//	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
+				//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
+				getObjectsManager()->startPublishing(ErrorPlots);
+				getObjectsManager()->addMetadata(ErrorPlots->GetName(), "custom", "34");
+
+
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaveChip[j]; i++){
+						HIGMAP[i]->GetZaxis()->SetTitle("Number of Hits");
+						HIGMAP[i]->GetXaxis()->SetNdivisions(-32);
+						HIGMAP[i]->Draw("COLZ");
+						ConfirmXAxis(HIGMAP[i]);
+						ReverseYAxis(HIGMAP[i]);
+						getObjectsManager()->startPublishing(HIGMAP[i]);
+					}
+				}
+
+
+				ReverseYAxis(HIGMAP[0]);
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaves[j]; i++){
+
+						Lay1HIG[i]->GetZaxis()->SetTitle("Number of Hits");
+						Lay1HIG[i]->GetXaxis()->SetNdivisions(-32);
+						Lay1HIG[i]->Draw("COLZ");
+						ConfirmXAxis(Lay1HIG[i]);
+						ReverseYAxis(Lay1HIG[i]);
+						getObjectsManager()->startPublishing(Lay1HIG[i]);
+					}
+				}
+
+
+
+
+
+				for(int j = 6; j < 7; j++){
+					for(int i = 0; i < 18; i++){
+						HIGMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
+						HIGMAP6[i]->GetXaxis()->SetNdivisions(-32);
+						HIGMAP6[i]->Draw("COLZ");
+						ConfirmXAxis(HIGMAP6[i]);
+						ReverseYAxis(HIGMAP6[i]);	
+						getObjectsManager()->startPublishing(HIGMAP6[i]);
+					}
+				}
+
+
+
+
+				for(int i = 0; i < NLayer; i++){
+
+
+					getObjectsManager()->startPublishing(LayEtaPhi[i]);
+					getObjectsManager()->startPublishing(LayChipStave[i]);
+					getObjectsManager()->startPublishing(OccupancyPlot[i]);
+
+
+				}
+
+				cout << "DONE Inititing Publication = " << endl;
+
+				//Setting Up Histogram for Publication to the Database and GUI//
+
+
 
 			}
 
@@ -273,254 +365,203 @@ namespace o2
 
 			void ITSDPLQCTask::monitorData(o2::framework::ProcessingContext& ctx)
 			{
-					
 
 
-					
-					//Getting Latest Folders//
+				//Getting Latest Folders//
 
 
-					cout << "------------------------------------------------------------------------------------------" << endl;
-					cout << "------------------------------------------------------------------------------------------" << endl;
+				cout << "------------------------------------------------------------------------------------------" << endl;
+				cout << "------------------------------------------------------------------------------------------" << endl;
 
-					cout << "New Cycle" << endl;	
+				cout << "New Cycle" << endl;	
 
-					cout << "Wake Up Bro" << endl;
+				cout << "Wake Up Bro" << endl;
 
-					cout << "Old Folder Size = " << FolderNames.size() << endl;
+				cout << "Old Folder Size = " << FolderNames.size() << endl;
 
 
-					NowFolderNames = GetFName(workdir);
+				NowFolderNames = GetFName(workdir);
 
 
 
-					cout << "Now NFolder = " << NowFolderNames.size() << endl;
-					for (int i = 0; i < NowFolderNames.size(); i++){
+				cout << "Now NFolder = " << NowFolderNames.size() << endl;
+				for (int i = 0; i < NowFolderNames.size(); i++){
 
-						//	cout << "FDN = " << NowFolderNames[i] << endl;
+					//	cout << "FDN = " << NowFolderNames[i] << endl;
 
-						NowFileNames.push_back(GetFName(NowFolderNames[i]));
+					NowFileNames.push_back(GetFName(NowFolderNames[i]));
 
-						//cout << "Now FDN File Size = " << NowFileNames[i].size() << endl;
+					//cout << "Now FDN File Size = " << NowFileNames[i].size() << endl;
 
 
-						for(int j = 0; j < NowFileNames[i].size(); j++){
+					for(int j = 0; j < NowFileNames[i].size(); j++){
 
-							//	cout << "Now FDN File = " << NowFileNames[i][j] << endl;
-
-						}
+						//	cout << "Now FDN File = " << NowFileNames[i][j] << endl;
 
 					}
 
-					std::set_difference(NowFolderNames.begin(), NowFolderNames.end(), FolderNames.begin(), FolderNames.end(),std::inserter(DiffFolderName, DiffFolderName.begin()));
+				}
 
-					cout << "Difference Size Between New and Initial Runs = " <<   DiffFolderName.size() << endl;
+				std::set_difference(NowFolderNames.begin(), NowFolderNames.end(), FolderNames.begin(), FolderNames.end(),std::inserter(DiffFolderName, DiffFolderName.begin()));
 
-
-					if( DiffFolderName.size() == 0 ){
-						cout << "No New Run -- No Need to Fucking Reset" << endl;
-						ResetCommand = 0;
-					}
+				cout << "Difference Size Between New and Initial Runs = " <<   DiffFolderName.size() << endl;
 
 
-					if( DiffFolderName.size() > 0){
-						cout << "New Run Started -- Reset All Histograms" << endl;
-						ResetCommand = 1;	
-						LOG(INFO) << "DONE Reset Histogram Decision";
-						ITSDPLQCTask::reset();
-						LOG(INFO) << "Decision DONE";
-						ResetCommand = 0;
-					}
+				if( DiffFolderName.size() == 0 ){
+					cout << "No New Run -- No Need to Fucking Reset" << endl;
+					ResetCommand = 0;
+				}
 
 
-
-
-
-
-					LOG(INFO) << "Start Creating New Now Vector";
-
-
-
-
-					LOG(INFO) << "Get IN LOOP";
-					for(int i = 0;  i < FolderNames.size(); i++){
-						std::set_difference(NowFileNames[i].begin(), NowFileNames[i].end(), FileNames[i].begin(), FileNames[i].end(),std::inserter(DiffFileNamePush, DiffFileNamePush.begin()));
-						DiffFileNames.push_back(DiffFileNamePush);
-						cout << "Difference File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
-						DiffFileNamePush.clear();
-					}
-
-					LOG(INFO) << "DONE GRABING Existing";
-
-					for(int i = FolderNames.size();  i < NowFolderNames.size(); i++){
-						DiffFileNames.push_back(NowFileNames[i]);
-						cout << "New File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
-					}	
-
-					LOG(INFO) << "DONE Creating Difference";
+				if( DiffFolderName.size() > 0){
+					cout << "New Run Started -- Reset All Histograms" << endl;
+					ResetCommand = 1;	
+					LOG(INFO) << "DONE Reset Histogram Decision";
+					ITSDPLQCTask::reset();
+					LOG(INFO) << "Decision DONE";
+					ResetCommand = 0;
+				}
 
 
 
 
 
-					for (int i = 0; i < NowFolderNames.size(); i++){
+
+				LOG(INFO) << "Start Creating New Now Vector";
 
 
-						for(int j = 0; j < DiffFileNames[i].size(); j++){
-
-							inpName = DiffFileNames[i][j];
-
-							LOG(INFO) << "inpName = " << inpName;
-
-							mReaderRaw.openInput (inpName);
-							
-
-							process (mReaderRaw);
 
 
-							LOG(INFO) << "DONE HIS Update = ";
+				LOG(INFO) << "Get IN LOOP";
+				for(int i = 0;  i < FolderNames.size(); i++){
+					std::set_difference(NowFileNames[i].begin(), NowFileNames[i].end(), FileNames[i].begin(), FileNames[i].end(),std::inserter(DiffFileNamePush, DiffFileNamePush.begin()));
+					DiffFileNames.push_back(DiffFileNamePush);
+					cout << "Difference File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
+					DiffFileNamePush.clear();
+				}
+
+				LOG(INFO) << "DONE GRABING Existing";
+
+				for(int i = FolderNames.size();  i < NowFolderNames.size(); i++){
+					DiffFileNames.push_back(NowFileNames[i]);
+					cout << "New File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
+				}	
+
+				LOG(INFO) << "DONE Creating Difference";
+
+
+
+
+
+				for (int i = 0; i < NowFolderNames.size(); i++){
+
+
+					pos = NowFolderNames[i].find_last_of("/");
+					if (pos != string::npos)   RunID =  NowFolderNames[i].substr(pos+1);
+
+
+
+					for(int j = 0; j < DiffFileNames[i].size(); j++){
+
+						inpName = DiffFileNames[i][j];
+
+						LOG(INFO) << "inpName = " << inpName;
+
 						
-							mReaderRaw.clear(true);
-							LOG(INFO) << "READER RESET = ";
+						LOG(INFO) << "RunID = " << RunID;
+
+						HisRunID = inpName;
+
+						LOG(INFO) << "HisRunID = " << HisRunID.Data();	
 
 	
-							ChipStave->SetMinimum(1);
 
-							getObjectsManager()->startPublishing(ChipStave);
-
-							//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
-							for(int i =0; i< NError;i++){
-								cout << "i = " << i << "  Error Number = " << Error[i] << endl;
-								ErrorPlots->SetBinContent(i+1,Error[i]);
-								pt[i] = new TPaveText(0.20,0.80 -i*0.05,0.85,0.85-i*0.05,"NDC");
-								pt[i]->SetTextSize(0.04);
-								pt[i]->SetFillColor(0);
-								pt[i]->SetTextAlign(12);
-								pt[i]->AddText(ErrorType[i].Data());
-								ErrorPlots->GetListOfFunctions()->Add(pt[i]);
-							}
-
-							ErrorMax = ErrorPlots->GetMaximum();
-							ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
-							getObjectsManager()->startPublishing(ErrorPlots);
+						mReaderRaw.openInput (inpName);
 
 
-							for(int j = 0; j < NLayer; j++){ 
-								OccupancyPlot[j]->SetMarkerStyle (22);
-								OccupancyPlot[j]->SetMarkerSize (1.5);
-								OccupancyPlot[j]->Draw ("ep");
-								cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
-
-							}
+						process (mReaderRaw);
 
 
-							for(int j = 0; j < NLayer; j++){ 
-								LayEtaPhi[j]->Draw("COLZ");
-								cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
+						LOG(INFO) << "DONE HIS Update = ";
 
-							}
+						mReaderRaw.clear(true);
+						LOG(INFO) << "READER RESET = ";
 
-							for(int j = 0; j < NLayer; j++){ 
-								LayChipStave[j]->Draw("COLZ");
-								cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
-							}
-
-
-							for(int j = 0; j < 1; j++){
-								for(int i = 0; i < NStaveChip[j]; i++){
-									HIGMAP[i]->GetZaxis()->SetTitle("Number of Hits");
-									HIGMAP[i]->GetXaxis()->SetNdivisions(-32);
-									HIGMAP[i]->Draw("COLZ");
-									ConfirmXAxis(HIGMAP[i]);
-									ReverseYAxis(HIGMAP[i]);
-									getObjectsManager()->startPublishing(HIGMAP[i]);
-								}
-							}
-
-							ReverseYAxis(HIGMAP[0]);
-
-							for(int j = 0; j < 1; j++){
-								for(int i = 0; i < NStaves[j]; i++){
-
-									Lay1HIG[i]->GetZaxis()->SetTitle("Number of Hits");
-									Lay1HIG[i]->GetXaxis()->SetNdivisions(-32);
-									Lay1HIG[i]->Draw("COLZ");
-									ConfirmXAxis(Lay1HIG[i]);
-									ReverseYAxis(Lay1HIG[i]);
-									getObjectsManager()->startPublishing(Lay1HIG[i]);
-								}
-							}
-
-
-
-
-							for(int j = 6; j < 7; j++){
-								for(int i = 0; i < 18; i++){
-									HIGMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
-									HIGMAP6[i]->GetXaxis()->SetNdivisions(-32);
-									HIGMAP6[i]->Draw("COLZ");
-									ConfirmXAxis(HIGMAP6[i]);
-									ReverseYAxis(HIGMAP6[i]);	
-									getObjectsManager()->startPublishing(HIGMAP6[i]);
-								}
-							}
-
-
-
-							for(int i = 0; i < NLayer; i++){
-
-
-								getObjectsManager()->startPublishing(LayEtaPhi[i]);
-								getObjectsManager()->startPublishing(LayChipStave[i]);
-								getObjectsManager()->startPublishing(OccupancyPlot[i]);
-
-
-							}
+						for(int j = 0; j < NLayer; j++){ 
+							OccupancyPlot[j]->SetMarkerStyle (22);
+							OccupancyPlot[j]->SetMarkerSize (1.5);
+							OccupancyPlot[j]->Draw ("ep");
+							cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
 
 						}
+
+
+						for(int j = 0; j < NLayer; j++){ 
+							LayEtaPhi[j]->Draw("COLZ");
+							cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
+
+						}
+
+						for(int j = 0; j < NLayer; j++){ 
+							LayChipStave[j]->Draw("COLZ");
+							cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
+						}
+
+
+						FileNameInfo->Fill(0.5);
+						FileNameInfo->SetTitle(Form("Current File Name: %s",HisRunID.Data()));
+
+					
+						getObjectsManager()->addMetadata(ChipStave->GetName(), RunID, "34");
+						getObjectsManager()->addMetadata(ErrorPlots->GetName(), RunID, "34");
+
+
+
+
 					}
+				}
 
 
-					LOG(INFO) << "START Updateing Vectors";
+				LOG(INFO) << "START Updateing Vectors";
 
 
-					FolderNames.clear();
-					FileNames.clear();
+				FolderNames.clear();
+				FileNames.clear();
 
-					FolderNames = NowFolderNames;
-					FileNames = NowFileNames;
+				FolderNames = NowFolderNames;
+				FileNames = NowFileNames;
 
-					LOG(INFO) << "DONE Updateing Vectors";
-
-
+				LOG(INFO) << "DONE Updateing Vectors";
 
 
 
-					NowFolderNames.clear();
-					NowFileNames.clear();
-					DiffFileNames.clear();
-					DiffFolderName.clear();
 
 
-					LOG(INFO) << "Pushing Reset Histogram Decision";
+				NowFolderNames.clear();
+				NowFileNames.clear();
+				DiffFileNames.clear();
+				DiffFolderName.clear();
 
-					LOG(INFO) << "Start Ending Cycle";
+
+				LOG(INFO) << "Pushing Reset Histogram Decision";
+
+				LOG(INFO) << "Start Ending Cycle";
 
 
-				
-					cout << "Start Sleeping Bro" << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;
-					cout << " " << endl;	
 
-					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				cout << "Start Sleeping Bro" << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;
+				cout << " " << endl;	
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 			}
 
@@ -536,7 +577,8 @@ namespace o2
 				int Index = 0;
 				int IndexMax = -1;
 				int TimeFrame = 1;
-
+				int NTF = 0;
+				int TimePrint = 0;
 				/*
 				   cout << "Counting Time Frame" << endl;
 				   while ((mChipData = reader.getNextChipData (mChips)))
@@ -548,11 +590,12 @@ namespace o2
 
 				cout << "START MCHIPDATA" << endl;
 
+				auto   start = std::chrono::high_resolution_clock::now();
 
 				while ((mChipData = reader.getNextChipData (mChips)))
 				{
-		//			cout << " reader.getNextChipData (mChips) = " <<  reader.getNextChipData (mChips) << endl;
-
+					//			cout << " reader.getNextChipData (mChips) = " <<  reader.getNextChipData (mChips) << endl;
+					NTF = NTF + 1;
 					if(Index < IndexMax) break;
 					//      cout << "ChipID Before = " << ChipID << endl; 
 					ChipID = mChipData->getChipID ();
@@ -561,7 +604,19 @@ namespace o2
 
 					const auto* ruInfo = rawReader.getCurrRUDecodeData()->ruInfo;	
 					const auto& statRU =  rawReader.getRUDecodingStatSW( ruInfo->idSW );
+					NEvent = statRU->nPackets;
 					//printf("ErrorCount: %d\n", (int)statRU.errorCounts[o2::ITSMFT::RUDecodingStat::ErrPageCounterDiscontinuity] );
+					//cout << "Time Frame Number = " << NTF << endl;
+
+					if (NEvent%100000==0 && TimePrint == 0){
+						auto end = std::chrono::high_resolution_clock::now();
+						auto difference = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+						cout << "Event Number = " << NEvent  << "    Time since start=  " << difference << endl;
+						TimePrint = 1;
+					}
+
+					if(NEvent%100000 != 0 ) TimePrint = 0;
+
 
 					//Error[0] = Error[0]  + (int)statRU->errorCounts[o2::ITSMFT::RUDecodingStat::ErrGarbageAfterPayload];
 					Error[0] = Error[0]  + (int)statRU->errorCounts[o2::itsmft::GBTLinkDecodingStat::ErrPageCounterDiscontinuity];
@@ -643,6 +698,15 @@ namespace o2
 				}
 				cout << "Start Filling" << endl;
 				cout << "mChips Size = " << mChips.size() << endl;
+
+
+				for(int i =0; i< NError;i++){
+					cout << "i = " << i << "  Error Number = " << Error[i] << endl;
+					ErrorPlots->SetBinContent(i+1,Error[i]);
+				}
+
+
+
 				/*
 				   for(int j = 0; j < NLayer; j++){ 
 				   for (int i = ChipBoundary[j]; i < ChipBoundary[j+1]; i++)
@@ -707,6 +771,8 @@ namespace o2
 			void ITSDPLQCTask::endOfCycle()
 			{
 				QcInfoLogger::GetInstance() << "endOfCycle" << AliceO2::InfoLogger::InfoLogger::endm;
+
+
 			}
 
 			void ITSDPLQCTask::endOfActivity(Activity& activity)

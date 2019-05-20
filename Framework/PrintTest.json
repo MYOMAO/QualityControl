@@ -14,7 +14,7 @@
       }
     },
     "tasks": {
-      "ITSQcTask": {
+      "ITSQcTaskTEST": {
         "active": "true",
         "className": "o2::quality_control_modules::itsdplqctask::ITSDPLQCTask",
         "moduleName": "QcITSDPLQCTask",

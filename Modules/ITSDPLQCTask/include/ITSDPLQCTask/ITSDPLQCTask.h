@@ -38,7 +38,6 @@
 
 #include "ITSMFTReconstruction/RawPixelReader.h"
 
-
 #include "DataFormatsITSMFT/ROFRecord.h"
 #include "SimulationDataFormat/MCCompLabel.h"
 #include <fstream>
@@ -175,7 +174,7 @@ namespace o2
 				double AveOcc;
 				UShort_t ChipID; 
 				int ActPix;
-				double AveActPix;
+				double AveActPix = 0;
 				int numOfChips;
 				TFile * fout;
 				const int NEta = 9;
@@ -193,6 +192,7 @@ namespace o2
 				double ErrorMax;
 				TPaveText *pt[NError];
 				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+3,-1,NError+1);
+				TH1D * FileNameInfo = new TH1D("FileNameInfo","FileNameInfo",5,0,1);
 				//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 				TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
@@ -208,6 +208,11 @@ namespace o2
 				std::vector<std::string> DiffFileNamePush;
 				std::vector<std::vector<std::string>> DiffFileNames;
 				int ResetCommand;
+				int NEvent;
+				size_t pos;
+				std::string RunID;
+				TString HisRunID;
+				
 
 			};
 
