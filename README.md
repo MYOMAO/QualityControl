@@ -19,59 +19,114 @@ asdf
 
 <!--te-->
 
-# QuickStart for After Logging into aliceits@svmithi02 
+# QC on FLP
 
-## QC Environment Setup
+## Principles of the QC System
 
-First, we need to ALWAYS FIRST setup the environment: `source /data/ITSQC/setQCenv.sh`
+QC is called Quality Control. It reads raw data file, analyzes it, make histograms, and publish them to the database and GUI interface. The basic working principle of the QC is very simple. The QC first checks if there is a new folder for a new run. If there is a new folder for a new run, it will reset all histograms. If there is a new file, it will read the new file and update the histograms. When there is no new files or new folder, it will run in an infinite loop and never stops.
 
-## Check GUI Functionality 
+## Check if QC is running
 
-Then, we need to check if the global GUI is running. To do this, open a browser and click on the following link:
+In principle, QC is always running at FLP01 and you do not need to start the QC. To check if the QC is running, we can do the following steps:
 
-`https://qcg-test.cern.ch`
+Step 1: Login to FLP01, go to the QC directory, and setup the QC enviornment
 
-If the GUI is running, you should see an interface with Object and Layout button. In this case, you can skip the local GUI setup and directly jump to the QC part.
+ssh -Y its@flpits1
 
-If the GUI is not running, you should see the text '504 Gateway Time-out'. In this case, you need to setup your own local GUI
+cd  /home/its/msitta/run
 
+Open a browser for the GUI: https://qcg-test.cern.ch/
 
-## Local GUI Setup
-
-
-To set up the local GUI, simply login with port tunneling 
-
-`ssh -L 8080:localhost:8080 aliceits@svmithi02`
-
-`source /data/ITSQC/setQCenv.sh`
-
-To enter the GUI environment: `source StartLocalGUI.sh`
-
-To run the GUI: `qcg`
+You should be able to see a page with objects and layout on the top left corner
 
 
+Step 2: Check if the QC task exists
 
-## QC Running
+Now, you are in the work directory. First check if QC task exists. Do:
 
-`source /data/ITSQC/setQCenv.sh`
+ps -A | grep qcRunDPL
 
-To enter the QC environment: `source RunQC.sh`
 
-To go to the working directory: `cd ../workdir/`
+You should see 5 qcRunDPL with different RunID and ? as the owner
 
-To run the QC: `qcRunDPL`
+33273 ?        00:00:01 qcRunDPL
+33291 ?        00:01:10 qcRunDPL
+33292 ?        00:07:36 qcRunDPL
+33293 ?        00:10:10 qcRunDPL
+33294 ?        00:10:07 qcRunDPL
 
-## Viewing the Results of QC
+If you do not see this, you need to restart the run. Go to the restarting QC section to see how to restart the QC
 
-If you run the global GUI, open a browser and go to the link: https://qcg-test.cern.ch
 
-If you run your own local GUI, open a browser and go to the link: http://localhost:8080/
+Step 3: Check if the QC task runs properly
 
-The plots on the GUI can be found under `ITSQcTask` at `Objects`
+First, see what files are available in the folder "infiles/Run1"
 
-## Changing Files
+ls infiles/Run1
 
-To change your files, simply do modify the line named "infile" in the config (JSON) file: 
+You should see some files. For my case
 
-`../alice/sw/slc7_x86-64/QualityControl/IBCommissioning-1/etc/PrintTest.json`
+Split2.bin  Split3.bin Split5.bin  Split9.bin
+
+Now check the files in "tempmove/Run1". For my case
+
+Split10.bin  Split11.bin  Split1.bin  Split6.bin  Split7.bin  Split8.bin
+
+Now, you can copy a file from "tempmove/Run1". Make sure the filename copied to the infile/Run1 is DIFFERENT from the file names in infiles/Run1 
+
+cp tempmove/Run1/Split6.bin infiles/Run1
+
+Now go back to the GUI and go to the layout "Current File Processing". Wait for a 1 - 3 minutes and refresh the page
+
+You should be able to see the title "Current File Name: infiles/Run1/Split6.bin" (depending on the name of the files you copied to Run1)
+
+If you do see that, that means QC is running properly.
+
+If you do not see the update of the filename to you copied file. You will need restart the QC. Go to the restarting QC section to see how to restart the QC
+
+
+## Restarting the QC when it is not running
+
+
+In case that QC is not running. To restart the QC when it is not running, simply do the following commands:
+
+Open a new terminal
+
+ssh -Y its@flpits1
+
+cd  /home/its/msitta/
+
+alienv enter QualityControl/latest
+
+killall -9 qcRunDPL
+
+qcRunDPL &!
+
+Then you can close the terminal. In your original terminal, repeat step 2 and step 3. If QC still does not work, you will need to contact QC experts by emailing: zzshi@mit.edu
+
+
+
+
+## Using QC to display your own run
+
+If the QC is indeed running, you can do the following to display your own run
+
+Scenario 1: Test File in a Run
+
+cp infiles/Run1/Split8.bin tempmove/Run1
+
+Wait for about 1 minutes, you should be able to see the histogram of that run uploaded to the database: http://ccdb-test.cern.ch:8080/browse/ITSQcTask
+And can be found on the GUI: https://qcg-test.cern.ch/?page=layoutList
+
+
+Scenario 2: Test New Runs
+
+cp -r infiles/Run2/ tempmove/ 
+
+Again, after 1 minute, you should see a set of new histograms uploaded to the database and GUI. These histograms have been reset and start reading the files in the new runs from empty histograms.
+
+
+Scenario 3. In Real IB Commissioning and Data Taking
+
+In real data taking, all we need to do is to name the Runs by Run + RunID + Extra Info. The name of the files in the run in principle does not matter as long as the file format are raw data. The QC codes currently still have some issues such as uploading increasingly many plots to the database and memory leakage which will result in slowing and eventually stopping the loop. These will be fixed very soon. 
 
