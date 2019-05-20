@@ -29,7 +29,7 @@ QC is called Quality Control. It reads raw data file, analyzes it, make histogra
 
 In principle, QC is always running at FLP01 and you do not need to start the QC. To check if the QC is running, we can do the following steps:
 
-Step 1: Login to FLP01, go to the QC directory, and setup the QC enviornment
+### Step 1: Login to FLP01, go to the QC directory, and setup the QC enviornment
 
 ssh -Y its@flpits1
 
@@ -40,7 +40,7 @@ Open a browser for the GUI: https://qcg-test.cern.ch/
 You should be able to see a page with objects and layout on the top left corner
 
 
-Step 2: Check if the QC task exists
+### Step 2: Check if the QC task exists
 
 Now, you are in the work directory. First check if QC task exists. Do:
 
@@ -58,7 +58,7 @@ You should see 5 qcRunDPL with different RunID and ? as the owner
 If you do not see this, you need to restart the run. Go to the restarting QC section to see how to restart the QC
 
 
-Step 3: Check if the QC task runs properly
+### Step 3: Check if the QC task runs properly
 
 First, see what files are available in the folder "infiles/Run1"
 
@@ -111,7 +111,7 @@ Then you can close the terminal. In your original terminal, repeat step 2 and st
 
 If the QC is indeed running, you can do the following to display your own run
 
-Scenario 1: Test File in a Run
+### Scenario 1: Test File in a Run
 
 cp infiles/Run1/Split8.bin tempmove/Run1
 
@@ -119,14 +119,14 @@ Wait for about 1 minutes, you should be able to see the histogram of that run up
 And can be found on the GUI: https://qcg-test.cern.ch/?page=layoutList
 
 
-Scenario 2: Test New Runs
+### Scenario 2: Test New Runs
 
 cp -r infiles/Run2/ tempmove/ 
 
 Again, after 1 minute, you should see a set of new histograms uploaded to the database and GUI. These histograms have been reset and start reading the files in the new runs from empty histograms.
 
 
-Scenario 3. In Real IB Commissioning and Data Taking
+### Scenario 3. In Real IB Commissioning and Data Taking
 
 In real data taking, all we need to do is to name the Runs by Run + RunID + Extra Info. The name of the files in the run in principle does not matter as long as the file format are raw data. The QC codes currently still have some issues such as uploading increasingly many plots to the database and memory leakage which will result in slowing and eventually stopping the loop. These will be fixed very soon. 
 
