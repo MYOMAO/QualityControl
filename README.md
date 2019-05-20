@@ -50,9 +50,13 @@ ps -A | grep qcRunDPL
 You should see 5 qcRunDPL with different RunID and ? as the owner
 
 33273 ?        00:00:01 qcRunDPL
+
 33291 ?        00:01:10 qcRunDPL
+
 33292 ?        00:07:36 qcRunDPL
+
 33293 ?        00:10:10 qcRunDPL
+
 33294 ?        00:10:07 qcRunDPL
 
 If you do not see this, you need to restart the run. Go to the restarting QC section to see how to restart the QC
