@@ -4,11 +4,11 @@
 
 # QC on FLP
 
-## Principles of the QC System
+## Basic principles of the QC system
 
-QC is called Quality Control. It reads raw data file, analyzes it, make histograms, and publish them to the database and GUI interface. The basic working principle of the QC is very simple. The QC first checks if there is a new folder for a new run. If there is a new folder for a new run, it will reset all histograms. If there is a new file, it will read the new file and update the histograms. When there is no new files or new folder, it will run in an infinite loop and never stops.
+The ITS Quality Control during the commissioning at B167 reads raw data files, perform the analysis, and publish them to the database and GUI interface. At present QC runs as a service and checks if there is a new folder for a new run in a dedicated directory. If there is a new folder Run*, the histograms will be reset reset. The string * in the folder name is being used to tag the processed data in the database. If a new data file is detected in the folder, the data will be processed and the histograms updated. 
 
-## Check if QC is running
+## Using QC to display data files
 
 In principle, QC is always running at FLP01 and you do not need to start the QC. To check if the QC is running, we can do the following steps:
 
@@ -18,9 +18,18 @@ ssh -Y its@flpits1
 
 cd  /home/its/msitta/run
 
-Open a browser for the GUI: https://qcg-test.cern.ch/
+Create in folder  /home/its/msitta/run/infiles/ a folder named  Run + RunID + Extra Info. Copy the raw data files to the new created folder. 
 
-You should be able to see a page with objects and layout on the top left corner
+Repeat the last operation for each run. Please consider that the QC will move the processing to the last folder to be created. The process of the eventual remaining files to be processed in an earlier run will be overwritten. 
+
+ 
+Wait for about 1 minutes, you should be able to see the histogram of that run uploaded to the database: http://ccdb-test.cern.ch:8080/browse/ITSQcTask and can be found on the GUI: https://qcg-test.cern.ch/?page=layoutList
+
+ 
+Some test data are already available in the /home/its/msitta/run/infiles/. To have them processed again it is enough to copy the run folder our of the infiele directory and copy it back again after > 1 min.
+
+
+In case in which the GUI doesn?t update directly some troubleshooting can be done:
 
 
 ### Step 2: Check if the QC task exists
@@ -72,7 +81,7 @@ If you do see that, that means QC is running properly.
 If you do not see the update of the filename to you copied file. You will need restart the QC. Go to the restarting QC section to see how to restart the QC
 
 
-## Restarting the QC when it is not running
+## Restarting
 
 
 In case that QC is not running. To restart the QC when it is not running, simply do the following commands:
@@ -92,28 +101,4 @@ qcRunDPL &!
 Then you can close the terminal. In your original terminal, repeat step 2 and step 3. If QC still does not work, you will need to contact QC experts by emailing: zzshi@mit.edu
 
 
-
-
-## Using QC to display your own run
-
-If the QC is indeed running, you can do the following to display your own run
-
-### Scenario 1: Test File in a Run
-
-cp infiles/Run1/Split8.bin tempmove/Run1
-
-Wait for about 1 minutes, you should be able to see the histogram of that run uploaded to the database: http://ccdb-test.cern.ch:8080/browse/ITSQcTask
-And can be found on the GUI: https://qcg-test.cern.ch/?page=layoutList
-
-
-### Scenario 2: Test New Runs
-
-cp -r infiles/Run2/ tempmove/ 
-
-Again, after 1 minute, you should see a set of new histograms uploaded to the database and GUI. These histograms have been reset and start reading the files in the new runs from empty histograms.
-
-
-### Scenario 3. In Real IB Commissioning and Data Taking
-
-In real data taking, all we need to do is to name the Runs by Run + RunID + Extra Info. The name of the files in the run in principle does not matter as long as the file format are raw data. The QC codes currently still have some issues such as uploading increasingly many plots to the database and memory leakage which will result in slowing and eventually stopping the loop. These will be fixed very soon. 
 
