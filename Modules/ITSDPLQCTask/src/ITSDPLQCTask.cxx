@@ -467,14 +467,14 @@ namespace o2
 
 						LOG(INFO) << "inpName = " << inpName;
 
-						
+
 						LOG(INFO) << "RunID = " << RunID;
 
 						HisRunID = inpName;
 
 						LOG(INFO) << "HisRunID = " << HisRunID.Data();	
 
-	
+
 
 						mReaderRaw.openInput (inpName);
 
@@ -492,6 +492,7 @@ namespace o2
 							OccupancyPlot[j]->SetMarkerSize (1.5);
 							OccupancyPlot[j]->Draw ("ep");
 							cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
+							getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), RunID, "34");
 
 						}
 
@@ -499,19 +500,28 @@ namespace o2
 						for(int j = 0; j < NLayer; j++){ 
 							LayEtaPhi[j]->Draw("COLZ");
 							cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
+							getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), RunID, "34");
 
 						}
 
 						for(int j = 0; j < NLayer; j++){ 
 							LayChipStave[j]->Draw("COLZ");
 							cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
+							getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), RunID, "34");
 						}
+
+						for(int j = 0; j < 1; j++){
+							for(int i = 0; i< NStaves[j]; i++){
+								getObjectsManager()->addMetadata(Lay1HIG[i]->GetName(), RunID, "34");	
+							}
+						}
+
 
 
 						FileNameInfo->Fill(0.5);
 						FileNameInfo->SetTitle(Form("Current File Name: %s",HisRunID.Data()));
 
-					
+
 						getObjectsManager()->addMetadata(ChipStave->GetName(), RunID, "34");
 						getObjectsManager()->addMetadata(ErrorPlots->GetName(), RunID, "34");
 
