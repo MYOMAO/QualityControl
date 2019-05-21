@@ -100,5 +100,7 @@ qcRunDPL &!
 
 Then you can close the terminal. In your original terminal, repeat step 2 and step 3. If QC still does not work, you will need to contact QC experts by emailing: zzshi@mit.edu
 
+Changing the working folder
 
+To current default working folder on FLP01 is /data/QC/infiles. If you want to change the working folder. You will need to change the part called "infile": "/data/QC/infiles", in the config file: sw/slc7_x86-64/QualityControl/IBContinuous-1/etc/PrintTest.json.  
 
