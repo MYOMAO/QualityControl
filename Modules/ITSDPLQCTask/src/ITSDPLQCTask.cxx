@@ -31,7 +31,7 @@
 #include <iterator>
 #include <chrono>
 #include <thread>
-
+#include <fstream>
 
 
 
@@ -52,10 +52,9 @@ namespace o2
 		namespace itsdplqctask
 		{
 
-			ITSDPLQCTask::ITSDPLQCTask() : TaskInterface(), mHistogram(nullptr) { 
+			ITSDPLQCTask::ITSDPLQCTask() : TaskInterface() { 
 
 
-				mHistogram = nullptr;
 
 				gStyle->SetPadRightMargin(0.15);
 				gStyle->SetPadLeftMargin(0.15);
@@ -80,7 +79,7 @@ namespace o2
 					OccupancyPlot[i]->GetYaxis()->SetTitleOffset(2.2);	
 					OccupancyPlot[i]->SetTitle(Form("Occupancy Distribution for ITS Layer %d",i));
 
-					LayEtaPhi[i] = new TH2D(Form("Lay1EtaPhiLay%d",i),Form("Lay1EtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhi[i] = new TH2S(Form("Lay1EtaPhiLay%d",i),Form("Lay1EtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
 					LayEtaPhi[i]->GetXaxis()->SetTitle("#eta");
 					LayEtaPhi[i]->GetYaxis()->SetTitle("#phi");
 					LayEtaPhi[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -92,7 +91,7 @@ namespace o2
 					NStaveChip[i] = NChipLay[i]/NStaves[i];
 					NColStave[i] = NStaveChip[i] * NColHis;
 
-					LayChipStave[i] = new TH2D(Form("LayChipStave%d",i),Form("LayChipStave%d",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
+					LayChipStave[i] = new TH2S(Form("LayChipStave%d",i),Form("LayChipStave%d",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
 					LayChipStave[i]->GetXaxis()->SetTitle("Chip Number");
 					LayChipStave[i]->GetYaxis()->SetTitle("Stave Number");
 					LayChipStave[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -110,8 +109,8 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
-						Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
-						//		Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
+						Lay1HIG[i] = new TH2S(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
+						//		Lay1HIG[i] = new TH2S(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
 						Lay1HIG[i]->GetXaxis()->SetTitle("Column");
 						Lay1HIG[i]->GetYaxis()->SetTitle("Row");
 						Lay1HIG[i]->GetYaxis()->SetTitleOffset(1.10);
@@ -127,8 +126,8 @@ namespace o2
 				cout << "DONE 1" << endl;
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
-						HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis,0,NColHis,NRowHis,0,NRowHis);
-						//		HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
+						HIGMAP[i]	= new TH2S(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis,0,NColHis,NRowHis,0,NRowHis);
+						//		HIGMAP[i]	= new TH2S(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
 						HIGMAP[i]->GetXaxis()->SetTitle("Column");
 						HIGMAP[i]->GetYaxis()->SetTitle("Row");
 						HIGMAP[i]->GetYaxis()->SetTitleOffset(1.10);
@@ -140,8 +139,8 @@ namespace o2
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
-						//		HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
+						HIGMAP6[i]	= new TH2S(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
+						//		HIGMAP6[i]	= new TH2S(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
 						HIGMAP6[i]->GetXaxis()->SetTitle("Column");
 						HIGMAP6[i]->GetYaxis()->SetTitle("Row");
 						HIGMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
@@ -159,6 +158,26 @@ namespace o2
 				FileNameInfo->GetXaxis()->SetTitleOffset(1.10);
 				//Initiate Looping Files//
 
+
+
+
+
+
+			}
+
+			ITSDPLQCTask::~ITSDPLQCTask() {
+
+			}
+
+			//void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx)
+			void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx,std::string infile)
+			{
+				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
+				QcInfoLogger::GetInstance() << "infile is fucking = " << infile << AliceO2::InfoLogger::InfoLogger::endm;
+				//inpName = infile;
+
+
+				workdir = infile;
 
 				FolderNames = GetFName(workdir);
 
@@ -182,34 +201,6 @@ namespace o2
 
 
 
-
-
-
-			}
-
-			ITSDPLQCTask::~ITSDPLQCTask() {
-				if (mHistogram) {
-					delete mHistogram;
-				}
-			}
-
-			//void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx)
-			void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx,std::string infile)
-			{
-				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
-				QcInfoLogger::GetInstance() << "infile is fucking = " << infile << AliceO2::InfoLogger::InfoLogger::endm;
-				//inpName = infile;
-				bool mRawDataMode = 1;
-				if (mRawDataMode)
-				{
-					int a = 1;
-				}
-				else
-				{				// clusterizer of digits needs input from the FairRootManager (at the moment)
-					mReaderMC = std::make_unique < o2::itsmft::DigitPixelReader > ();
-					mReader = mReaderMC.get ();
-				}
-
 				LOG (INFO) << "It WORK, PASS 1";
 
 				o2::ITS::GeometryTGeo * geom = o2::ITS::GeometryTGeo::Instance ();
@@ -218,16 +209,9 @@ namespace o2
 				cout << "numOfChips = " << numOfChips << endl;
 				setNChips (numOfChips);
 				cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
-				mReaderRaw.setPadding128(true);
-				mReaderRaw.setVerbosity(0);
-				mReaderRaw.setMinTriggersToCache(1025);
 
 
 
-
-				mHistogram = new TH1F("example", "example", 20, 0, 30000);
-				//	getObjectsManager()->addCheck(mHistogram, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
-				//getObjectsManager()->addCheck(ChipStave, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
 
 				//Setting Up Histogram for Publication to the Database and GUI//
 				cout << "START Inititing Publication " << endl;
@@ -322,7 +306,6 @@ namespace o2
 
 
 
-
 			std::vector<string> ITSDPLQCTask::GetFName(std::string folder)
 			{
 
@@ -333,14 +316,17 @@ namespace o2
 				strcpy(cstr, folder.c_str());
 				dirp = opendir(cstr);
 				std::vector<string> names;
+				std::string objname;
+
 				//string search_path = folder + "/*";
 				if(dirp){
 
 					while((directory = readdir(dirp)) != NULL){
-
 						//printf("%s\n", directory->d_name);
+						objname = folder + "/" + directory->d_name;
+						std::ifstream ifs(objname);
 
-						if ( !(!strcmp(directory->d_name, ".") || !strcmp(directory->d_name, ".."))) names.push_back(folder + "/" + directory->d_name);
+						if ( !(!strcmp(directory->d_name, ".") || !strcmp(directory->d_name, "..")) && ifs.is_open()) names.push_back(objname);
 
 					}
 
@@ -355,7 +341,6 @@ namespace o2
 			void ITSDPLQCTask::startOfActivity(Activity& activity)
 			{
 				QcInfoLogger::GetInstance() << "startOfActivity" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
 			}
 
 			void ITSDPLQCTask::startOfCycle()
@@ -467,14 +452,17 @@ namespace o2
 
 						LOG(INFO) << "inpName = " << inpName;
 
-						
+
 						LOG(INFO) << "RunID = " << RunID;
 
 						HisRunID = inpName;
 
 						LOG(INFO) << "HisRunID = " << HisRunID.Data();	
 
-	
+						o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS> mReaderRaw;		
+						mReaderRaw.setPadding128(true);
+						mReaderRaw.setVerbosity(0);
+						mReaderRaw.setMinTriggersToCache(1025);
 
 						mReaderRaw.openInput (inpName);
 
@@ -511,7 +499,7 @@ namespace o2
 						FileNameInfo->Fill(0.5);
 						FileNameInfo->SetTitle(Form("Current File Name: %s",HisRunID.Data()));
 
-					
+
 						getObjectsManager()->addMetadata(ChipStave->GetName(), RunID, "34");
 						getObjectsManager()->addMetadata(ErrorPlots->GetName(), RunID, "34");
 
@@ -561,7 +549,7 @@ namespace o2
 				cout << " " << endl;
 				cout << " " << endl;	
 
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+				std::this_thread::sleep_for(std::chrono::milliseconds(30000));
 
 			}
 
@@ -599,7 +587,7 @@ namespace o2
 					if(Index < IndexMax) break;
 					//      cout << "ChipID Before = " << ChipID << endl; 
 					ChipID = mChipData->getChipID ();
-					mReaderRaw.getMapping().getChipInfoSW( ChipID, chipInfo );
+					//mReaderRaw.getMapping().getChipInfoSW( ChipID, chipInfo );
 					//const auto& statRU =  mReaderRaw.getRUDecodingStatSW( chipInfo.ru );
 
 					const auto* ruInfo = rawReader.getCurrRUDecodeData()->ruInfo;	
@@ -785,7 +773,6 @@ namespace o2
 				// clean all the monitor objects here
 
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
 				ChipStave->Reset();
 				for(int i = 0; i < NLayer; i++){
 					OccupancyPlot[i]->Reset();
@@ -816,7 +803,7 @@ namespace o2
 
 
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
+
 			}
 
 		} // namespace itsdplqctask

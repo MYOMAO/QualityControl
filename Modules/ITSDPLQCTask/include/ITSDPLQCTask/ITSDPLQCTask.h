@@ -41,6 +41,7 @@
 #include "DataFormatsITSMFT/ROFRecord.h"
 #include "SimulationDataFormat/MCCompLabel.h"
 #include <fstream>
+#include <iostream>
 #include "Framework/DataProcessorSpec.h"
 #include "Framework/Task.h"
 #include "ITSMFTReconstruction/Clusterer.h"
@@ -97,7 +98,7 @@ namespace o2
 				void setNChips(int n)
 				{
 					mChips.resize(n);
-					mChipsOld.resize(n);
+
 				}
 				void ConfirmXAxis(TH1 *h);
 				void ReverseYAxis(TH1 *h);
@@ -107,14 +108,13 @@ namespace o2
 
 
 				private:
-				TH1F* mHistogram;
 				ChipPixelData* mChipData = nullptr; 
 				std::vector<ChipPixelData> mChips;
-				std::vector<ChipPixelData> mChipsOld;
-				o2::itsmft::PixelReader* mReader = nullptr; 
-				std::unique_ptr<o2::itsmft::DigitPixelReader> mReaderMC;    
+	//			std::vector<ChipPixelData> mChipsOld;
+		//		o2::itsmft::PixelReader* mReader = nullptr; 
+		//		std::unique_ptr<o2::itsmft::DigitPixelReader> mReaderMC;    
 				//std::unique_ptr<o2::ITSMFT::RawPixelReader<o2::ITSMFT::ChipMappingITS>> mReaderRaw; 
-				o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS> mReaderRaw;		
+
 				o2::itsmft::ChipInfo chipInfo;
 				UInt_t mCurrROF = o2::itsmft::PixelData::DummyROF; 
 				int* mCurr; // pointer on the 1st row of currently processed mColumnsX
@@ -144,13 +144,13 @@ namespace o2
 				int lay, sta, ssta, mod, chip;
 				//	TH2D * ChipStave[NLayer]; 
 				TH1D * OccupancyPlot[NLayer];
-				TH2D * LayEtaPhi[NLayer]; 
-				TH2D * LayChipStave[NLayer]; 
+				TH2S * LayEtaPhi[NLayer]; 
+				TH2S * LayChipStave[NLayer]; 
 				const int NStaves[NLayer] = {12,16,20,24,30,42,48};
 				int NStaveChip[NLayer];
-				TH2D * HIGMAP[9];
-				TH2D * Lay1HIG[12];
-				TH2D * HIGMAP6[18];
+				TH2S * HIGMAP[9];
+				TH2S * Lay1HIG[12];
+				TH2S * HIGMAP6[18];
 				int ChipIndex6;
 
 				void swapColumnBuffers()
@@ -191,11 +191,11 @@ namespace o2
 				unsigned int Error[NError];
 				double ErrorMax;
 				TPaveText *pt[NError];
-				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+3,-1,NError+1);
+				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+1,-0.5,NError+0.5);
 				TH1D * FileNameInfo = new TH1D("FileNameInfo","FileNameInfo",5,0,1);
 				//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
-				TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
+				TH2S * ChipStave = new TH2S("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
 
 				//Lopping Declares//
 
@@ -209,10 +209,12 @@ namespace o2
 				std::vector<std::vector<std::string>> DiffFileNames;
 				int ResetCommand;
 				int NEvent;
+				int NEventPre;
+				int NEventInRun;
 				size_t pos;
 				std::string RunID;
 				TString HisRunID;
-				
+			    std::ofstream fileout;
 
 			};
 

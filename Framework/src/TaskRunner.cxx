@@ -153,7 +153,7 @@ namespace o2
 				{
 					startOfActivity();
 
-					mStatsTimer.reset(60000000); // 60 s.
+					mStatsTimer.reset(300000000); // 300 s.
 					mLastNumberObjects = 0;
 
 					QcInfoLogger::GetInstance() << "cycle " << mCycleNumber << AliceO2::InfoLogger::InfoLogger::endm;
