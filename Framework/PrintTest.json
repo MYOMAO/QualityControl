@@ -21,7 +21,7 @@
         "cycleDurationSeconds": "60",
         "maxNumberCycles": "-1",
         "dataSamplingPolicy": "its-raw",
-		"infile": "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw",
+		"infile": "infiles",
         "taskParameters": {
           "nothing": "rien"
         },
@@ -31,14 +31,14 @@
   },
   "dataSamplingPolicies": [
     {
-      "id": "raw",
+      "id": "its-raw",
       "active": "true",
       "machines": [],
       "dataHeaders": [
         {
-          "binding": "random",
-          "dataOrigin": "ITS",
-          "dataDescription": "DIGITS"
+          "binding": "in",
+          "dataOrigin": "TST",
+          "dataDescription": "TEST"
         }
       ],
       "subSpec": "0",

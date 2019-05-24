@@ -61,14 +61,12 @@ void customize(std::vector<ChannelConfigurationPolicy>& policies)
 #include "QualityControl/Checker.h"
 #include "QualityControl/InfrastructureGenerator.h"
 //#include "DetectorsBase/Propagator.h"
-#include "Framework/WorkflowSpec.h"
 #include "Framework/ConfigParamSpec.h"
 #include "Framework/CompletionPolicy.h"
 #include "Framework/DeviceSpec.h"
 #include "DetectorsCommonDataFormats/DetID.h"
 #include "Framework/runDataProcessing.h"
-#include "ITSWorkflow/DigitReaderSpec.h"
-#include "ITSWorkflow/RecoWorkflow.h"
+
 //#include "../../../O2/Detectors/ITSMFT/ITS/workflow/include/ITSWorkflow/DigitReaderSpec.h"
 //#include "../../../O2/Detectors/ITSMFT/ITS/workflow/include/ITSWorkflow/RecoWorkflow.h"
 //#include "../../../O2/Detectors/ITSMFT/ITS/workflow/src/DigitReaderSpec.cxx"
@@ -86,6 +84,25 @@ WorkflowSpec defineDataProcessing(ConfigContext const&)
 
 	WorkflowSpec specs;
 
+
+	DataProcessorSpec producer{
+		"producer",
+			Inputs{},
+			Outputs{
+				OutputSpec{ "TST", "TEST", 0, Lifetime::Timeframe }
+			},
+			AlgorithmSpec{
+				(AlgorithmSpec::InitCallback) [](InitContext&) {
+
+					return (AlgorithmSpec::ProcessCallback) [](ProcessingContext& processingContext) mutable {
+
+						processingContext.outputs().snapshot(Output{ "TST", "TEST", 0, Lifetime::Timeframe }, 1); 
+					};
+				}
+			}
+	};
+
+	specs.push_back(producer);
 
 	const std::string qcConfigurationSource = std::string("json://") + getenv("QUALITYCONTROL_ROOT") + "/etc/PrintTest.json";
 	o2::base::GeometryManager::loadGeometry();

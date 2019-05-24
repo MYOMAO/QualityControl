@@ -31,7 +31,7 @@
 #include <iterator>
 #include <chrono>
 #include <thread>
-
+#include <fstream>
 
 
 
@@ -52,14 +52,12 @@ namespace o2
 		namespace itsdplqctask
 		{
 
-			ITSDPLQCTask::ITSDPLQCTask() : TaskInterface(), mHistogram(nullptr) { 
+			ITSDPLQCTask::ITSDPLQCTask() : TaskInterface() { 
 
-
-				mHistogram = nullptr;
-
+				o2::base::GeometryManager::loadGeometry();
 				gStyle->SetPadRightMargin(0.15);
 				gStyle->SetPadLeftMargin(0.15);
-				o2::base::GeometryManager::loadGeometry ();
+
 
 
 				gStyle->SetOptFit(0);
@@ -74,13 +72,13 @@ namespace o2
 
 					NChipLay[i] = ChipBoundary[i + 1] - ChipBoundary[i];
 
-					OccupancyPlot[i]	= new TH1D(Form("Occupancy%d",i),Form("Occupancy%d",i),NEventMax[i],0,NEventMax[i]); 
+					OccupancyPlot[i]	= new TH1D(Form("Layer%dOccupancy",i),Form("Layer%dOccupancy",i),NEventMax[i],0,NEventMax[i]); 
 					OccupancyPlot[i]->GetXaxis()->SetTitle ("Occupancy");
 					OccupancyPlot[i]->GetYaxis()->SetTitle ("Counts");
 					OccupancyPlot[i]->GetYaxis()->SetTitleOffset(2.2);	
 					OccupancyPlot[i]->SetTitle(Form("Occupancy Distribution for ITS Layer %d",i));
 
-					LayEtaPhi[i] = new TH2D(Form("Lay1EtaPhiLay%d",i),Form("Lay1EtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhi[i] = new TH2S(Form("Layer%dEtaPhi",i),Form("Layer%dEtaPhi",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
 					LayEtaPhi[i]->GetXaxis()->SetTitle("#eta");
 					LayEtaPhi[i]->GetYaxis()->SetTitle("#phi");
 					LayEtaPhi[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -92,7 +90,7 @@ namespace o2
 					NStaveChip[i] = NChipLay[i]/NStaves[i];
 					NColStave[i] = NStaveChip[i] * NColHis;
 
-					LayChipStave[i] = new TH2D(Form("LayChipStave%d",i),Form("LayChipStave%d",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
+					LayChipStave[i] = new TH2S(Form("Layer%dChipStave",i),Form("Layer%dChipStave",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
 					LayChipStave[i]->GetXaxis()->SetTitle("Chip Number");
 					LayChipStave[i]->GetYaxis()->SetTitle("Stave Number");
 					LayChipStave[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -110,13 +108,13 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
-						Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
-						//		Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
-						Lay1HIG[i]->GetXaxis()->SetTitle("Column");
-						Lay1HIG[i]->GetYaxis()->SetTitle("Row");
-						Lay1HIG[i]->GetYaxis()->SetTitleOffset(1.10);
-						Lay1HIG[i]->GetZaxis()->SetTitleOffset(1.50);
-						Lay1HIG[i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
+						Lay1HIT[i] = new TH2S(Form("Layer%dStave%dHITMAP",j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
+						//		Lay1HIT[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
+						Lay1HIT[i]->GetXaxis()->SetTitle("Column");
+						Lay1HIT[i]->GetYaxis()->SetTitle("Row");
+						Lay1HIT[i]->GetYaxis()->SetTitleOffset(1.10);
+						Lay1HIT[i]->GetZaxis()->SetTitleOffset(1.50);
+						Lay1HIT[i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
 					}
 				}
 
@@ -127,38 +125,57 @@ namespace o2
 				cout << "DONE 1" << endl;
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
-						HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis,0,NColHis,NRowHis,0,NRowHis);
-						//		HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
-						HIGMAP[i]->GetXaxis()->SetTitle("Column");
-						HIGMAP[i]->GetYaxis()->SetTitle("Row");
-						HIGMAP[i]->GetYaxis()->SetTitleOffset(1.10);
-						HIGMAP[i]->GetZaxis()->SetTitleOffset(1.50);
-						HIGMAP[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Number % d on Layer %d",i,j));
+						HITMAP[i]	= new TH2S(Form("Layer%dStave%dHITMAP",j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
+						//		HITMAP[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
+						HITMAP[i]->GetXaxis()->SetTitle("Column");
+						HITMAP[i]->GetYaxis()->SetTitle("Row");
+						HITMAP[i]->GetYaxis()->SetTitleOffset(1.10);
+						HITMAP[i]->GetZaxis()->SetTitleOffset(1.50);
+						HITMAP[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Number % d on Layer %d",i,j));
 					}
 				}
 				cout << "DONE 2" << endl;
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
-						//		HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
-						HIGMAP6[i]->GetXaxis()->SetTitle("Column");
-						HIGMAP6[i]->GetYaxis()->SetTitle("Row");
-						HIGMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
-						HIGMAP6[i]->GetZaxis()->SetTitleOffset(1.50);
-						HIGMAP6[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Sector Number % d on Layer %d",i,j));
+						HITMAP6[i]	= new TH2S(Form("Layer%dStave%dHITMAP",j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
+						//		HITMAP6[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
+						HITMAP6[i]->GetXaxis()->SetTitle("Column");
+						HITMAP6[i]->GetYaxis()->SetTitle("Row");
+						HITMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
+						HITMAP6[i]->GetZaxis()->SetTitleOffset(1.50);
+						HITMAP6[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Sector Number % d on Layer %d",i,j));
 					}
 				}
 				cout << "DONE 3" << endl;
 
-				HIGMAP[6]->SetMaximum(2);	
-				HIGMAP[6]->SetMinimum(0);	
+				HITMAP[6]->SetMaximum(2);	
+				HITMAP[6]->SetMinimum(0);	
 				cout << "Clear " << endl;
 				FileNameInfo->GetXaxis()->SetTitle("InputFile");
 				FileNameInfo->GetYaxis()->SetTitle("Total Files Proccessed");
 				FileNameInfo->GetXaxis()->SetTitleOffset(1.10);
 				//Initiate Looping Files//
 
+
+
+
+			}
+
+			ITSDPLQCTask::~ITSDPLQCTask() {
+			}
+
+			//void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx)
+			void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx,std::string infile)
+			{
+				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
+				QcInfoLogger::GetInstance() << "infile is fucking = " << infile << AliceO2::InfoLogger::InfoLogger::endm;
+
+				fileout.open("MemFile.dat");
+				//inpName = infile;
+				//	bool mRawDataMode = 1;
+				NEventInRun = 0;
+				workdir = infile;
 
 				FolderNames = GetFName(workdir);
 
@@ -180,35 +197,18 @@ namespace o2
 
 				}
 
+				/*
+				   if (mRawDataMode)
+				   {
+				   int a = 1;
+				   }
+				   else
+				   {				// clusterizer of digits needs input from the FairRootManager (at the moment)
+				   mReaderMC = std::make_unique < o2::itsmft::DigitPixelReader > ();
+				   mReader = mReaderMC.get ();
+				   }
+				   */
 
-
-
-
-
-			}
-
-			ITSDPLQCTask::~ITSDPLQCTask() {
-				if (mHistogram) {
-					delete mHistogram;
-				}
-			}
-
-			//void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx)
-			void ITSDPLQCTask::initialize(o2::framework::InitContext& ctx,std::string infile)
-			{
-				QcInfoLogger::GetInstance() << "initialize ITSDPLQCTask" << AliceO2::InfoLogger::InfoLogger::endm;
-				QcInfoLogger::GetInstance() << "infile is fucking = " << infile << AliceO2::InfoLogger::InfoLogger::endm;
-				//inpName = infile;
-				bool mRawDataMode = 1;
-				if (mRawDataMode)
-				{
-					int a = 1;
-				}
-				else
-				{				// clusterizer of digits needs input from the FairRootManager (at the moment)
-					mReaderMC = std::make_unique < o2::itsmft::DigitPixelReader > ();
-					mReader = mReaderMC.get ();
-				}
 
 				LOG (INFO) << "It WORK, PASS 1";
 
@@ -218,21 +218,13 @@ namespace o2
 				cout << "numOfChips = " << numOfChips << endl;
 				setNChips (numOfChips);
 				cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
-				mReaderRaw.setPadding128(true);
-				mReaderRaw.setVerbosity(0);
-				mReaderRaw.setMinTriggersToCache(1025);
 
 
 
-
-				mHistogram = new TH1F("example", "example", 20, 0, 30000);
-				//	getObjectsManager()->addCheck(mHistogram, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
-				//getObjectsManager()->addCheck(ChipStave, "checkFromITSDPLQCTask", "o2::quality_control_modules::itsdplqctask::ITSDPLQCTaskCheck",	"QcITSDPLQCTask");
-
-				//Setting Up Histogram for Publication to the Database and GUI//
 				cout << "START Inititing Publication " << endl;
-				getObjectsManager()->startPublishing(FileNameInfo);
 
+
+				getObjectsManager()->startPublishing(FileNameInfo);
 
 
 				ChipStave->SetMinimum(1);
@@ -250,7 +242,7 @@ namespace o2
 
 				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
 				ErrorMax = ErrorPlots->GetMaximum();
-				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
+				ErrorPlots->SetMaximum(ErrorMax * 4.1+10);
 				//	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
 				//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
 				getObjectsManager()->startPublishing(ErrorPlots);
@@ -260,27 +252,27 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
-						HIGMAP[i]->GetZaxis()->SetTitle("Number of Hits");
-						HIGMAP[i]->GetXaxis()->SetNdivisions(-32);
-						HIGMAP[i]->Draw("COLZ");
-						ConfirmXAxis(HIGMAP[i]);
-						ReverseYAxis(HIGMAP[i]);
-						getObjectsManager()->startPublishing(HIGMAP[i]);
+						HITMAP[i]->GetZaxis()->SetTitle("Number of Hits");
+						HITMAP[i]->GetXaxis()->SetNdivisions(-32);
+						HITMAP[i]->Draw("COLZ");
+						ConfirmXAxis(HITMAP[i]);
+						ReverseYAxis(HITMAP[i]);
+						getObjectsManager()->startPublishing(HITMAP[i]);
 					}
 				}
 
 
-				ReverseYAxis(HIGMAP[0]);
+				ReverseYAxis(HITMAP[0]);
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaves[j]; i++){
 
-						Lay1HIG[i]->GetZaxis()->SetTitle("Number of Hits");
-						Lay1HIG[i]->GetXaxis()->SetNdivisions(-32);
-						Lay1HIG[i]->Draw("COLZ");
-						ConfirmXAxis(Lay1HIG[i]);
-						ReverseYAxis(Lay1HIG[i]);
-						getObjectsManager()->startPublishing(Lay1HIG[i]);
+						Lay1HIT[i]->GetZaxis()->SetTitle("Number of Hits");
+						Lay1HIT[i]->GetXaxis()->SetNdivisions(-32);
+						Lay1HIT[i]->Draw("COLZ");
+						ConfirmXAxis(Lay1HIT[i]);
+						ReverseYAxis(Lay1HIT[i]);
+						getObjectsManager()->startPublishing(Lay1HIT[i]);
 					}
 				}
 
@@ -290,12 +282,12 @@ namespace o2
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HIGMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
-						HIGMAP6[i]->GetXaxis()->SetNdivisions(-32);
-						HIGMAP6[i]->Draw("COLZ");
-						ConfirmXAxis(HIGMAP6[i]);
-						ReverseYAxis(HIGMAP6[i]);	
-						getObjectsManager()->startPublishing(HIGMAP6[i]);
+						HITMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
+						HITMAP6[i]->GetXaxis()->SetNdivisions(-32);
+						HITMAP6[i]->Draw("COLZ");
+						ConfirmXAxis(HITMAP6[i]);
+						ReverseYAxis(HITMAP6[i]);	
+						getObjectsManager()->startPublishing(HITMAP6[i]);
 					}
 				}
 
@@ -304,11 +296,9 @@ namespace o2
 
 				for(int i = 0; i < NLayer; i++){
 
-
 					getObjectsManager()->startPublishing(LayEtaPhi[i]);
 					getObjectsManager()->startPublishing(LayChipStave[i]);
 					getObjectsManager()->startPublishing(OccupancyPlot[i]);
-
 
 				}
 
@@ -316,10 +306,11 @@ namespace o2
 
 				//Setting Up Histogram for Publication to the Database and GUI//
 
+							
+				//	HaveNewFile = 0;
 
 
 			}
-
 
 
 
@@ -333,14 +324,17 @@ namespace o2
 				strcpy(cstr, folder.c_str());
 				dirp = opendir(cstr);
 				std::vector<string> names;
+				std::string objname;
+
 				//string search_path = folder + "/*";
 				if(dirp){
 
 					while((directory = readdir(dirp)) != NULL){
-
 						//printf("%s\n", directory->d_name);
+						objname = folder + "/" + directory->d_name;
+						std::ifstream ifs(objname);
 
-						if ( !(!strcmp(directory->d_name, ".") || !strcmp(directory->d_name, ".."))) names.push_back(folder + "/" + directory->d_name);
+						if ( !(!strcmp(directory->d_name, ".") || !strcmp(directory->d_name, "..")) && ifs.is_open()) names.push_back(objname);
 
 					}
 
@@ -355,7 +349,6 @@ namespace o2
 			void ITSDPLQCTask::startOfActivity(Activity& activity)
 			{
 				QcInfoLogger::GetInstance() << "startOfActivity" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
 			}
 
 			void ITSDPLQCTask::startOfCycle()
@@ -369,15 +362,46 @@ namespace o2
 
 				//Getting Latest Folders//
 
+				int Mimic = ctx.inputs().get<int>("in");
+				QcInfoLogger::GetInstance() << "Mimic = " << Mimic << AliceO2::InfoLogger::InfoLogger::endm;
 
 				cout << "------------------------------------------------------------------------------------------" << endl;
 				cout << "------------------------------------------------------------------------------------------" << endl;
+
+				/*
+				   LOG(INFO) << "------------ Start Memory Info ------------";
+				   std::ifstream memoryfile("/proc/self/status");
+				   memoryfile.seekg(std::ios::beg);
+				   for(int i=0; i < 12; ++i){
+				   memoryfile.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+				   }	
+				   std::string Peak;
+				   int MemPeak;
+				   std::string UnitPeak;
+				   std::string Size;
+				   int MemSize;
+				   std::string UnitSize;
+
+
+				   memoryfile >> Peak >> MemPeak >> UnitPeak;
+				   cout << "MemPeak = " << MemPeak << endl;
+
+				   memoryfile >> Size >> MemSize >> UnitSize;
+				   cout << "MemSize = " << MemSize << endl;
+
+
+
+				   fileout << MemPeak << "   " << MemSize << endl;
+
+				   LOG(INFO) << "------------ Done Memory Info ------------";
+				   */
 
 				cout << "New Cycle" << endl;	
 
 				cout << "Wake Up Bro" << endl;
 
 				cout << "Old Folder Size = " << FolderNames.size() << endl;
+
 
 
 				NowFolderNames = GetFName(workdir);
@@ -437,6 +461,7 @@ namespace o2
 					std::set_difference(NowFileNames[i].begin(), NowFileNames[i].end(), FileNames[i].begin(), FileNames[i].end(),std::inserter(DiffFileNamePush, DiffFileNamePush.begin()));
 					DiffFileNames.push_back(DiffFileNamePush);
 					cout << "Difference File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
+					
 					DiffFileNamePush.clear();
 				}
 
@@ -447,8 +472,11 @@ namespace o2
 					cout << "New File Size Between New and Initial Runs " <<   DiffFileNames[i].size() << endl;
 				}	
 
+				LOG(INFO) << "Total New Files = " << DiffFileNames.size();
+
 				LOG(INFO) << "DONE Creating Difference";
 
+			//	if(DiffFileNames.size() > 0) HaveNewFile = 1;
 
 
 
@@ -459,11 +487,14 @@ namespace o2
 					pos = NowFolderNames[i].find_last_of("/");
 					if (pos != string::npos)   RunID =  NowFolderNames[i].substr(pos+1);
 
+					cout << "i = " << i << endl;
+				
 
+				//	for(int j = 0; j < DiffFileNames[i].size(); j++){
+			
+					if(DiffFileNames[i].size() > 0){ 
 
-					for(int j = 0; j < DiffFileNames[i].size(); j++){
-
-						inpName = DiffFileNames[i][j];
+						inpName = DiffFileNames[i][0];
 
 						LOG(INFO) << "inpName = " << inpName;
 
@@ -474,7 +505,10 @@ namespace o2
 
 						LOG(INFO) << "HisRunID = " << HisRunID.Data();	
 
-
+						o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS> mReaderRaw;		
+						mReaderRaw.setPadding128(true);
+						mReaderRaw.setVerbosity(0);
+						mReaderRaw.setMinTriggersToCache(1025);
 
 						mReaderRaw.openInput (inpName);
 
@@ -492,7 +526,6 @@ namespace o2
 							OccupancyPlot[j]->SetMarkerSize (1.5);
 							OccupancyPlot[j]->Draw ("ep");
 							cout << "Occupancy Total = " << OccupancyPlot[j]->Integral() << endl;
-							getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), RunID, "34");
 
 						}
 
@@ -500,22 +533,13 @@ namespace o2
 						for(int j = 0; j < NLayer; j++){ 
 							LayEtaPhi[j]->Draw("COLZ");
 							cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
-							getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), RunID, "34");
 
 						}
 
 						for(int j = 0; j < NLayer; j++){ 
 							LayChipStave[j]->Draw("COLZ");
 							cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
-							getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), RunID, "34");
 						}
-
-						for(int j = 0; j < 1; j++){
-							for(int i = 0; i< NStaves[j]; i++){
-								getObjectsManager()->addMetadata(Lay1HIG[i]->GetName(), RunID, "34");	
-							}
-						}
-
 
 
 						FileNameInfo->Fill(0.5);
@@ -525,8 +549,7 @@ namespace o2
 						getObjectsManager()->addMetadata(ChipStave->GetName(), RunID, "34");
 						getObjectsManager()->addMetadata(ErrorPlots->GetName(), RunID, "34");
 
-
-
+						FileNames[i].push_back(inpName);
 
 					}
 				}
@@ -536,10 +559,10 @@ namespace o2
 
 
 				FolderNames.clear();
-				FileNames.clear();
+			//	FileNames.clear();
 
 				FolderNames = NowFolderNames;
-				FileNames = NowFileNames;
+			//	FileNames = NowFileNames;
 
 				LOG(INFO) << "DONE Updateing Vectors";
 
@@ -554,6 +577,9 @@ namespace o2
 
 
 				LOG(INFO) << "Pushing Reset Histogram Decision";
+
+
+
 
 				LOG(INFO) << "Start Ending Cycle";
 
@@ -609,7 +635,7 @@ namespace o2
 					if(Index < IndexMax) break;
 					//      cout << "ChipID Before = " << ChipID << endl; 
 					ChipID = mChipData->getChipID ();
-					mReaderRaw.getMapping().getChipInfoSW( ChipID, chipInfo );
+					//mReaderRaw.getMapping().getChipInfoSW( ChipID, chipInfo );
 					//const auto& statRU =  mReaderRaw.getRUDecodingStatSW( chipInfo.ru );
 
 					const auto* ruInfo = rawReader.getCurrRUDecodeData()->ruInfo;	
@@ -654,14 +680,18 @@ namespace o2
 
 						int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
 						ActPix = mChipData->getData().size();
-						AveActPix = ActPix/TimeFrame;
+						if(NEvent != NEventPre){
+							OccupancyPlot[lay]->Fill(AveActPix);
+							AveActPix = 0;
+						}
+						AveActPix = AveActPix + ActPix;
 
 						//cout << "ChipNumber = " << ChipNumber << endl;
 						eta = glo.eta();
 						phi = glo.phi();
 						//			Occupancy[ChipID] = Occupancy[ChipID] + ActPix;
 						//if(ActPix > 0 ) cout << "Chip ID = " << ChipID << "   Occupancy = " << ActPix << endl;
-						OccupancyPlot[lay]->Fill(AveActPix);
+
 						ChipStave->Fill(ChipID, AveActPix);
 						LayEtaPhi[lay]->Fill(eta,phi,AveActPix);
 						LayChipStave[lay]->Fill(ChipNumber,sta,AveActPix);
@@ -671,7 +701,7 @@ namespace o2
 								const auto pix = mChipData->getData()[ip];
 								row = pix.getRow();
 								col = pix.getCol();
-								if(row > 0 && col > 0) HIGMAP[ChipID]->Fill(col,row);
+								if(row > 0 && col > 0) HITMAP[ChipID]->Fill(col,row);
 
 							}	
 						}
@@ -682,7 +712,7 @@ namespace o2
 								const auto pix = mChipData->getData()[ip];
 								row = pix.getRow();
 								col = pix.getCol() + NColHis * ChipNumber;
-								if(row > 0 && col > 0) Lay1HIG[sta]->Fill(col,row);
+								if(row > 0 && col > 0) Lay1HIT[sta]->Fill(col,row);
 
 							}	
 						}
@@ -699,7 +729,7 @@ namespace o2
 								col = pix.getCol() + ChipLocal6 * NColHis;
 
 								//cout << "ChipNumber = " <<  ChipNumber << "   ChipIndex6 = " <<  ChipIndex6 << "   ChipLocal6 = " << ChipLocal6 << endl;
-								if(row > 0 && col > 0) HIGMAP6[ChipIndex6]->Fill(col,row);
+								if(row > 0 && col > 0) HITMAP6[ChipIndex6]->Fill(col,row);
 							}
 						}
 
@@ -708,12 +738,47 @@ namespace o2
 				}
 				cout << "Start Filling" << endl;
 				cout << "mChips Size = " << mChips.size() << endl;
+				NEventInRun = NEventInRun + NEvent;
+				NEventPre = NEvent;
+
+
+
+
+				cout << "Run  = " << RunID << "  Cumulative Events = " << NEventInRun << endl;
 
 
 				for(int i =0; i< NError;i++){
 					cout << "i = " << i << "  Error Number = " << Error[i] << endl;
 					ErrorPlots->SetBinContent(i+1,Error[i]);
 				}
+
+
+				//Normalizing Histograms//
+
+				for(int i = 0; i < NLayer; i++){
+					LayEtaPhi[i]->Scale(1.0/NEvent);
+					LayChipStave[i]->Scale(1.0/NEvent);
+				}
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i< NStaves[j]; i++){
+						Lay1HIT[i]->Scale(1.0/NEvent);
+					}
+				}
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaveChip[j]; i++){
+						HITMAP[i]->Scale(1.0/NEvent);
+					}
+				}
+
+				for(int j = 6; j < 7; j++){
+					for(int i = 0; i < 18; i++){
+						HITMAP6[i]->Scale(1.0/NEvent);
+					}
+				}
+
+
 
 
 
@@ -780,6 +845,90 @@ namespace o2
 
 			void ITSDPLQCTask::endOfCycle()
 			{
+
+
+				//STOP PUBLISHING//
+
+				/*
+				if(HaveNewFile == 0){
+
+					cout << "START STOPPING Publication " << endl;
+					getObjectsManager()->stopPublishing(FileNameInfo);
+
+					ChipStave->SetMinimum(1);
+					getObjectsManager()->stopPublishing(ChipStave);
+
+					for(int i =0; i< NError;i++){
+						pt[i] = new TPaveText(0.20,0.80 -i*0.05,0.85,0.85-i*0.05,"NDC");
+						pt[i]->SetTextSize(0.04);
+						pt[i]->SetFillColor(0);
+						pt[i]->SetTextAlign(12);
+						pt[i]->AddText(ErrorType[i].Data());
+						ErrorPlots->GetListOfFunctions()->Add(pt[i]);
+					}
+
+
+					//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
+					//	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
+					//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
+					getObjectsManager()->stopPublishing(ErrorPlots);
+
+
+
+					for(int j = 0; j < 1; j++){
+						for(int i = 0; i < NStaveChip[j]; i++){
+							HITMAP[i]->GetXaxis()->SetNdivisions(-32);
+							HITMAP[i]->Draw("COLZ");
+							ConfirmXAxis(HITMAP[i]);
+							ReverseYAxis(HITMAP[i]);
+							getObjectsManager()->stopPublishing(HITMAP[i]);
+						}
+					}
+
+
+					ReverseYAxis(HITMAP[0]);
+
+					for(int j = 0; j < 1; j++){
+						for(int i = 0; i < NStaves[j]; i++){
+							Lay1HIT[i]->GetXaxis()->SetNdivisions(-32);
+							Lay1HIT[i]->Draw("COLZ");
+							ConfirmXAxis(Lay1HIT[i]);
+							ReverseYAxis(Lay1HIT[i]);
+							getObjectsManager()->stopPublishing(Lay1HIT[i]);
+						}
+					}
+
+
+
+
+
+					for(int j = 6; j < 7; j++){
+						for(int i = 0; i < 18; i++){
+							HITMAP6[i]->GetXaxis()->SetNdivisions(-32);
+							HITMAP6[i]->Draw("COLZ");
+							ConfirmXAxis(HITMAP6[i]);
+							ReverseYAxis(HITMAP6[i]);	
+							getObjectsManager()->stopPublishing(HITMAP6[i]);
+						}
+					}
+
+
+
+
+					for(int i = 0; i < NLayer; i++){
+
+						getObjectsManager()->stopPublishing(LayEtaPhi[i]);
+						getObjectsManager()->stopPublishing(LayChipStave[i]);
+						getObjectsManager()->stopPublishing(OccupancyPlot[i]);
+
+					}
+
+					cout << "DONE STOPPING Publication = " << endl;
+
+				}
+						
+				HaveNewFile = 0;
+				*/
 				QcInfoLogger::GetInstance() << "endOfCycle" << AliceO2::InfoLogger::InfoLogger::endm;
 
 
@@ -795,7 +944,6 @@ namespace o2
 				// clean all the monitor objects here
 
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
 				ChipStave->Reset();
 				for(int i = 0; i < NLayer; i++){
 					OccupancyPlot[i]->Reset();
@@ -805,28 +953,27 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
-						Lay1HIG[i]->Reset();
+						Lay1HIT[i]->Reset();
 					}
 				}
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
-						HIGMAP[i]->Reset();
+						HITMAP[i]->Reset();
 					}
 				}
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HIGMAP6[i]->Reset();
+						HITMAP6[i]->Reset();
 					}
 				}
 				ErrorPlots->Reset();
+				NEventInRun = 0;
 
 				QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
 
 
-				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
 			}
 
 		} // namespace itsdplqctask
