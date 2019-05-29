@@ -35,15 +35,22 @@
 
 #include "Framework/DataSampling.h"
 
+#include "Framework/CompletionPolicy.h"
+#include "Framework/CompletionPolicyHelpers.h"
+#include "Framework/DeviceSpec.h"
 
 using namespace o2::framework;
 void customize(std::vector<CompletionPolicy>& policies)
 {
 	DataSampling::CustomizeInfrastructure(policies);
+//	CompletionPolicy dispatcherConsumesASAP = CompletionPolicyHelpers::defineByName("Process", CompletionPolicy::CompletionOp::Process);
+ // policies.push_back(dispatcherConsumesASAP);
+
 }
 void customize(std::vector<ChannelConfigurationPolicy>& policies)
 {
 	DataSampling::CustomizeInfrastructure(policies);
+
 }
 
 

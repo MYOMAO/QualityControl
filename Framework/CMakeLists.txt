@@ -170,9 +170,9 @@ add_executable(qcRunDPL src/runITSDPL.cxx)
 target_link_libraries(qcRunDPL PRIVATE QualityControl)
 target_include_directories(qcRunDPL PRIVATE ${O2_ROOT}/include/AliTPCCommon)
 
-add_executable(qcRunPrint src/runPrint.cxx)
-target_link_libraries(qcRunPrint PRIVATE QualityControl)
-target_include_directories(qcRunPrint PRIVATE ${O2_ROOT}/include/AliTPCCommon)
+#add_executable(qcRunPrint src/runPrint.cxx)
+#target_link_libraries(qcRunPrint PRIVATE QualityControl)
+#target_include_directories(qcRunPrint PRIVATE ${O2_ROOT}/include/AliTPCCommon)
 
 add_executable(qcRunDS src/runRawDS.cxx)
 target_link_libraries(qcRunDS PRIVATE QualityControl)
@@ -261,7 +261,7 @@ unset(isSystemDir)
 
 # Install library and binaries
 install(
-  TARGETS QualityControl ${EXE_NAMES} ${DATADUMP} qcRunDPL qcRunPrint qcRunDS qcRunSimple qcRunSimTest
+  TARGETS QualityControl ${EXE_NAMES} ${DATADUMP} qcRunDPL qcRunDS qcRunSimple qcRunSimTest
   EXPORT QualityControlTargets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

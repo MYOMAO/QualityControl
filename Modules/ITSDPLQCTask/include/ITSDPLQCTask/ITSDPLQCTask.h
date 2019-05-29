@@ -162,7 +162,7 @@ namespace o2
 				}
 				Int_t mIdx = 0;
 				//const std::string inpName = "rawits.bin";
-				const std::string inpName = "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw";
+				const std::string inpName = "Split9.bin";
 
 				o2::ITS::GeometryTGeo * gm = o2::ITS::GeometryTGeo::Instance();
 				double AveOcc;

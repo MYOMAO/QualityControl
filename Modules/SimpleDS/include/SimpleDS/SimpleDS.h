@@ -53,121 +53,130 @@ namespace o2
 			class SimpleDS /*final*/ : public TaskInterface // todo add back the "final" when doxygen is fixed
 			{
 
-				using ChipPixelData = o2::ITSMFT::ChipPixelData;
-				using PixelReader = o2::ITSMFT::PixelReader;
+				using ChipPixelData = o2::itsmft::ChipPixelData;
+				using PixelReader = o2::itsmft::PixelReader;
 
 
 				public:
-					/// \brief Constructor
-					SimpleDS();
-					/// Destructor
-					~SimpleDS() override;
+				/// \brief Constructor
+				SimpleDS();
+				/// Destructor
+				~SimpleDS() override;
 
-					// Definition of the methods for the template method pattern
-					void initialize(o2::framework::InitContext& ctx) override;
-					void startOfActivity(Activity& activity) override;
-					void startOfCycle() override;
-					void monitorData(o2::framework::ProcessingContext& ctx) override;
-					void endOfCycle() override;
-					void endOfActivity(Activity& activity) override;
-					void reset() override;
-					void setNChips(int n)
-					{
-						mChips.resize(n);
-						mChipsOld.resize(n);
-					}
-					void ConfirmXAxis(TH1 *h);
-					void ReverseYAxis(TH1 *h);
-				
-	
+				// Definition of the methods for the template method pattern
+				void initialize(o2::framework::InitContext& ctx) override;
+				void startOfActivity(Activity& activity) override;
+				void startOfCycle() override;
+				void monitorData(o2::framework::ProcessingContext& ctx) override;
+				void endOfCycle() override;
+				void endOfActivity(Activity& activity) override;
+				void reset() override;
+				void setNChips(int n)
+				{
+					mChips.resize(n);
+					mChipsOld.resize(n);
+				}
+				void ConfirmXAxis(TH1 *h);
+				void ReverseYAxis(TH1 *h);
+
+
 
 				private:
-					TH1F* mHistogram;
-					ChipPixelData* mChipData = nullptr; 
-					std::vector<ChipPixelData> mChips;
-					std::vector<ChipPixelData> mChipsOld;
-					o2::ITSMFT::PixelReader* mReader = nullptr; 
-					std::unique_ptr<o2::ITSMFT::DigitPixelReader> mReaderMC;    
-					//std::unique_ptr<o2::ITSMFT::RawPixelReader<o2::ITSMFT::ChipMappingITS>> mReaderRaw; 
-					o2::ITSMFT::RawPixelReader<o2::ITSMFT::ChipMappingITS> mReaderRaw;		
-					o2::ITSMFT::ChipInfo chipInfo;
-					UInt_t mCurrROF = o2::ITSMFT::PixelData::DummyROF; 
-					int* mCurr; // pointer on the 1st row of currently processed mColumnsX
-					int* mPrev; // pointer on the 1st row of previously processed mColumnsX
-					static constexpr int   NCols = 1024;
-					static constexpr int   NRows = 512;
-					const int NColHis = 1024;
-					const int NRowHis = 512;
-					int XTicks;
-					int YTicks;
+
+				ChipPixelData* mChipData = nullptr; 
+				std::vector<ChipPixelData> mChips;
+				std::vector<ChipPixelData> mChipsOld;
+				o2::itsmft::PixelReader* mReader = nullptr; 
+				std::unique_ptr<o2::itsmft::DigitPixelReader> mReaderMC;    
+				//std::unique_ptr<o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS>> mReaderRaw; 
+				o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS> mReaderRaw;		
+				o2::itsmft::ChipInfo chipInfo;
+				UInt_t mCurrROF = o2::itsmft::PixelData::DummyROF; 
+				int* mCurr; // pointer on the 1st row of currently processed mColumnsX
+				int* mPrev; // pointer on the 1st row of previously processed mColumnsX
+				static constexpr int   NCols = 1024;
+				static constexpr int   NRows = 512;
+				const int NColHis = 1024;
+				const int NRowHis = 512;
+				int XTicks;
+				int YTicks;
 
 
 
-					int DivisionStep = 32;
-					static constexpr int   NPixels = NRows*NCols;
-					const int NLay1 = 108;
-					double Occupancy[24120];
-					static constexpr int NLayer = 7;
-					const int NEventMax[NLayer] = {150,150,150,150,150,150,150};
+				int DivisionStep = 32;
+				static constexpr int   NPixels = NRows*NCols;
+				const int NLay1 = 108;
+				static constexpr int NLayer = 7;
+				const int NEventMax[NLayer] = {150,150,150,150,150,150,150};
 
-					int ChipBoundary[NLayer + 1] ={0,108,252,432,3120,6480,14712,24120}; 
-					int NChipLay[NLayer];
-					int NColStave[NLayer];
-					UShort_t row;
-					UShort_t col; 
-					int lay, sta, ssta, mod, chip;
-					//	TH2D * ChipStave[NLayer]; 
-					TH1D * OccupancyPlot[NLayer];
-					TH2D * LayEtaPhi[NLayer]; 
-					TH2D * LayChipStave[NLayer]; 
-					const int NStaves[NLayer] = {12,16,20,24,30,42,48};
-					int NStaveChip[NLayer];
-					TH2D * HIGMAP[9];
+				int ChipBoundary[NLayer + 1] ={0,108,252,432,3120,6480,14712,24120}; 
+				int NChipLay[NLayer];
+				int NColStave[NLayer];
+				UShort_t row;
+				UShort_t col; 
+				UShort_t rowCS;
+				UShort_t colCS; 
+				UShort_t rowLay6;
+				UShort_t colLay6; 
 
-					TH2D * Lay1HIG[12];
-					TH2D * HIGMAP6[18];
-					int ChipIndex6;
+				int lay, sta, ssta, mod, chip;
+				//	TH2D * ChipStave[NLayer]; 
+				TH1D * OccupancyPlot[NLayer];
+				TH2S * LayEtaPhi[NLayer]; 
+				TH2S * LayChipStave[NLayer]; 
+				const int NStaves[NLayer] = {12,16,20,24,30,42,48};
+				int NStaveChip[NLayer];
+				TH2S * HITMAP[9];
+				TH2S * Lay1HIT[12];
+				TH2S * HITMAP6[18];
+				int ChipIndex6;
 
-					void swapColumnBuffers()
-					{
-						int* tmp = mCurr;
-						mCurr = mPrev;
-						mPrev = tmp;
-					}
-					const std::vector<o2::ITSMFT::Digit>* mDigits = nullptr;
-					void resetColumn(int* buff)
-					{
-						std::memset(buff, -1, sizeof(int) * NRows);
+				void swapColumnBuffers()
+				{
+					int* tmp = mCurr;
+					mCurr = mPrev;
+					mPrev = tmp;
+				}
+				const std::vector<o2::itsmft::Digit>* mDigits = nullptr;
+				void resetColumn(int* buff)
+				{
+					std::memset(buff, -1, sizeof(int) * NRows);
 
-					}
-					Int_t mIdx = 0;
-					//const std::string inpName = "rawits.bin";
-					//const std::string inpName = "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw";
-					std::string inpName = "Split9.bin";
+				}
+				Int_t mIdx = 0;
+				//const std::string inpName = "rawits.bin";
+				//const std::string inpName = "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw";
+				std::string inpName = "Split9.bin";
 
-					o2::ITS::GeometryTGeo * gm = o2::ITS::GeometryTGeo::Instance();
-					double AveOcc;
-					UShort_t ChipID; 
-					
-					TFile * fout;
-					const int NEta = 9;
-					const double EtaMin = -2.40;
-					const double EtaMax = 2.40;
-					const int NPhi = 12;
-					const double PhiMin = -2.90;
-					const double PhiMax = 2.90;
-					const int NChipsSta = 9;
-					const int NSta1 = NLay1/NChipsSta;
-					double eta;
-					double phi;
-					static constexpr int  NError = 10;
-					unsigned int Error[NError];
-					double ErrorMax;
-					TPaveText *pt[NError];
-					TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError,0,NError);
-					//			TString ErrorType[NError] ={"ErrGarbageAfterPayload","ErrPageCounterDiscontinuity","ErrRDHvsGBTHPageCnt","ErrMissingGBTHeader","ErrMissingGBTTrailer","ErrNonZeroPageAfterStop","ErrUnstoppedLanes","ErrDataForStoppedLane","ErrNoDataForActiveLane","ErrIBChipLaneMismatch","ErrCableDataHeadWrong"};
-					TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
-					TH2D * ChipStave = new TH2D("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
+				o2::ITS::GeometryTGeo * gm = o2::ITS::GeometryTGeo::Instance();
+				double AveOcc;
+				UShort_t ChipID; 
+
+
+				TFile * fout;
+				const int NEta = 9;
+				const double EtaMin = -2.40;
+				const double EtaMax = 2.40;
+				const int NPhi = 12;
+				const double PhiMin = -2.90;
+				const double PhiMax = 2.90;
+				const int NChipsSta = 9;
+				const int NSta1 = NLay1/NChipsSta;
+				int numOfChips;
+				double eta;
+				double phi;
+				static constexpr int  NError = 10;
+				unsigned int Error[NError];
+				double ErrorMax;
+				TPaveText *pt[NError];
+				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+1,-0.5,NError+0.5);
+				TH1D * FileNameInfo = new TH1D("FileNameInfo","FileNameInfo",5,0,1);
+				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
+				TH2S * ChipStave = new TH2S("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
+				int TotalDigits = 0;
+				int NEvent;
+				int NEventInRun;
+
 
 			};
 

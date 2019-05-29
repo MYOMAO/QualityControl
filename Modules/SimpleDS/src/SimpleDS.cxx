@@ -27,12 +27,12 @@
 #include "ITSMFTReconstruction/DigitPixelReader.h"
 
 
-using o2::ITSMFT::Digit;
+using o2::itsmft::Digit;
 
 
 
 using namespace std;
-using namespace o2::ITSMFT;
+using namespace o2::itsmft;
 using namespace o2::ITS;
 
 
@@ -44,12 +44,12 @@ namespace o2
 		namespace simpleds
 		{
 
-			SimpleDS::SimpleDS() : TaskInterface(), mHistogram(nullptr) { 
-				mHistogram = nullptr;
+			SimpleDS::SimpleDS() : TaskInterface() { 
 
+				o2::base::GeometryManager::loadGeometry();
 				gStyle->SetPadRightMargin(0.15);
 				gStyle->SetPadLeftMargin(0.15);
-				o2::base::GeometryManager::loadGeometry ();
+
 
 
 				gStyle->SetOptFit(0);
@@ -64,13 +64,13 @@ namespace o2
 
 					NChipLay[i] = ChipBoundary[i + 1] - ChipBoundary[i];
 
-					OccupancyPlot[i]	= new TH1D(Form("Occupancy%d",i),Form("Occupancy%d",i),NEventMax[i],0,NEventMax[i]); 
+					OccupancyPlot[i]	= new TH1D(Form("Layer%dOccupancy",i),Form("Layer%dOccupancy",i),NEventMax[i],0,NEventMax[i]); 
 					OccupancyPlot[i]->GetXaxis()->SetTitle ("Occupancy");
 					OccupancyPlot[i]->GetYaxis()->SetTitle ("Counts");
 					OccupancyPlot[i]->GetYaxis()->SetTitleOffset(2.2);	
 					OccupancyPlot[i]->SetTitle(Form("Occupancy Distribution for ITS Layer %d",i));
 
-					LayEtaPhi[i] = new TH2D(Form("Lay1EtaPhiLay%d",i),Form("Lay1EtaPhiLay%d",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhi[i] = new TH2S(Form("Layer%dEtaPhi",i),Form("Layer%dEtaPhi",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
 					LayEtaPhi[i]->GetXaxis()->SetTitle("#eta");
 					LayEtaPhi[i]->GetYaxis()->SetTitle("#phi");
 					LayEtaPhi[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -82,7 +82,7 @@ namespace o2
 					NStaveChip[i] = NChipLay[i]/NStaves[i];
 					NColStave[i] = NStaveChip[i] * NColHis;
 
-					LayChipStave[i] = new TH2D(Form("LayChipStave%d",i),Form("LayChipStave%d",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
+					LayChipStave[i] = new TH2S(Form("Layer%dChipStave",i),Form("Layer%dChipStave",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
 					LayChipStave[i]->GetXaxis()->SetTitle("Chip Number");
 					LayChipStave[i]->GetYaxis()->SetTitle("Stave Number");
 					LayChipStave[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -100,13 +100,13 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
-						Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
-						//		Lay1HIG[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
-						Lay1HIG[i]->GetXaxis()->SetTitle("Column");
-						Lay1HIG[i]->GetYaxis()->SetTitle("Row");
-						Lay1HIG[i]->GetYaxis()->SetTitleOffset(1.10);
-						Lay1HIG[i]->GetZaxis()->SetTitleOffset(1.50);
-						Lay1HIG[i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
+						Lay1HIT[i] = new TH2S(Form("Layer%dStave%dHITMAP",j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*NStaveChip[j],0,NColHis*NStaveChip[j],NRowHis,0,NRowHis);
+						//		Lay1HIT[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
+						Lay1HIT[i]->GetXaxis()->SetTitle("Column");
+						Lay1HIT[i]->GetYaxis()->SetTitle("Row");
+						Lay1HIT[i]->GetYaxis()->SetTitleOffset(1.10);
+						Lay1HIT[i]->GetZaxis()->SetTitleOffset(1.50);
+						Lay1HIT[i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
 					}
 				}
 
@@ -117,55 +117,138 @@ namespace o2
 				cout << "DONE 1" << endl;
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
-						HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis,0,NColHis,NRowHis,0,NRowHis);
-						//		HIGMAP[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
-						HIGMAP[i]->GetXaxis()->SetTitle("Column");
-						HIGMAP[i]->GetYaxis()->SetTitle("Row");
-						HIGMAP[i]->GetYaxis()->SetTitleOffset(1.10);
-						HIGMAP[i]->GetZaxis()->SetTitleOffset(1.50);
-						HIGMAP[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Number % d on Layer %d",i,j));
+						HITMAP[i]	= new TH2S(Form("Layer%dChip%dHITMAP",j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
+						//		HITMAP[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
+						HITMAP[i]->GetXaxis()->SetTitle("Column");
+						HITMAP[i]->GetYaxis()->SetTitle("Row");
+						HITMAP[i]->GetYaxis()->SetTitleOffset(1.10);
+						HITMAP[i]->GetZaxis()->SetTitleOffset(1.50);
+						HITMAP[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Number % d on Layer %d",i,j));
 					}
 				}
 				cout << "DONE 2" << endl;
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
-						//		HIGMAP6[i]	= new TH2D(Form("HIGMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
-						HIGMAP6[i]->GetXaxis()->SetTitle("Column");
-						HIGMAP6[i]->GetYaxis()->SetTitle("Row");
-						HIGMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
-						HIGMAP6[i]->GetZaxis()->SetTitleOffset(1.50);
-						HIGMAP6[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Sector Number % d on Layer %d",i,j));
+						HITMAP6[i]	= new TH2S(Form("Layer%dStave%dHITMAP",j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
+						//		HITMAP6[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
+						HITMAP6[i]->GetXaxis()->SetTitle("Column");
+						HITMAP6[i]->GetYaxis()->SetTitle("Row");
+						HITMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
+						HITMAP6[i]->GetZaxis()->SetTitleOffset(1.50);
+						HITMAP6[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Sector Number % d on Layer %d",i,j));
 					}
 				}
 				cout << "DONE 3" << endl;
 
-				for(int i = 0; i < ChipBoundary[NLayer]; i++){
-					Occupancy[i] = 0;
-				}
-
+				HITMAP[6]->SetMaximum(2);	
+				HITMAP[6]->SetMinimum(0);	
 				cout << "Clear " << endl;
-
-
-
-
+				FileNameInfo->GetXaxis()->SetTitle("InputFile");
+				FileNameInfo->GetYaxis()->SetTitle("Total Files Proccessed");
+				FileNameInfo->GetXaxis()->SetTitleOffset(1.10);
 
 			}
 
 			SimpleDS::~SimpleDS() {
-				if (mHistogram) {
-					delete mHistogram;
-				}
+
 			}
 
 			void SimpleDS::initialize(o2::framework::InitContext& ctx)
 			{
 				QcInfoLogger::GetInstance() << "initialize SimpleDS" << AliceO2::InfoLogger::InfoLogger::endm;
 
-				mHistogram = new TH1F("example", "example", 20, 0, 30000);
-				getObjectsManager()->startPublishing(mHistogram);
-				//getObjectsManager()->addCheck(mHistogram, "checkFromSimpleDS", "o2::quality_control_modules::simpleds::SimpleDSCheck","QcSimpleDS");
+				o2::ITS::GeometryTGeo * geom = o2::ITS::GeometryTGeo::Instance ();
+				geom->fillMatrixCache (o2::utils::bit2Mask (o2::TransformType::L2G));	
+				numOfChips = geom->getNumberOfChips ();
+				cout << "numOfChips = " << numOfChips << endl;
+				setNChips (numOfChips);
+				cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
+
+
+
+				cout << "START Inititing Publication " << endl;
+
+
+				getObjectsManager()->startPublishing(FileNameInfo);
+
+
+				ChipStave->SetMinimum(1);
+				getObjectsManager()->startPublishing(ChipStave);
+
+				for(int i =0; i< NError;i++){
+					pt[i] = new TPaveText(0.20,0.80 -i*0.05,0.85,0.85-i*0.05,"NDC");
+					pt[i]->SetTextSize(0.04);
+					pt[i]->SetFillColor(0);
+					pt[i]->SetTextAlign(12);
+					pt[i]->AddText(ErrorType[i].Data());
+					ErrorPlots->GetListOfFunctions()->Add(pt[i]);
+				}
+
+				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
+				ErrorMax = ErrorPlots->GetMaximum();
+				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
+				//	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
+				//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
+				getObjectsManager()->startPublishing(ErrorPlots);
+				getObjectsManager()->addMetadata(ErrorPlots->GetName(), "custom", "34");
+
+
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaveChip[j]; i++){
+						HITMAP[i]->GetZaxis()->SetTitle("Number of Hits");
+						HITMAP[i]->GetXaxis()->SetNdivisions(-32);
+						HITMAP[i]->Draw("COLZ");
+						ConfirmXAxis(HITMAP[i]);
+						ReverseYAxis(HITMAP[i]);
+						getObjectsManager()->startPublishing(HITMAP[i]);
+					}
+				}
+
+
+				ReverseYAxis(HITMAP[0]);
+
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i < NStaves[j]; i++){
+
+						Lay1HIT[i]->GetZaxis()->SetTitle("Number of Hits");
+						Lay1HIT[i]->GetXaxis()->SetNdivisions(-32);
+						Lay1HIT[i]->Draw("COLZ");
+						ConfirmXAxis(Lay1HIT[i]);
+						ReverseYAxis(Lay1HIT[i]);
+						getObjectsManager()->startPublishing(Lay1HIT[i]);
+					}
+				}
+
+
+
+
+
+				for(int j = 6; j < 7; j++){
+					for(int i = 0; i < 18; i++){
+						HITMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
+						HITMAP6[i]->GetXaxis()->SetNdivisions(-32);
+						HITMAP6[i]->Draw("COLZ");
+						ConfirmXAxis(HITMAP6[i]);
+						ReverseYAxis(HITMAP6[i]);	
+						getObjectsManager()->startPublishing(HITMAP6[i]);
+					}
+				}
+
+
+
+
+				for(int i = 0; i < NLayer; i++){
+
+					getObjectsManager()->startPublishing(LayEtaPhi[i]);
+					getObjectsManager()->startPublishing(LayChipStave[i]);
+					getObjectsManager()->startPublishing(OccupancyPlot[i]);
+
+				}
+
+				cout << "DONE Inititing Publication = " << endl;
+
 
 
 			}
@@ -173,7 +256,7 @@ namespace o2
 			void SimpleDS::startOfActivity(Activity& activity)
 			{
 				QcInfoLogger::GetInstance() << "startOfActivity" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
+
 			}
 
 			void SimpleDS::startOfCycle()
@@ -183,58 +266,97 @@ namespace o2
 
 			void SimpleDS::monitorData(o2::framework::ProcessingContext& ctx)
 			{
-				// In this function you can access data inputs specified in the JSON config file, for example:
-				//  {
-				//    "binding": "random",
-				//    "dataOrigin": "ITS",
-				//    "dataDescription": "RAWDATA"
-				//  }
 
-				// Use Framework/DataRefUtils.h or Framework/InputRecord.h to access and unpack inputs (both are documented)
-				// One can find additional examples at:
-				// https://github.com/AliceO2Group/AliceO2/blob/dev/Framework/Core/README.md#using-inputs---the-inputrecord-api
 
-				// Some examples:
+
 				QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
-				// 1. In a loop
-				QcInfoLogger::GetInstance() << "Now We Start Looping the INFILE" << AliceO2::InfoLogger::InfoLogger::endm;
-				
-				/*
+
+
+
+
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
-
-
-
 				if(ResetDecision == 1) reset();
-				*/
 
 
 
-				//QcInfoLogger::GetInstance() << "Digit Size Got = " << digit.size() << AliceO2::InfoLogger::InfoLogger::endm;
-
-				//auto digits = ctx.inputs().get<const std::vector<o2::ITSMFT::Digit>>("digits");
-				//LOG(INFO) << "Digit Size Got = " << digits.size() << " digits";
-
-				/*
-				   for (auto&& input : ctx.inputs()) {
-				   o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("digits");
-				   LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
-				   }
-
-				   QcInfoLogger::GetInstance() << "DONE" << AliceO2::InfoLogger::InfoLogger::endm;
-				   */
-
-					o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("digits");
-					LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
+				//std::string runID = ctx.inputs().get<std::string>("runID");
+				//			   std::string FileName = ctx.inputs().get<std::string>("Filename");
+			//	QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
+				//		   QcInfoLogger::GetInstance() << "RunID = "  << runID << "  File Location = " << FileName << AliceO2::InfoLogger::InfoLogger::endm;
 
 
-				for (auto&& input : ctx.inputs()) {
 
 
+
+				auto digits = ctx.inputs().get<const std::vector<o2::itsmft::Digit>>("digits");
+				LOG(INFO) << "Digit Size Getting For This TimeFrame (Event) = " <<  digits.size();
+
+				for (auto&& pixeldata : digits) {
+
+					ChipID = pixeldata.getChipIndex();
+					col = pixeldata.getColumn();
+					row = pixeldata.getRow();
+					NEvent = pixeldata.getCharge();
+					if (NEvent%10000==0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
+
+					gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
+					gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
+					const Point3D<float> loc(0., 0.,0.); 
+					auto glo = gm->getMatrixL2G(ChipID)(loc);
+					
+					if (lay < 7)
+					{
+						//cout << "lay = " <<  lay << endl;
+						//cout << "ChipID = " << ChipID << endl;
+
+						int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
+						if(sta == 0  && ChipID < NLay1){
+							if(row > 0 && col > 0) HITMAP[ChipID]->Fill(col,row);
+						}
+
+
+						/*
+						ActPix = mChipData->getData().size();
+						if(NEvent != NEventPre){
+							OccupancyPlot[lay]->Fill(AveActPix);
+							AveActPix = 0;
+						}
+						AveActPix = AveActPix + ActPix;
+						*/
+
+						//cout << "ChipNumber = " << ChipNumber << endl;
+						eta = glo.eta();
+						phi = glo.phi();
+						//			Occupancy[ChipID] = Occupancy[ChipID] + ActPix;
+						//if(ActPix > 0 ) cout << "Chip ID = " << ChipID << "   Occupancy = " << ActPix << endl;
+						if(lay == 0){
+							//cout << "ChipID in Stave 0 = " << ChipID << endl; 
+								rowCS = row;
+								colCS = col + NColHis * ChipNumber;
+								if(row > 0 && col > 0) Lay1HIT[sta]->Fill(rowCS,colCS);
+						}
+
+						if(sta == 0 && lay == 6){
+								ChipIndex6 = ChipNumber/11; 
+								int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
+								if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
+								rowLay6 = row;
+								colLay6 = col + ChipLocal6 * NColHis;
+								if(row > 0 && col > 0) HITMAP6[ChipIndex6]->Fill(rowLay6,colLay6);	
+						}
+
+					}
+
+
+				}
+				digits.clear();
 
 
 				//	o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("digits");
-					//	LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
+				//	LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
+
+				/*	
 					ChipID = digit.getChipIndex();
 					col = digit.getColumn();
 					row = digit.getRow();
@@ -242,120 +364,49 @@ namespace o2
 					gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
 					gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
 					Occupancy[ChipID] = Occupancy[ChipID] + 1;
-					LOG(INFO) << "ChipID = " << ChipID << "  row = " << row << "  Column = " << col << "   OCCCUPANCY = " << Occupancy[ChipID];
+
+				//			LOG(INFO) << "ChipID = " << ChipID << "  row = " << row << "  Column = " << col << "   OCCCUPANCY = " << Occupancy[ChipID];
 
 
+				if(TotalDigits%1000==0) 	LOG(INFO) << "TotalDigits = " << TotalDigits  << "   ChipID = " << ChipID;
 
-					int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
-					if(sta == 0  && ChipID < NLay1){
-						HIGMAP[ChipID]->Fill(col,row);
-					}
-
-					if(lay == 0){
-						col = col + NColHis * ChipNumber;
-						Lay1HIG[sta]->Fill(col,row);
-					}
-
-					if(sta == 0 && lay == 6){
-						ChipIndex6 = ChipNumber/11; 
-						int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
-						if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
-						col = col + + ChipLocal6 * NColHis;
-						HIGMAP6[ChipIndex6]->Fill(col,row);
-					}
-
-
-				}
-				QcInfoLogger::GetInstance() << "DONE Looping the INFILE" << AliceO2::InfoLogger::InfoLogger::endm;
-
-				TCanvas *c1 = new TCanvas ("c1", "c1", 600, 600);
-				for(int j = 0; j < 1; j++){
-					c1->Divide(3,3);
-					for(int i = 0; i < NStaveChip[j]; i++){
-						c1->cd(i+1);
-						HIGMAP[i]->GetZaxis()->SetTitle("Number of Hits");
-						HIGMAP[i]->GetXaxis()->SetNdivisions(-32);
-						HIGMAP[i]->Draw("COLZ");
-						ConfirmXAxis(HIGMAP[i]);
-						ReverseYAxis(HIGMAP[i]);
-						getObjectsManager()->startPublishing(HIGMAP[i]);
-					}
-					c1->SaveAs(Form("HIGMAPStave%d.png",j+1));
+				int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
+				if(sta == 0  && ChipID < NLay1){
+				HIGMAP[ChipID]->Fill(col,row);
 				}
 
+				if(lay == 0){
+				col = col + NColHis * ChipNumber;
+				Lay1HIG[sta]->Fill(col,row);
+				}
 
-				OccupancyPlot[lay]->Reset();
-				LayEtaPhi[lay]->Reset();
-				LayChipStave[lay]->Reset();
+				if(sta == 0 && lay == 6){
+				ChipIndex6 = ChipNumber/11; 
+				int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
+				if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
+				col = col + + ChipLocal6 * NColHis;
+				HIGMAP6[ChipIndex6]->Fill(col,row);
+				}
 
-
-				QcInfoLogger::GetInstance() << "START Occupancy Filling" << AliceO2::InfoLogger::InfoLogger::endm;
 
 
 				for(int i = 0; i < ChipBoundary[7]; i++){
-					gm->getChipId (i, lay, sta, ssta, mod, chip);
+				gm->getChipId (i, lay, sta, ssta, mod, chip);
 
-					const Point3D<float> loc(0., 0.,0.); 
-					auto glo = gm->getMatrixL2G(ChipID)(loc);
+				const Point3D<float> loc(0., 0.,0.); 
+				auto glo = gm->getMatrixL2G(ChipID)(loc);
 
-					int ChipNumber = (i - ChipBoundary[lay])- sta*	NStaveChip[lay];
+				int ChipNumber = (i - ChipBoundary[lay])- sta*	NStaveChip[lay];
 
-					eta = glo.eta();
-					phi = glo.phi();
+				eta = glo.eta();
+				phi = glo.phi();
 
-					OccupancyPlot[lay]->Fill(Occupancy[ChipID]);
-					LayEtaPhi[lay]->Fill(eta,phi,Occupancy[ChipID]);
-					LayChipStave[lay]->Fill(ChipNumber,sta,Occupancy[ChipID]);
+				OccupancyPlot[lay]->Fill(Occupancy[ChipID]);
+				LayEtaPhi[lay]->Fill(eta,phi,Occupancy[ChipID]);
+				LayChipStave[lay]->Fill(ChipNumber,sta,Occupancy[ChipID]);
 				}
+				*/
 
-				QcInfoLogger::GetInstance() << "DONE Occupancy Filling" << AliceO2::InfoLogger::InfoLogger::endm;
-
-				TCanvas *c = new TCanvas("c","c",600,600);
-
-				for(int j = 0; j < NLayer; j++){ 
-					OccupancyPlot[j]->SetMarkerStyle(22);
-					OccupancyPlot[j]->SetMarkerSize (1.5);
-					OccupancyPlot[j]->Draw ("ep");
-					c->SaveAs(Form("OccupancyLay%d.png",j));
-					getObjectsManager()->startPublishing(OccupancyPlot[j]);
-					getObjectsManager()->addMetadata(OccupancyPlot[j]->GetName(), "custom", "34");
-
-				}
-
-				for(int j = 0; j < NLayer; j++){ 
-					LayEtaPhi[j]->Draw("COLZ");
-					cout << "Eta Phi Total = " << 	LayEtaPhi[j]->Integral() << endl;
-					c->SaveAs(Form("EtaPhiLay%d.png",j));
-				}
-
-				for(int j = 0; j < NLayer; j++){ 
-					LayChipStave[j]->Draw("COLZ");
-					cout << "LayChipStave Total = " << 	LayChipStave[j]->Integral() << endl;
-					c->SaveAs(Form("LayChipStave%d.png",j));
-				}
-
-
-				QcInfoLogger::GetInstance() << "DONE Saving the Histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-
-				// 2. Using get("<binding>")
-
-				// get the payload of a specific input, which is a char array. "random" is the binding specified in the config file.
-				//   auto payload = ctx.inputs().get("random").payload;
-
-				// get payload of a specific input, which is a structure array:
-				//  const auto* header = header::get<header::DataHeader*>(ctx.inputs().get("random").header);
-				//  struct s {int a; double b;};
-				//  auto array = ctx.inputs().get<s*>("random");
-				//  for (int j = 0; j < header->payloadSize / sizeof(s); ++j) {
-				//    int i = array.get()[j].a;
-				//  }
-
-				// get payload of a specific input, which is a root object
-				//   auto h = ctx.inputs().get<TH1F*>("histos");
-				//   Double_t stats[4];
-				//   h->GetStats(stats);
-				//   auto s = ctx.inputs().get<TObjString*>("string");
-				//   LOG(INFO) << "String is " << s->GetString().Data();
 			}
 
 			void SimpleDS::ConfirmXAxis(TH1 *h)
@@ -419,9 +470,7 @@ namespace o2
 			void SimpleDS::reset()
 			{
 				// clean all the monitor objects here
-
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-				mHistogram->Reset();
 				ChipStave->Reset();
 				for(int i = 0; i < NLayer; i++){
 					OccupancyPlot[i]->Reset();
@@ -431,22 +480,23 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
-						Lay1HIG[i]->Reset();
+						Lay1HIT[i]->Reset();
 					}
 				}
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
-						HIGMAP[i]->Reset();
+						HITMAP[i]->Reset();
 					}
 				}
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HIGMAP6[i]->Reset();
+						HITMAP6[i]->Reset();
 					}
 				}
 				ErrorPlots->Reset();
+				NEventInRun = 0;
 
 				QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
 
