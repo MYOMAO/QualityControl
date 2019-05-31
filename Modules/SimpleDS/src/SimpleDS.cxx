@@ -25,6 +25,7 @@
 #include "DetectorsBase/GeometryManager.h"
 #include "ITSBase/GeometryTGeo.h"
 #include "ITSMFTReconstruction/DigitPixelReader.h"
+#include <algorithm>
 
 
 using o2::itsmft::Digit;
@@ -187,6 +188,9 @@ namespace o2
 
 				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
 				ErrorMax = ErrorPlots->GetMaximum();
+				
+				cout << "ErrorMax = " << ErrorMax << endl;
+
 				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
 				//	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
 				//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
@@ -277,79 +281,134 @@ namespace o2
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
 				if(ResetDecision == 1) reset();
+		
+				std::array<unsigned int,NError> Errors = ctx.inputs().get<const std::array<unsigned int,NError>>("Error");
+
+				for(int i = 0; i < NError; i++){
+				QcInfoLogger::GetInstance() << " i = " << i << "   Error = "	 << Errors[i]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				ErrorPlots->SetBinContent(i+1,Errors[i]);
+				}
+
+
+				/*
+				Error[0] = ctx.inputs().get<int>("Error0");
+				QcInfoLogger::GetInstance() << "Errorvec 0 = "  << 	Error[0]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				Error[1] = ctx.inputs().get<int>("Error1");
+				QcInfoLogger::GetInstance() << "Errorvec 1 = "  << 	Error[1]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				Error[2] = ctx.inputs().get<int>("Error2");
+				QcInfoLogger::GetInstance() << "Errorvec 2 = "  << 	Error[2]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				Error[3] = ctx.inputs().get<int>("Error3");
+				QcInfoLogger::GetInstance() << "Errorvec 3 = "  << 	Error[3]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				Error[4] = ctx.inputs().get<int>("Error4");
+				QcInfoLogger::GetInstance() << "Errorvec 4 = "  << 	Error[4]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				Error[5] = ctx.inputs().get<int>("Error5");
+				QcInfoLogger::GetInstance() << "Errorvec 5 = "  << 	Error[5]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				Error[6] = ctx.inputs().get<int>("Error6");
+				QcInfoLogger::GetInstance() << "Errorvec 6 = "  << 	Error[6]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				*/
+				//Error[7] = ctx.inputs().get<int>("Error7");
+				//QcInfoLogger::GetInstance() << "Errorvec 7 = "  << 	Error[7]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				//Error[8] = ctx.inputs().get<int>("Error8");
+				//QcInfoLogger::GetInstance() << "Errorvec 8 = "  << 	Error[8]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+			
+		//		Error[9] = ctx.inputs().get<int>("Error9");
+		//		QcInfoLogger::GetInstance() << "Errorvec 9 = "  << 	Error[9]  <<  AliceO2::InfoLogger::InfoLogger::endm;
 
 
 
-				//std::string runID = ctx.inputs().get<std::string>("runID");
+		//		std::string runID = ctx.inputs().get<std::string>("runID");
 				//			   std::string FileName = ctx.inputs().get<std::string>("Filename");
-			//	QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
+		//		QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
 				//		   QcInfoLogger::GetInstance() << "RunID = "  << runID << "  File Location = " << FileName << AliceO2::InfoLogger::InfoLogger::endm;
-
-
-
 
 
 				auto digits = ctx.inputs().get<const std::vector<o2::itsmft::Digit>>("digits");
 				LOG(INFO) << "Digit Size Getting For This TimeFrame (Event) = " <<  digits.size();
 
+
 				for (auto&& pixeldata : digits) {
+
+
+
 
 					ChipID = pixeldata.getChipIndex();
 					col = pixeldata.getColumn();
 					row = pixeldata.getRow();
 					NEvent = pixeldata.getCharge();
-					if (NEvent%10000==0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
+					if (NEvent%10000==0 && NEvent > 0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
+					ChipIDinEvent.push_back(ChipID);
 
 					gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
 					gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
 					const Point3D<float> loc(0., 0.,0.); 
 					auto glo = gm->getMatrixL2G(ChipID)(loc);
-					
+
+
+
 					if (lay < 7)
 					{
 						//cout << "lay = " <<  lay << endl;
 						//cout << "ChipID = " << ChipID << endl;
 
+						//Layer Occupancy Plot//
+						/*
+						if(NEvent != NEventPre){
+							for(int i = 0; i < numOfChips; i++){
+								freq = std::count(ChipIDinEvent.begin(), ChipIDinEvent.end(), i);
+								FreqEvent[i] = freq;
+							}
+							Frequency.push_back(FreqEvent);
+							ChipIDinEvent.clear();
+						}
+						*/
+
+
 						int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
+
+						LayEtaPhi[lay]->Fill(eta,phi);
+						LayChipStave[lay]->Fill(ChipNumber,sta);
+
+
 						if(sta == 0  && ChipID < NLay1){
 							if(row > 0 && col > 0) HITMAP[ChipID]->Fill(col,row);
 						}
 
 
-						/*
-						ActPix = mChipData->getData().size();
-						if(NEvent != NEventPre){
-							OccupancyPlot[lay]->Fill(AveActPix);
-							AveActPix = 0;
-						}
-						AveActPix = AveActPix + ActPix;
-						*/
-
-						//cout << "ChipNumber = " << ChipNumber << endl;
+		
 						eta = glo.eta();
 						phi = glo.phi();
-						//			Occupancy[ChipID] = Occupancy[ChipID] + ActPix;
-						//if(ActPix > 0 ) cout << "Chip ID = " << ChipID << "   Occupancy = " << ActPix << endl;
 						if(lay == 0){
 							//cout << "ChipID in Stave 0 = " << ChipID << endl; 
-								rowCS = row;
-								colCS = col + NColHis * ChipNumber;
-								if(row > 0 && col > 0) Lay1HIT[sta]->Fill(rowCS,colCS);
+							rowCS = row;
+							colCS = col + NColHis * ChipNumber;
+							if(row > 0 && col > 0) Lay1HIT[sta]->Fill(rowCS,colCS);
 						}
 
 						if(sta == 0 && lay == 6){
-								ChipIndex6 = ChipNumber/11; 
-								int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
-								if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
-								rowLay6 = row;
-								colLay6 = col + ChipLocal6 * NColHis;
-								if(row > 0 && col > 0) HITMAP6[ChipIndex6]->Fill(rowLay6,colLay6);	
+							ChipIndex6 = ChipNumber/11; 
+							int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
+							if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
+							rowLay6 = row;
+							colLay6 = col + ChipLocal6 * NColHis;
+							if(row > 0 && col > 0) HITMAP6[ChipIndex6]->Fill(rowLay6,colLay6);	
 						}
 
 					}
+					
+					NEventPre = NEvent;
+				
+				}
+				/*
 
+				for(int i = 0; i < NEvent; i++){
+					for(int j = 0; j < numOfChips; i++){
+						gm->getChipId (j, lay, sta, ssta, mod, chip);
+						if(Frequency[i][j] > 0) OccupancyPlot[lay]->Fill(Frequency[i][j]);
+					}	
 
 				}
+				*/
+
 				digits.clear();
 
 
