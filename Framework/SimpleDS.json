@@ -43,6 +43,11 @@
 			"binding": "in",
 			"dataOrigin": "TST",
 			"dataDescription": "TEST"
+		},
+		{
+			"binding": "Error",
+			"dataOrigin": "TST",
+			"dataDescription": "Error"
 		}
 		],
 			"subSpec": "0",
