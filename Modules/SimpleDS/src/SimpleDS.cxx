@@ -188,7 +188,7 @@ namespace o2
 
 				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
 				ErrorMax = ErrorPlots->GetMaximum();
-				
+
 				cout << "ErrorMax = " << ErrorMax << endl;
 
 				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
@@ -254,6 +254,9 @@ namespace o2
 				cout << "DONE Inititing Publication = " << endl;
 
 
+				RunIDPre = 0;
+				FileIDPre = 0;
+
 
 			}
 
@@ -274,52 +277,67 @@ namespace o2
 
 
 				QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
+				
+
+				
+				//For The Moment//
+				
+				int RunID = ctx.inputs().get<int>("Run");
+				int FileID = ctx.inputs().get<int>("File");
+				//QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
 
 
+				TString RunName = Form("Run%d",RunID);
+				TString FileName = Form("infile/Run%d/data-link%d",RunID,FileID);
 
+				if(RunIDPre != RunID || FileIDPre != FileID){
+				QcInfoLogger::GetInstance() << "For the Moment: RunID = "  << RunID << "  FileID = " << FileID << AliceO2::InfoLogger::InfoLogger::endm;
+				FileNameInfo->Fill(0.5);
+				FileNameInfo->SetTitle(Form("Current File Name: %s",FileName.Data()));
+				}
+				RunIDPre = RunID;
+				FileIDPre = FileID;
+
+				//Will Fix Later//
+				
 
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
 				if(ResetDecision == 1) reset();
-		
+
 				std::array<unsigned int,NError> Errors = ctx.inputs().get<const std::array<unsigned int,NError>>("Error");
 
 				for(int i = 0; i < NError; i++){
-				QcInfoLogger::GetInstance() << " i = " << i << "   Error = "	 << Errors[i]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				ErrorPlots->SetBinContent(i+1,Errors[i]);
+					QcInfoLogger::GetInstance() << " i = " << i << "   Error = "	 << Errors[i]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+					ErrorPlots->SetBinContent(i+1,Errors[i]);
 				}
 
 
 				/*
-				Error[0] = ctx.inputs().get<int>("Error0");
-				QcInfoLogger::GetInstance() << "Errorvec 0 = "  << 	Error[0]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				Error[1] = ctx.inputs().get<int>("Error1");
-				QcInfoLogger::GetInstance() << "Errorvec 1 = "  << 	Error[1]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				Error[2] = ctx.inputs().get<int>("Error2");
-				QcInfoLogger::GetInstance() << "Errorvec 2 = "  << 	Error[2]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				Error[3] = ctx.inputs().get<int>("Error3");
-				QcInfoLogger::GetInstance() << "Errorvec 3 = "  << 	Error[3]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				Error[4] = ctx.inputs().get<int>("Error4");
-				QcInfoLogger::GetInstance() << "Errorvec 4 = "  << 	Error[4]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				Error[5] = ctx.inputs().get<int>("Error5");
-				QcInfoLogger::GetInstance() << "Errorvec 5 = "  << 	Error[5]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				Error[6] = ctx.inputs().get<int>("Error6");
-				QcInfoLogger::GetInstance() << "Errorvec 6 = "  << 	Error[6]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-				*/
+				   Error[0] = ctx.inputs().get<int>("Error0");
+				   QcInfoLogger::GetInstance() << "Errorvec 0 = "  << 	Error[0]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   Error[1] = ctx.inputs().get<int>("Error1");
+				   QcInfoLogger::GetInstance() << "Errorvec 1 = "  << 	Error[1]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   Error[2] = ctx.inputs().get<int>("Error2");
+				   QcInfoLogger::GetInstance() << "Errorvec 2 = "  << 	Error[2]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   Error[3] = ctx.inputs().get<int>("Error3");
+				   QcInfoLogger::GetInstance() << "Errorvec 3 = "  << 	Error[3]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   Error[4] = ctx.inputs().get<int>("Error4");
+				   QcInfoLogger::GetInstance() << "Errorvec 4 = "  << 	Error[4]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   Error[5] = ctx.inputs().get<int>("Error5");
+				   QcInfoLogger::GetInstance() << "Errorvec 5 = "  << 	Error[5]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   Error[6] = ctx.inputs().get<int>("Error6");
+				   QcInfoLogger::GetInstance() << "Errorvec 6 = "  << 	Error[6]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+				   */
 				//Error[7] = ctx.inputs().get<int>("Error7");
 				//QcInfoLogger::GetInstance() << "Errorvec 7 = "  << 	Error[7]  <<  AliceO2::InfoLogger::InfoLogger::endm;
 				//Error[8] = ctx.inputs().get<int>("Error8");
 				//QcInfoLogger::GetInstance() << "Errorvec 8 = "  << 	Error[8]  <<  AliceO2::InfoLogger::InfoLogger::endm;
-			
-		//		Error[9] = ctx.inputs().get<int>("Error9");
-		//		QcInfoLogger::GetInstance() << "Errorvec 9 = "  << 	Error[9]  <<  AliceO2::InfoLogger::InfoLogger::endm;
+
+				//		Error[9] = ctx.inputs().get<int>("Error9");
+				//		QcInfoLogger::GetInstance() << "Errorvec 9 = "  << 	Error[9]  <<  AliceO2::InfoLogger::InfoLogger::endm;
 
 
-
-		//		std::string runID = ctx.inputs().get<std::string>("runID");
-				//			   std::string FileName = ctx.inputs().get<std::string>("Filename");
-		//		QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
-				//		   QcInfoLogger::GetInstance() << "RunID = "  << runID << "  File Location = " << FileName << AliceO2::InfoLogger::InfoLogger::endm;
 
 
 				auto digits = ctx.inputs().get<const std::vector<o2::itsmft::Digit>>("digits");
@@ -330,13 +348,15 @@ namespace o2
 
 
 
-
 					ChipID = pixeldata.getChipIndex();
 					col = pixeldata.getColumn();
 					row = pixeldata.getRow();
 					NEvent = pixeldata.getCharge();
+
+
 					if (NEvent%10000==0 && NEvent > 0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
-					ChipIDinEvent.push_back(ChipID);
+
+
 
 					gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
 					gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
@@ -345,22 +365,19 @@ namespace o2
 
 
 
+					if(ChipID != ChipIDPre){
+						OccupancyPlot[lay]->Fill(OccupancyCounter);
+						OccupancyCounter = 0;
+					}
+					OccupancyCounter  = OccupancyCounter + 1;
+
+
 					if (lay < 7)
 					{
 						//cout << "lay = " <<  lay << endl;
 						//cout << "ChipID = " << ChipID << endl;
 
 						//Layer Occupancy Plot//
-						/*
-						if(NEvent != NEventPre){
-							for(int i = 0; i < numOfChips; i++){
-								freq = std::count(ChipIDinEvent.begin(), ChipIDinEvent.end(), i);
-								FreqEvent[i] = freq;
-							}
-							Frequency.push_back(FreqEvent);
-							ChipIDinEvent.clear();
-						}
-						*/
 
 
 						int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
@@ -374,7 +391,7 @@ namespace o2
 						}
 
 
-		
+
 						eta = glo.eta();
 						phi = glo.phi();
 						if(lay == 0){
@@ -394,20 +411,20 @@ namespace o2
 						}
 
 					}
-					
+
 					NEventPre = NEvent;
-				
+					ChipIDPre = ChipID;
 				}
 				/*
 
-				for(int i = 0; i < NEvent; i++){
-					for(int j = 0; j < numOfChips; i++){
-						gm->getChipId (j, lay, sta, ssta, mod, chip);
-						if(Frequency[i][j] > 0) OccupancyPlot[lay]->Fill(Frequency[i][j]);
-					}	
+				   for(int i = 0; i < NEvent; i++){
+				   for(int j = 0; j < numOfChips; i++){
+				   gm->getChipId (j, lay, sta, ssta, mod, chip);
+				   if(Frequency[i][j] > 0) OccupancyPlot[lay]->Fill(Frequency[i][j]);
+				   }	
 
-				}
-				*/
+				   }
+				   */
 
 				digits.clear();
 

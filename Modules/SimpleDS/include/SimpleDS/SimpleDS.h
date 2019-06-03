@@ -176,13 +176,12 @@ namespace o2
 				int TotalDigits = 0;
 				int NEvent;
 				int NEventInRun;
-				
-				std::vector<int> ChipIDinEvent;
-				std::vector<std::array<int, 24120>> Frequency;
-				std::array<int, 24120> FreqEvent;
-				int freq;
 				int NEventPre;
-
+				int OccupancyCounter;
+				int ChipIDPre;
+				TString FileNamePre;
+				int RunIDPre;
+				int FileIDPre;
 			};
 
 		} // namespace simpleds
