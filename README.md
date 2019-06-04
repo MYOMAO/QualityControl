@@ -19,9 +19,6 @@ To work on the FLP, login in as follow
 
 ssh -Y its@flpits1
 
-%Create a folder in /data/QC/infiles named  Run + RunID + Extra Info. Copy the raw data files to the new created folder. 
-%Repeat the last operation for each run. Please consider that the QC will move the processing to the last folder to be created. The process of the eventual remaining files to be processed in an earlier run will be overwritten. 
-
 Go to the work folder:
 
 cd  /home/its/zshi/workdir/
