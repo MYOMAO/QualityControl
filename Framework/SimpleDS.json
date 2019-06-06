@@ -14,11 +14,11 @@
 			}
 		},
 		"tasks": {
-			"ITSRAWDS": {
+			"ITSRAWDSTEST": {
 				"active": "true",
 				"className": "o2::quality_control_modules::simpleds::SimpleDS",
 				"moduleName": "QcSimpleDS",
-				"cycleDurationSeconds": "120",
+				"cycleDurationSeconds": "60",
 				"maxNumberCycles": "-1",
 				"dataSamplingPolicy": "its-raw",
 				"taskParameters": {
@@ -48,6 +48,21 @@
 			"binding": "Error",
 			"dataOrigin": "TST",
 			"dataDescription": "Error"
+		},
+		{
+			"binding": "Run",
+			"dataOrigin": "TST",
+			"dataDescription": "Run"
+		},
+		{
+			"binding": "File",
+			"dataOrigin": "TST",
+			"dataDescription": "File"
+		},
+		{
+			"binding": "Finish",
+			"dataOrigin": "TST",
+			"dataDescription": "Finish"
 		}
 		],
 			"subSpec": "0",
