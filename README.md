@@ -30,11 +30,23 @@ source run_ITS_QC.sh run000184
 Wait for about 1 minutes, you should be able to see the histogram of that run uploaded to the database: http://ccdb-test.cern.ch:8080/browse/ITSRAWDS
 And can be found on the GUI: https://qcg-test.cern.ch/?page=layoutList
  
-Some test data are already available in the /home/its/zshi/workdir/infiles/. To have them processed again it is enough to copy the run folder our of the infiles directory and copy it back again after > 1 min.
+Some test data are already available in the /home/its/zshi/workdir/infiles/. To have them processed again, it is enough to copy the run folder our of the infiles directory and copy it back again after > 1 min.
  
 In case that the GUI does not update, some troubleshooting can be done:
 
-### Step 2: Check if the QC task exists
+### Step 2: Check the QC Task Status
+
+To check the status of QC Task, simply go to the link:
+
+https://qcg-test.cern.ch/?page=layoutShow&layoutId=5cf76c9a13e837a4dd3fd841&layoutName=%28DS%29+QC+Process+Infomation
+
+If you see the QC Task light is green, that mean QC is running and processing a file.
+
+If you see the QC Task is red, that means QC is waiting for a new file. At this point, the shifters should record decoding error and the 2D Hit maps.
+
+When the QC Task is red and if you inject a new file and it it still red, that mean QC is not running and shifters will need to run the trouble shooting as below.
+
+### Step 3: Check if the QC task exists
 
 Now, you are in the work directory. First check if QC task exists. Do:
 
@@ -56,7 +68,7 @@ You should see 5 qcRunSimple with different RunID and ? as the owner
 If you do not see this, you need to restart the run. Go to the restarting QC section to see how to restart the QC
 
 
-### Step 3: Check if the QC task runs properly
+### Step 4: Check if the QC task runs properly
 
 First, see what files are available in the folder "infiles/Run1"
  

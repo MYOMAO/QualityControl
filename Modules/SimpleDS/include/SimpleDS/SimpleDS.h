@@ -17,6 +17,7 @@
 #include "FairTask.h"
 #include "TPaveText.h"
 #include "TGaxis.h"
+#include "TEllipse.h"
 
 #include "ITSMFTReconstruction/RawPixelReader.h"
 
@@ -169,10 +170,23 @@ namespace o2
 				unsigned int Error[NError];
 				double ErrorMax;
 				TPaveText *pt[NError];
+				TPaveText * ptFileName;
+				TPaveText * ptNFile;
+				TPaveText * ptNEvent;
+				TPaveText * bulbGreen;
+				TPaveText * bulbRed;
+
 				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+1,-0.5,NError+0.5);
 				TH1D * FileNameInfo = new TH1D("FileNameInfo","FileNameInfo",5,0,1);
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
 				TH2S * ChipStave = new TH2S("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
+				const int NFiles = 6;
+				TH2I * ErrorFile = new TH2I("ErrorFile","ErrorFile",NFiles+1,-0.5,NFiles+0.5,NError+1,-0.5,NError+0.5);
+				TH1D * InfoCanvas = new TH1D("InfoCanvas","InfoCanvas",3,-0.5,2.5);
+				TEllipse *bulb = new TEllipse(0.2,0.75,0.30,0.20);
+
+
+
 				int TotalDigits = 0;
 				int NEvent;
 				int NEventInRun;
@@ -182,6 +196,7 @@ namespace o2
 				TString FileNamePre;
 				int RunIDPre;
 				int FileIDPre;
+				int TotalFileDone;
 			};
 
 		} // namespace simpleds

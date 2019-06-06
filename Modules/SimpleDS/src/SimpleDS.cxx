@@ -19,7 +19,7 @@
 #include <TH1.h>
 #include <TH2.h>
 
-
+#include "QualityControl/FileFinish.h"
 #include "QualityControl/QcInfoLogger.h"
 #include "SimpleDS/SimpleDS.h"
 #include "DetectorsBase/GeometryManager.h"
@@ -70,6 +70,7 @@ namespace o2
 					OccupancyPlot[i]->GetYaxis()->SetTitle ("Counts");
 					OccupancyPlot[i]->GetYaxis()->SetTitleOffset(2.2);	
 					OccupancyPlot[i]->SetTitle(Form("Occupancy Distribution for ITS Layer %d",i));
+			//		OccupancyPlot[i]->SetStats(false);
 
 					LayEtaPhi[i] = new TH2S(Form("Layer%dEtaPhi",i),Form("Layer%dEtaPhi",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
 					LayEtaPhi[i]->GetXaxis()->SetTitle("#eta");
@@ -78,6 +79,7 @@ namespace o2
 					LayEtaPhi[i]->GetZaxis()->SetTitleOffset(1.4);
 					LayEtaPhi[i]->GetYaxis()->SetTitleOffset(1.10);	
 					LayEtaPhi[i]->SetTitle(Form("Number of Hits for Layer %d #eta and #phi Distribution",i));
+			//		LayEtaPhi[i]->SetStats(false);
 
 
 					NStaveChip[i] = NChipLay[i]/NStaves[i];
@@ -90,6 +92,7 @@ namespace o2
 					LayChipStave[i]->GetZaxis()->SetTitleOffset(1.4);
 					LayChipStave[i]->GetYaxis()->SetTitleOffset(1.10);	
 					LayChipStave[i]->SetTitle(Form("Number of Hits for Layer %d Chip Number and Stave Number Distribution",i));
+//					LayChipStave[i]->SetStats(false);
 
 
 				}
@@ -98,6 +101,7 @@ namespace o2
 				for(int i = 0; i < NError; i++){
 					Error[i] = 0;
 				}
+
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
@@ -108,6 +112,8 @@ namespace o2
 						Lay1HIT[i]->GetYaxis()->SetTitleOffset(1.10);
 						Lay1HIT[i]->GetZaxis()->SetTitleOffset(1.50);
 						Lay1HIT[i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
+			//			Lay1HIT[i]->SetStats(false);
+
 					}
 				}
 
@@ -115,7 +121,17 @@ namespace o2
 				ErrorPlots->GetYaxis()->SetTitle("Counts");
 				ErrorPlots->SetTitle("Error Checked During Decoding");
 				ErrorPlots->SetMinimum(0);
+		//		ErrorPlots->SetStats(false);
+
 				cout << "DONE 1" << endl;
+			
+				ErrorFile->GetXaxis()->SetTitle("File ID (data-link)");
+				ErrorFile->GetYaxis()->SetTitle("Error ID");
+				ErrorFile->GetZaxis()->SetTitle("Counts");
+				ErrorFile->SetTitle("Error During Decoding vs File Name Statistics");
+				ErrorFile->SetMinimum(0);
+				ErrorFile->SetStats(false);
+
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaveChip[j]; i++){
 						HITMAP[i]	= new TH2S(Form("Layer%dChip%dHITMAP",j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
@@ -125,6 +141,7 @@ namespace o2
 						HITMAP[i]->GetYaxis()->SetTitleOffset(1.10);
 						HITMAP[i]->GetZaxis()->SetTitleOffset(1.50);
 						HITMAP[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Number % d on Layer %d",i,j));
+					//	HITMAP[i]->SetStats(false);
 					}
 				}
 				cout << "DONE 2" << endl;
@@ -138,6 +155,7 @@ namespace o2
 						HITMAP6[i]->GetYaxis()->SetTitleOffset(1.10);
 						HITMAP6[i]->GetZaxis()->SetTitleOffset(1.50);
 						HITMAP6[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Sector Number % d on Layer %d",i,j));
+				//		HITMAP6[i]->SetStats(false);
 					}
 				}
 				cout << "DONE 3" << endl;
@@ -148,6 +166,7 @@ namespace o2
 				FileNameInfo->GetXaxis()->SetTitle("InputFile");
 				FileNameInfo->GetYaxis()->SetTitle("Total Files Proccessed");
 				FileNameInfo->GetXaxis()->SetTitleOffset(1.10);
+			//	FileNameInfo->SetStats(false);
 
 			}
 
@@ -186,6 +205,8 @@ namespace o2
 					ErrorPlots->GetListOfFunctions()->Add(pt[i]);
 				}
 
+
+
 				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
 				ErrorMax = ErrorPlots->GetMaximum();
 
@@ -196,6 +217,57 @@ namespace o2
 				//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
 				getObjectsManager()->startPublishing(ErrorPlots);
 				getObjectsManager()->addMetadata(ErrorPlots->GetName(), "custom", "34");
+				getObjectsManager()->startPublishing(ErrorFile);
+				
+				
+				ptFileName = new TPaveText(0.20,0.40,0.85,0.50,"NDC");
+				ptFileName->SetTextSize(0.04);
+				ptFileName->SetFillColor(0);
+				ptFileName->SetTextAlign(12);
+				ptFileName->AddText("Current File Proccessing: ");
+
+				ptNFile = new TPaveText(0.20,0.30,0.85,0.40,"NDC");
+				ptNFile->SetTextSize(0.04);
+				ptNFile->SetFillColor(0);
+				ptNFile->SetTextAlign(12);
+				ptNFile->AddText("File Processed: ");
+
+
+				ptNEvent = new TPaveText(0.20,0.20,0.85,0.30,"NDC");
+				ptNEvent->SetTextSize(0.04);
+				ptNEvent->SetFillColor(0);
+				ptNEvent->SetTextAlign(12);
+				ptNEvent->AddText("Event Processed: ");
+
+
+				bulbRed = new TPaveText(0.60,0.75,0.90,0.85,"NDC");
+				bulbRed->SetTextSize(0.04);
+				bulbRed->SetFillColor(0);
+				bulbRed->SetTextAlign(12);
+				bulbRed->SetTextColor(kRed);
+				bulbRed->AddText("Red = QC Waiting");
+
+
+				bulbGreen = new TPaveText(0.60,0.65,0.90,0.75,"NDC");
+				bulbGreen->SetTextSize(0.04);
+				bulbGreen->SetFillColor(0);
+				bulbGreen->SetTextAlign(12);
+				bulbGreen->SetTextColor(kGreen);
+				bulbGreen->AddText("GREEN = QC Processing");
+
+
+
+				InfoCanvas->SetTitle("QC Process Information Canvas");
+				InfoCanvas->GetListOfFunctions()->Add(ptFileName);
+				InfoCanvas->GetListOfFunctions()->Add(ptNFile);
+				InfoCanvas->GetListOfFunctions()->Add(ptNEvent);
+				InfoCanvas->GetListOfFunctions()->Add(bulb);
+				InfoCanvas->GetListOfFunctions()->Add(bulbRed);	
+				InfoCanvas->GetListOfFunctions()->Add(bulbGreen);
+		//		InfoCanvas->SetStats(false);
+
+
+				getObjectsManager()->startPublishing(InfoCanvas);
 
 
 
@@ -256,6 +328,8 @@ namespace o2
 
 				RunIDPre = 0;
 				FileIDPre = 0;
+				bulb->SetFillColor(kRed);
+				TotalFileDone = 0;
 
 
 			}
@@ -276,12 +350,18 @@ namespace o2
 
 
 
+
 				QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
 				
+				FileFinish = ctx.inputs().get<int>("Finish");
 
-				
+				QcInfoLogger::GetInstance() << "FileFinish = " <<  FileFinish << AliceO2::InfoLogger::InfoLogger::endm;
+
+				if(FileFinish == 0) bulb->SetFillColor(kGreen);
+				if(FileFinish == 1) bulb->SetFillColor(kRed);
+
 				//For The Moment//
-				
+			
 				int RunID = ctx.inputs().get<int>("Run");
 				int FileID = ctx.inputs().get<int>("File");
 				//QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
@@ -294,12 +374,19 @@ namespace o2
 				QcInfoLogger::GetInstance() << "For the Moment: RunID = "  << RunID << "  FileID = " << FileID << AliceO2::InfoLogger::InfoLogger::endm;
 				FileNameInfo->Fill(0.5);
 				FileNameInfo->SetTitle(Form("Current File Name: %s",FileName.Data()));
+				TotalFileDone = TotalFileDone + 1;
+				//InfoCanvas->SetBinContent(1,FileID);
+				//InfoCanvas->SetBinContent(2,TotalFileDone);
+				ptFileName->Clear();
+				ptNFile->Clear();
+				ptFileName->AddText(Form("File Being Proccessed: %s",FileName.Data()));
+				ptNFile->AddText(Form("File Processed: %d ",TotalFileDone));
 				}
 				RunIDPre = RunID;
 				FileIDPre = FileID;
 
 				//Will Fix Later//
-				
+			
 
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
@@ -310,6 +397,7 @@ namespace o2
 				for(int i = 0; i < NError; i++){
 					QcInfoLogger::GetInstance() << " i = " << i << "   Error = "	 << Errors[i]  <<  AliceO2::InfoLogger::InfoLogger::endm;
 					ErrorPlots->SetBinContent(i+1,Errors[i]);
+					ErrorFile->SetBinContent(FileID,i+1,Errors[i]);	
 				}
 
 
@@ -355,8 +443,13 @@ namespace o2
 
 
 					if (NEvent%10000==0 && NEvent > 0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
+					//InfoCanvas->SetBinContent(3,NEvent);
 
 
+					if (NEvent%1000==0 || NEventPre != NEvent){
+					ptNEvent->Clear();
+					ptNEvent->AddText(Form("Event Being Processed: %d",NEvent));
+					}
 
 					gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
 					gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
@@ -536,6 +629,7 @@ namespace o2
 			void SimpleDS::endOfCycle()
 			{
 				QcInfoLogger::GetInstance() << "endOfCycle" << AliceO2::InfoLogger::InfoLogger::endm;
+	
 			}
 
 			void SimpleDS::endOfActivity(Activity& activity)
@@ -573,6 +667,8 @@ namespace o2
 				}
 				ErrorPlots->Reset();
 				NEventInRun = 0;
+				ErrorFile->Reset();	
+				TotalFileDone = 0;
 
 				QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
 
