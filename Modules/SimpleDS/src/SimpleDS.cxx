@@ -257,12 +257,22 @@ namespace o2
 
 
 
+				bulbYellow = new TPaveText(0.60,0.65,0.90,0.75,"NDC");
+				bulbYellow->SetTextSize(0.04);
+				bulbYellow->SetFillColor(0);
+				bulbYellow->SetTextAlign(12);
+				bulbYellow->SetTextColor(kYellow);
+				bulbYellow->AddText("Yellow = QC Pausing");
+
+
+
 				InfoCanvas->SetTitle("QC Process Information Canvas");
 				InfoCanvas->GetListOfFunctions()->Add(ptFileName);
 				InfoCanvas->GetListOfFunctions()->Add(ptNFile);
 				InfoCanvas->GetListOfFunctions()->Add(ptNEvent);
 				InfoCanvas->GetListOfFunctions()->Add(bulb);
 				InfoCanvas->GetListOfFunctions()->Add(bulbRed);	
+				InfoCanvas->GetListOfFunctions()->Add(bulbYellow);
 				InfoCanvas->GetListOfFunctions()->Add(bulbGreen);
 		//		InfoCanvas->SetStats(false);
 
@@ -353,12 +363,22 @@ namespace o2
 
 				QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
 				
-				FileFinish = ctx.inputs().get<int>("Finish");
+				int InfoFile = ctx.inputs().get<int>("Finish");
+
+
+				FileFinish = InfoFile % 10;
+				FileRest = (InfoFile - FileFinish)/10;
 
 				QcInfoLogger::GetInstance() << "FileFinish = " <<  FileFinish << AliceO2::InfoLogger::InfoLogger::endm;
+				QcInfoLogger::GetInstance() << "FileRest = " <<  FileRest << AliceO2::InfoLogger::InfoLogger::endm;
+
+		//		if(FileFinish == 0) bulb->SetFillColor(kGreen);
+		//		if(FileFinish == 1) bulb->SetFillColor(kRed);
+
 
 				if(FileFinish == 0) bulb->SetFillColor(kGreen);
-				if(FileFinish == 1) bulb->SetFillColor(kRed);
+				if(FileFinish == 1 && FileRest > 0) bulb->SetFillColor(kYellow);
+				if(FileFinish == 1 && FileRest == 0) bulb->SetFillColor(kRed);
 
 				//For The Moment//
 			
@@ -386,7 +406,7 @@ namespace o2
 				FileIDPre = FileID;
 
 				//Will Fix Later//
-			
+		
 
 				int ResetDecision = ctx.inputs().get<int>("in");
 				QcInfoLogger::GetInstance() << "Reset Histogram Decision = " << ResetDecision << AliceO2::InfoLogger::InfoLogger::endm;
@@ -439,10 +459,10 @@ namespace o2
 					ChipID = pixeldata.getChipIndex();
 					col = pixeldata.getColumn();
 					row = pixeldata.getRow();
-					NEvent = pixeldata.getCharge();
+					NEvent = pixeldata.getROFrame();
 
 
-					if (NEvent%10000==0 && NEvent > 0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
+					if (NEvent%1000000==0 && NEvent > 0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
 					//InfoCanvas->SetBinContent(3,NEvent);
 
 

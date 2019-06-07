@@ -166,7 +166,7 @@ namespace o2
 				int numOfChips;
 				double eta;
 				double phi;
-				static constexpr int  NError = 10;
+				static constexpr int  NError = 11;
 				unsigned int Error[NError];
 				double ErrorMax;
 				TPaveText *pt[NError];
@@ -175,10 +175,12 @@ namespace o2
 				TPaveText * ptNEvent;
 				TPaveText * bulbGreen;
 				TPaveText * bulbRed;
+				TPaveText * bulbYellow;
+
 
 				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+1,-0.5,NError+0.5);
 				TH1D * FileNameInfo = new TH1D("FileNameInfo","FileNameInfo",5,0,1);
-				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong"};
+				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong","Error ID 11: Jump in RDH_packetCounter"};
 				TH2S * ChipStave = new TH2S("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
 				const int NFiles = 6;
 				TH2I * ErrorFile = new TH2I("ErrorFile","ErrorFile",NFiles+1,-0.5,NFiles+0.5,NError+1,-0.5,NError+0.5);
@@ -197,6 +199,8 @@ namespace o2
 				int RunIDPre;
 				int FileIDPre;
 				int TotalFileDone;
+				int FileRest;
+
 			};
 
 		} // namespace simpleds
