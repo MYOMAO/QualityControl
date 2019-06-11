@@ -104,6 +104,7 @@ namespace o2
 
 
 
+
 				int DivisionStep = 32;
 				static constexpr int   NPixels = NRows*NCols;
 				const int NLay1 = 108;
@@ -178,7 +179,7 @@ namespace o2
 				TPaveText * bulbYellow;
 
 
-				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError+1,-0.5,NError+0.5);
+				TH1D * ErrorPlots = new TH1D("ErrorPlots","ErrorPlots",NError,0.5,NError+0.5);
 				TH1D * FileNameInfo = new TH1D("FileNameInfo","FileNameInfo",5,0,1);
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong","Error ID 11: Jump in RDH_packetCounter"};
 				TH2S * ChipStave = new TH2S("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);

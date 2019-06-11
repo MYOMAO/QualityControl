@@ -124,7 +124,9 @@ namespace o2
 		//		ErrorPlots->SetStats(false);
 
 				cout << "DONE 1" << endl;
-			
+		
+
+
 				ErrorFile->GetXaxis()->SetTitle("File ID (data-link)");
 				ErrorFile->GetYaxis()->SetTitle("Error ID");
 				ErrorFile->GetZaxis()->SetTitle("Counts");
@@ -142,8 +144,11 @@ namespace o2
 						HITMAP[i]->GetZaxis()->SetTitleOffset(1.50);
 						HITMAP[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Number % d on Layer %d",i,j));
 					//	HITMAP[i]->SetStats(false);
+
 					}
 				}
+
+	
 				cout << "DONE 2" << endl;
 
 				for(int j = 6; j < 7; j++){
@@ -210,9 +215,9 @@ namespace o2
 				//TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
 				ErrorMax = ErrorPlots->GetMaximum();
 
-				cout << "ErrorMax = " << ErrorMax << endl;
+				//cout << "ErrorMax = " << ErrorMax << endl;
 
-				ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
+				//ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
 				//	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
 				//	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
 				getObjectsManager()->startPublishing(ErrorPlots);
@@ -248,7 +253,16 @@ namespace o2
 				bulbRed->AddText("Red = QC Waiting");
 
 
-				bulbGreen = new TPaveText(0.60,0.65,0.90,0.75,"NDC");
+				bulbYellow = new TPaveText(0.60,0.65,0.90,0.75,"NDC");
+				bulbYellow->SetTextSize(0.04);
+				bulbYellow->SetFillColor(0);
+				bulbYellow->SetTextAlign(12);
+				bulbYellow->SetTextColor(kYellow);
+				bulbYellow->AddText("Yellow = QC Pausing");
+
+
+
+				bulbGreen = new TPaveText(0.60,0.55,0.90,0.65,"NDC");
 				bulbGreen->SetTextSize(0.04);
 				bulbGreen->SetFillColor(0);
 				bulbGreen->SetTextAlign(12);
@@ -256,13 +270,6 @@ namespace o2
 				bulbGreen->AddText("GREEN = QC Processing");
 
 
-
-				bulbYellow = new TPaveText(0.60,0.65,0.90,0.75,"NDC");
-				bulbYellow->SetTextSize(0.04);
-				bulbYellow->SetFillColor(0);
-				bulbYellow->SetTextAlign(12);
-				bulbYellow->SetTextColor(kYellow);
-				bulbYellow->AddText("Yellow = QC Pausing");
 
 
 
@@ -289,11 +296,13 @@ namespace o2
 						ConfirmXAxis(HITMAP[i]);
 						ReverseYAxis(HITMAP[i]);
 						getObjectsManager()->startPublishing(HITMAP[i]);
+
 					}
 				}
 
 
 				ReverseYAxis(HITMAP[0]);
+
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NStaves[j]; i++){
@@ -377,8 +386,8 @@ namespace o2
 
 
 				if(FileFinish == 0) bulb->SetFillColor(kGreen);
-				if(FileFinish == 1 && FileRest > 0) bulb->SetFillColor(kYellow);
-				if(FileFinish == 1 && FileRest == 0) bulb->SetFillColor(kRed);
+				if(FileFinish == 1 && FileRest > 1) bulb->SetFillColor(kYellow);
+				if(FileFinish == 1 && FileRest == 1) bulb->SetFillColor(kRed);
 
 				//For The Moment//
 			
@@ -388,7 +397,7 @@ namespace o2
 
 
 				TString RunName = Form("Run%d",RunID);
-				TString FileName = Form("infile/Run%d/data-link%d",RunID,FileID);
+				TString FileName = Form("infiles/run000%d/data-link%d",RunID,FileID);
 
 				if(RunIDPre != RunID || FileIDPre != FileID){
 				QcInfoLogger::GetInstance() << "For the Moment: RunID = "  << RunID << "  FileID = " << FileID << AliceO2::InfoLogger::InfoLogger::endm;
@@ -462,6 +471,7 @@ namespace o2
 					NEvent = pixeldata.getROFrame();
 
 
+
 					if (NEvent%1000000==0 && NEvent > 0) cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
 					//InfoCanvas->SetBinContent(3,NEvent);
 
@@ -508,10 +518,10 @@ namespace o2
 						eta = glo.eta();
 						phi = glo.phi();
 						if(lay == 0){
-							//cout << "ChipID in Stave 0 = " << ChipID << endl; 
 							rowCS = row;
 							colCS = col + NColHis * ChipNumber;
-							if(row > 0 && col > 0) Lay1HIT[sta]->Fill(rowCS,colCS);
+						//	cout << "ChipID in Stave 0 = " << ChipID << "  colCS = " << colCS <<  "  ChipNumber = " << ChipNumber<< endl; 
+							if(row > 0 && col > 0) Lay1HIT[sta]->Fill(colCS,rowCS);
 						}
 
 						if(sta == 0 && lay == 6){
@@ -520,7 +530,7 @@ namespace o2
 							if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
 							rowLay6 = row;
 							colLay6 = col + ChipLocal6 * NColHis;
-							if(row > 0 && col > 0) HITMAP6[ChipIndex6]->Fill(rowLay6,colLay6);	
+							if(row > 0 && col > 0) HITMAP6[ChipIndex6]->Fill(colLay6,rowLay6);	
 						}
 
 					}
@@ -595,6 +605,17 @@ namespace o2
 				LayChipStave[lay]->Fill(ChipNumber,sta,Occupancy[ChipID]);
 				}
 				*/
+				TFile * foutLayCheck = new TFile("LayCheck.root","RECREATE");
+
+				foutLayCheck->cd();
+				for(int j = 0; j < 1; j++){
+					for(int i = 0; i< NStaves[j]; i++){
+						Lay1HIT[i]->Write();
+					}
+				}
+	
+				foutLayCheck->Close();
+
 
 			}
 
