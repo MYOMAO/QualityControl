@@ -101,7 +101,7 @@ namespace o2
 				const int NRowHis = 512;
 				int XTicks;
 				int YTicks;
-
+				int SizeReduce = 4;
 
 
 
@@ -168,7 +168,11 @@ namespace o2
 				double eta;
 				double phi;
 				static constexpr int  NError = 11;
-				unsigned int Error[NError];
+				std::array<unsigned int,NError> Errors;
+				std::array<unsigned int,NError> ErrorPre;
+				std::array<unsigned int,NError> ErrorPerFile;
+	
+				//unsigned int Error[NError];
 				double ErrorMax;
 				TPaveText *pt[NError];
 				TPaveText * ptFileName;
@@ -184,11 +188,12 @@ namespace o2
 				TString ErrorType[NError] ={"Error ID 1: ErrPageCounterDiscontinuity","Error ID 2: ErrRDHvsGBTHPageCnt","Error ID 3: ErrMissingGBTHeader","Error ID 4: ErrMissingGBTTrailer","Error ID 5: ErrNonZeroPageAfterStop","Error ID 6: ErrUnstoppedLanes","Error ID 7: ErrDataForStoppedLane","Error ID 8: ErrNoDataForActiveLane","Error ID 9: ErrIBChipLaneMismatch","Error ID 10: ErrCableDataHeadWrong","Error ID 11: Jump in RDH_packetCounter"};
 				TH2S * ChipStave = new TH2S("ChipStaveCheck","ChipStaveCheck",9,0,9,100,0,1500);
 				const int NFiles = 6;
-				TH2I * ErrorFile = new TH2I("ErrorFile","ErrorFile",NFiles+1,-0.5,NFiles+0.5,NError+1,-0.5,NError+0.5);
+				TH2I * ErrorFile = new TH2I("ErrorFile","ErrorFile",NFiles+1,-0.5,NFiles+0.5,NError,0.5,NError+0.5);
 				TH1D * InfoCanvas = new TH1D("InfoCanvas","InfoCanvas",3,-0.5,2.5);
 				TEllipse *bulb = new TEllipse(0.2,0.75,0.30,0.20);
-
-
+				TGaxis *newXaxis;
+				TGaxis *newYaxis;
+	
 
 				int TotalDigits = 0;
 				int NEvent;
