@@ -322,5 +322,6 @@ install(
     readoutForDataDump.json
     PrintTest.json
     Print.json
+    SimpleDS.json
   DESTINATION etc
 )

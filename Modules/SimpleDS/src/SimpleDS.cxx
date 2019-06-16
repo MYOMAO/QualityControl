@@ -65,7 +65,7 @@ namespace o2
 
 					NChipLay[i] = ChipBoundary[i + 1] - ChipBoundary[i];
 
-					OccupancyPlot[i]	= new TH1D(Form("Layer%dOccupancy",i),Form("Layer%dOccupancy",i),NEventMax[i],0,NEventMax[i]); 
+					OccupancyPlot[i] = new TH1D(Form("Layer%dOccupancy",i),Form("Layer%dOccupancy",i),NEventMax[i],0,NEventMax[i]); 
 					OccupancyPlot[i]->GetXaxis()->SetTitle ("Occupancy");
 					OccupancyPlot[i]->GetYaxis()->SetTitle ("Counts");
 					OccupancyPlot[i]->GetYaxis()->SetTitleOffset(2.2);	
