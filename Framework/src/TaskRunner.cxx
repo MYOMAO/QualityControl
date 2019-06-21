@@ -16,6 +16,8 @@
 
 #include <memory>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include <fairmq/FairMQDevice.h>
 
@@ -109,6 +111,12 @@ void TaskRunner::processCallback(ProcessingContext& pCtx)
   mNumberBlocks++;
 
   QcInfoLogger::GetInstance() << "FileFinish IN Task " << FileFinish << AliceO2::InfoLogger::InfoLogger::endm;
+
+  if(FileFinish == 1){
+  std::ofstream timefout("Time.dat", std::ios::app);
+  QcInfoLogger::GetInstance() << "Total Time in Histogram = " << TotalHisTime/1000.0 << "s" <<  AliceO2::InfoLogger::InfoLogger::endm;
+  timefout << "Total Time in Histogram = " << TotalHisTime/1000.0 << "s" << std::endl;
+}
 
 
   // if 10 s we publish stats
