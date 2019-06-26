@@ -846,7 +846,7 @@ namespace o2
 				QcInfoLogger::GetInstance() << "Time in Histogram = " << difference/1000.0 << "s" <<  AliceO2::InfoLogger::InfoLogger::endm;
 				timefout << "Time in Histogram = " << difference/1000.0 << "s" << std::endl;
 				
-				if(NEvent == 0) bulb->SetFillColor(kGreen);
+				if(NEvent == 0 && ChipID ==0 && row ==0 && col == 0 ) bulb->SetFillColor(kGreen);
 
 
 
