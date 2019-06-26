@@ -233,7 +233,7 @@ namespace o2
 			void SimpleDS::initialize(o2::framework::InitContext& ctx)
 			{
 				QcInfoLogger::GetInstance() << "initialize SimpleDS" << AliceO2::InfoLogger::InfoLogger::endm;
-				
+
 				RunID = 0;
 				FileID = 0;
 
@@ -369,19 +369,18 @@ namespace o2
 						HITMAP[i]->Draw("COLZ");
 						ConfirmXAxis(HITMAP[i]);
 						ReverseYAxis(HITMAP[i]);
-						getObjectsManager()->startPublishing(HITMAP[i]);
-					//	getObjectsManager()->addMetadata(HITMAP[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
+				//		getObjectsManager()->startPublishing(HITMAP[i]);
+						//	getObjectsManager()->addMetadata(HITMAP[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					}
 				}
 
-
-
+				
+				/*
 				for(int i = 0; i < Lay0Chip; i++){
 					getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
 				}
-
-				ReverseYAxis(HITMAP[0]);
+				*/
 
 
 				for(int j = 0; j < 1; j++){
@@ -394,19 +393,20 @@ namespace o2
 						ReverseYAxis(LayHIT[i]);
 						getObjectsManager()->startPublishing(LayHIT[i]);
 						//getObjectsManager()->addMetadata(LayHIT[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-	
+
 					}
 				}
 
 
-
+				/*
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NChipLay[j]; i++){
 						getObjectsManager()->startPublishing(LayHITNoisy[i]);
 						//getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					}
-				}
+				}	
+				*/
 
 
 
@@ -425,17 +425,17 @@ namespace o2
 
 
 				for(int i = 0; i < NLayer; i++){
-					getObjectsManager()->startPublishing(LayEtaPhi[i]);
-				//	getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
+					//getObjectsManager()->startPublishing(LayEtaPhi[i]);
+					//	getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
-					getObjectsManager()->startPublishing(LayChipStave[i]);
-				//	getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
+				//	getObjectsManager()->startPublishing(LayChipStave[i]);
+					//	getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					getObjectsManager()->startPublishing(OccupancyPlot[i]);
-				//	getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
+					//	getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					getObjectsManager()->startPublishing(OccupancyPlotNoisy[i]);
-				//	getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
+					//	getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 				}
 
 				cout << "DONE Inititing Publication = " << endl;
@@ -748,22 +748,24 @@ namespace o2
 
 				cout << "NEventDone = " << NEvent << endl;
 				cout << "START Noisy Pixel Hist" << endl;
-				for(int j = 0; j < 1; j++){
-					for(int i = 0; i< NChipLay[j]; i++){
-						LayHITNoisy[i]->Reset();
-						for(int k = 1; k < NColHis + 1; k++){
-							for(int l = 1; l < NRowHis + 1; l++){
-								TotalHits = HITMAP[i]->GetBinContent(k,l);	
-								PixelOcc = double(TotalHits)/double(NEvent);
-								//if(TotalHits > 0) cout << "i = " << i << "   TotalHits = " << TotalHits << "  PixelOcc = " << PixelOcc << endl;
-								LayHITNoisy[i]->Fill(PixelOcc);
+				if(NEvent > 0){
+
+					for(int j = 0; j < 1; j++){
+						for(int i = 0; i< NChipLay[j]; i++){
+							LayHITNoisy[i]->Reset();
+							for(int k = 1; k < NColHis + 1; k++){
+								for(int l = 1; l < NRowHis + 1; l++){
+									TotalHits = HITMAP[i]->GetBinContent(k,l);	
+									PixelOcc = double(TotalHits)/double(NEvent);
+									//if(TotalHits > 0) cout << "i = " << i << "   TotalHits = " << TotalHits << "  PixelOcc = " << PixelOcc << endl;
+									LayHITNoisy[i]->Fill(PixelOcc);
+								}
 							}
 						}
 					}
 				}
-
 				cout << "Done Noisy Pixel Hist" << endl;
-				
+
 
 				//MetaData Updating//
 				getObjectsManager()->addMetadata(ChipStave->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
@@ -843,7 +845,8 @@ namespace o2
 				TotalHisTime = TotalHisTime + difference;
 				QcInfoLogger::GetInstance() << "Time in Histogram = " << difference/1000.0 << "s" <<  AliceO2::InfoLogger::InfoLogger::endm;
 				timefout << "Time in Histogram = " << difference/1000.0 << "s" << std::endl;
-
+				
+				if(NEvent == 0) bulb->SetFillColor(kGreen);
 
 
 
