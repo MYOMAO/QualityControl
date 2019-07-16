@@ -49,6 +49,12 @@ SimpleDS::SimpleDS()
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
 
+  for (int i = 0; i < NLayer; i++) {
+    NChipLay[i] = ChipBoundary[i + 1] - ChipBoundary[i];
+    NStaveChip[i] = NChipLay[i] / NStaves[i];
+    NColStave[i] = NStaveChip[i] * NColHis;
+  }
+  
   createHistos();
 
   for (int i = 0; i < NError; i++) {
@@ -56,24 +62,6 @@ SimpleDS::SimpleDS()
     ErrorPre[i] = 0;
     ErrorPerFile[i] = 0;
   }
-
-
-  /*
-   for(int j = 0; j < 1; j++){
-   for(int i = 0; i < NStaveChip[j]; i++){
-   HITMAP[i]	= new TH2S(Form("ITSQC/Occupancy/Layer%d/Stave0/Layer%dChip%dHITMAP",j,j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
-   //		HITMAP[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
-   HITMAP[i]->GetXaxis()->SetTitle("Column");
-   HITMAP[i]->GetYaxis()->SetTitle("Row");
-   HITMAP[i]->GetYaxis()->SetTitleOffset(1.10);
-   HITMAP[i]->GetZaxis()->SetTitleOffset(1.50);
-   HITMAP[i]->SetTitle(Form("Hits on Pixel of Stave 0 for Chip Number % d on Layer %d",i,j));
-   //	HITMAP[i]->SetStats(false);
-
-   }
-   }
-   */
-
 }
 
 SimpleDS::~SimpleDS()
@@ -208,7 +196,7 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
     }
   }
 
-  for (int i = 0; i < Lay0Chip; i++) {
+  for (int i = 0; i < NChipLay[0]; i++) {
     getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
   }
 
@@ -699,8 +687,6 @@ void SimpleDS::createHistos()
   
   for (int i = 0; i < NLayer; i++) {
 
-    NChipLay[i] = ChipBoundary[i + 1] - ChipBoundary[i];
-
     OccupancyPlot[i] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", i), Form("Layer%dOccupancy", i), NEventMax[i],
         0, NEventMax[i]);
 
@@ -723,9 +709,6 @@ void SimpleDS::createHistos()
     LayEtaPhi[i]->SetTitle(Form("Number of Hits for Layer %d #eta and #phi Distribution", i));
     //		LayEtaPhi[i]->SetStats(false);
 
-    NStaveChip[i] = NChipLay[i] / NStaves[i];
-    NColStave[i] = NStaveChip[i] * NColHis;
-
     LayChipStave[i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave", i, i), Form("Layer%dChipStave", i),
         NStaveChip[i], 0, NStaveChip[i], NStaves[i], 0, NStaves[i]);
 
@@ -737,7 +720,7 @@ void SimpleDS::createHistos()
 
   }
 
-  for (int i = 0; i < Lay0Chip; i++) {
+  for (int i = 0; i < NChipLay[0]; i++) {
     DoubleColOccupancyPlot[i] = new TH1D(
         Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, i),
         Form("ITSQC/Occupancy/Layer%d/Layer%dChip%dDoubleColumnOcc", 0, 0, i), NColHis / 2, 0, NColHis / 2);
@@ -794,7 +777,7 @@ void SimpleDS::createHistos()
       HITMAP6[i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP", j, j, i),
           Form("Layer%dStave%dHITMAP", j, i), NColHis * 11, 0, NColHis * 11, NRowHis, 0, NRowHis);
       //		HITMAP6[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
-      formatAces(HITMAP6[i], "Column", "Row", 1., 1.1);
+      formatAxes(HITMAP6[i], "Column", "Row", 1., 1.1);
       HITMAP6[i]->GetZaxis()->SetTitleOffset(1.50);
       HITMAP6[i]->SetTitle(Form("Hits on Pixel of Stave 1 for Chip Sector Number % d on Layer %d", i, j));
     }
@@ -901,7 +884,7 @@ void SimpleDS::reset()
     }
   }
 
-  for (int i = 0; i < Lay0Chip; i++) {
+  for (int i = 0; i < NChipLay[0]; i++) {
     DoubleColOccupancyPlot[i]->Reset();
   }
 

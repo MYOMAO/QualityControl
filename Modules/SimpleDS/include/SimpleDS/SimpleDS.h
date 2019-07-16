@@ -124,7 +124,6 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TH1D *OccupancyPlot[NLayer];
     TH1D *OccupancyPlotNoisy[NLayer];
 
-    const int Lay0Chip = ChipBoundary[1];
     TH1D *DoubleColOccupancyPlot[108];
 
     TH2S *LayEtaPhi[NLayer];
