@@ -75,7 +75,9 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void ReverseYAxis(TH1 *h);
 
   private:
-
+    void createHistos();
+    void createGlobalHistos();
+    void formatAxes(TH2 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
     ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;
@@ -102,6 +104,8 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     const int NEventMax[NLayer] = { 150, 150, 150, 150, 150, 150, 150 };
 
     const int ChipBoundary[NLayer + 1] = { 0, 108, 252, 432, 3120, 6480, 14712, 24120 };
+    const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
+    const int layerEnable[NLayer] = {1, 0, 0, 0, 0, 0, 0};
     int NChipLay[NLayer];
     int NColStave[NLayer];
     UShort_t row;
@@ -125,7 +129,6 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
 
     TH2S *LayEtaPhi[NLayer];
     TH2S *LayChipStave[NLayer];
-    const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
     int NStaveChip[NLayer];
     //TH2S * HITMAP[9];
     TH2S *HITMAP[108];
@@ -184,19 +187,19 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TPaveText *bulbRed;
     TPaveText *bulbYellow;
 
-    TH1D *ErrorPlots = new TH1D("ITSQC/General/ErrorPlots", "ErrorPlots", NError, 0.5, NError + 0.5);
-    TH1D *FileNameInfo = new TH1D("ITSQC/General/FileNameInfo", "FileNameInfo", 5, 0, 1);
+    TH1D *ErrorPlots;
+    TH1D *FileNameInfo;
     TString ErrorType[NError] = { "Error ID 1: ErrPageCounterDiscontinuity", "Error ID 2: ErrRDHvsGBTHPageCnt",
         "Error ID 3: ErrMissingGBTHeader", "Error ID 4: ErrMissingGBTTrailer", "Error ID 5: ErrNonZeroPageAfterStop",
         "Error ID 6: ErrUnstoppedLanes", "Error ID 7: ErrDataForStoppedLane", "Error ID 8: ErrNoDataForActiveLane",
         "Error ID 9: ErrIBChipLaneMismatch", "Error ID 10: ErrCableDataHeadWrong",
         "Error ID 11: Jump in RDH_packetCounter" };
-    TH2S *ChipStave = new TH2S("ChipStaveCheck", "ChipStaveCheck", 9, 0, 9, 100, 0, 1500);
+    TH2S *ChipStave;
     const int NFiles = 6;
-    TH2D *ErrorFile = new TH2D("ITSQC/General/ErrorFile", "ErrorFile", NFiles + 1, -0.5, NFiles + 0.5, NError, 0.5,
+    TH2D *ErrorFile;
         NError + 0.5);
-    TH1D *InfoCanvas = new TH1D("ITSQC/General/InfoCanvas", "InfoCanvas", 3, -0.5, 2.5);
-    TEllipse *bulb = new TEllipse(0.2, 0.75, 0.30, 0.20);
+    TH1D *InfoCanvas;
+    TEllipse *bulb;
     TGaxis *newXaxis;
     TGaxis *newYaxis;
 
