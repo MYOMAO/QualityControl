@@ -77,6 +77,7 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
   private:
     void createHistos();
     void createGlobalHistos();
+    void createLayerHistos(int aLayer);
     void formatAxes(TH2 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
     ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
@@ -101,13 +102,17 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     static constexpr int NPixels = NRows * NCols;
     const int NLay1 = 108;
     static constexpr int NLayer = 7;
+    static constexpr int NLayerIB = 3;
     const int NEventMax[NLayer] = { 150, 150, 150, 150, 150, 150, 150 };
 
     const int ChipBoundary[NLayer + 1] = { 0, 108, 252, 432, 3120, 6480, 14712, 24120 };
     const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
+    const int nHicPerStave[NLayer] = {1, 1, 1, 8, 8, 14, 14);
+    const int nChipsPerHic[NLayer] = {9, 9, 9, 14, 14, 14, 14};
     const int layerEnable[NLayer] = {1, 0, 0, 0, 0, 0, 0};
     int NChipLay[NLayer];
     int NColStave[NLayer];
+
     UShort_t row;
     UShort_t col;
     UShort_t rowCS;
@@ -130,7 +135,8 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TH2S *LayChipStave[NLayer];
     int NStaveChip[NLayer];
     //TH2S * HITMAP[9];
-    TH2S *HITMAP[108];
+    TH2SparseS *HITMAP[7][48][14];
+    TH2SparseS *chipHitmap[7][48][14][14];
     TH2S *LayHIT[12];
     TH1D *LayHITNoisy[108];
     TH2S *HITMAP6[18];
