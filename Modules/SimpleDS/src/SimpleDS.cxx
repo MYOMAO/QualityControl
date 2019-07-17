@@ -445,6 +445,8 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     const Point3D<float> loc(0., 0., 0.);
     auto glo = gm->getMatrixL2G(ChipID)(loc);
 
+    if (!layerEnable[lay]) continue;
+    
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
       difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
@@ -775,6 +777,28 @@ void SimpleDS::createLayerHistos(int aLayer)
           Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, iChip),
           Form("DCol Occupancy Layer 0, Chip %d", 0, 0, iChip), NColHis / 2, 0, NColHis / 2);
       formatAxes(DoubleColOccupancyPlot[i], "Double Column", "Hits", 1.1, 2.2);
+    }
+  }
+}
+
+// To be checked: 
+// - something like this should exist in the official geometry already
+// - is aChip really the chipID (i.e. 0..6, 8.. 14 in case of OB HICs)?
+void SimpleDS::getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol)
+{
+  aChip &= 0xf;
+  if (aLayer < NLayerIB) {
+    aHicCol = aChip * NCols + aCol;
+    aHicRow = aRow;
+  }
+  else { // OB Hic: chip row 0 at center of HIC
+    if (aChip < 7) {
+      aHicCol = aChip * NCols + aCol;
+      aHicRow = NRows - aRow - 1;      
+    }
+    else {
+      aHicRow = NRows + aRow; 
+      aHicCol = 7 * NCols - ((aChip - 8) * NCols + aCol);
     }
   }
 }

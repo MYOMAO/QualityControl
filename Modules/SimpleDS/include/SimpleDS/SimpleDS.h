@@ -79,7 +79,8 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void createGlobalHistos();
     void createLayerHistos(int aLayer);
     void formatAxes(TH2 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
-    ChipPixelData *mChipData = nullptr;
+   void getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol)
+   ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;
     o2::itsmft::PixelReader *mReader = nullptr;
