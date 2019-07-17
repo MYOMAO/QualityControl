@@ -467,83 +467,47 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       timefout2 << "Fill Occ =  " << difference << "ns" << std::endl;
     }
 
-    if (lay < 6) {
-      //cout << "lay = " <<  lay << endl;
-      //cout << "ChipID = " << ChipID << endl;
+//    if (lay < 6) {
 
-      //Layer Occupancy Plot//
 
-      int ChipNumber = (ChipID - ChipBoundary[lay]) - sta * NStaveChip[lay];
+    int ChipNumber = (ChipID - ChipBoundary[lay]) - sta * NStaveChip[lay];
 
-      LayChipStave[lay]->Fill(ChipNumber, sta);
+    // TODO
+    LayChipStave[lay]->Fill(ChipNumber, sta);
 
-      if (lay == 0) {
-        if (row > 0 && col > 0)
-          HITMAP[ChipID]->Fill(col, row);
-      }
+    int hicCol, hicRow;
+    // Todo: check if chipID is really chip ID
+    getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow)
 
-      if (Counted < TotalCounted) {
-        end = std::chrono::high_resolution_clock::now();
-        difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
-        //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-        timefout2 << "Fill Lay1 HitMap =  " << difference << "ns" << std::endl;
-      }
+    HITMAP[lay][sta][mod]->Fill(hicCol, hicRow);
+    chipHitmap[lay][sta][mod][chipID]->Fill(col, row);
 
-      if (lay == 0)
-        DoubleColOccupancyPlot[ChipID]->Fill(col / 2);
+    if (Counted < TotalCounted) {
+      end = std::chrono::high_resolution_clock::now();
+      difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
+      //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
+      timefout2 << "Fill HitMaps =  " << difference << "ns" << std::endl;
+    }
 
-      if (Counted < TotalCounted) {
-        end = std::chrono::high_resolution_clock::now();
-        difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
-        //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-        timefout2 << "Before glo etaphi =  " << difference << "ns" << std::endl;
-      }
+    // if (lay == 0)
+    //   DoubleColOccupancyPlot[ChipID]->Fill(col / 2);
 
-      eta = glo.eta();
-      phi = glo.phi();
-      LayEtaPhi[lay]->Fill(eta, phi);
+    if (Counted < TotalCounted) {
+      end = std::chrono::high_resolution_clock::now();
+      difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
+      //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
+      timefout2 << "Before glo etaphi =  " << difference << "ns" << std::endl;
+    }
 
-      if (Counted < TotalCounted) {
-        end = std::chrono::high_resolution_clock::now();
-        difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
-        //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-        timefout2 << "After glo etaphi =  " << difference << "ns" << std::endl;
-      }
+    eta = glo.eta();
+    phi = glo.phi();
+    LayEtaPhi[lay]->Fill(eta, phi);
 
-      if (lay == 0) {
-        rowCS = row;
-        colCS = col + NColHis * ChipNumber;
-        //	cout << "ChipID in Stave 0 = " << ChipID << "  colCS = " << colCS <<  "  ChipNumber = " << ChipNumber<< endl;
-        if (row > 0 && col > 0)
-          LayHIT[sta]->Fill(colCS, rowCS);
-
-      }
-
-      if (Counted < TotalCounted) {
-        end = std::chrono::high_resolution_clock::now();
-        difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
-        //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-        timefout2 << "Fill Lay1 Stave HitMap =  " << difference << "ns" << std::endl;
-      }
-
-      if (sta == 0 && lay == 6) {
-        ChipIndex6 = ChipNumber / 11;
-        int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
-        if (ChipLocal6 < 0)
-          ChipLocal6 = ChipNumber - (ChipIndex6 - 1) * 11;
-        rowLay6 = row;
-        colLay6 = col + ChipLocal6 * NColHis;
-        if (row > 0 && col > 0)
-          HITMAP6[ChipIndex6]->Fill(colLay6, rowLay6);
-      }
-
-      if (Counted < TotalCounted) {
-        end = std::chrono::high_resolution_clock::now();
-        difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
-        //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-        timefout2 << "Fill Lay 6 Stave HitMap =  " << difference << "ns" << std::endl;
-      }
-
+    if (Counted < TotalCounted) {
+      end = std::chrono::high_resolution_clock::now();
+      difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
+      //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
+      timefout2 << "After glo etaphi =  " << difference << "ns" << std::endl;
     }
 
     NEventPre = NEvent;
