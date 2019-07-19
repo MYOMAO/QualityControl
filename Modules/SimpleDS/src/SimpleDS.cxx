@@ -82,51 +82,27 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
 
   for (int i = 0; i < NError; i++) {
     pt[i] = new TPaveText(0.20, 0.80 - i * 0.05, 0.85, 0.85 - i * 0.05, "NDC");
-    pt[i]->SetTextSize(0.04);
-    pt[i]->SetFillColor(0);
-    pt[i]->SetTextAlign(12);
-    pt[i]->AddText(ErrorType[i].Data());
+    formatPaveText(pt[i], 0.04, gStyle->GetTextColor(), 12, ErrorType[i].Data());
     ErrorPlots->GetListOfFunctions()->Add(pt[i]);
   }
 
   ptFileName = new TPaveText(0.20, 0.40, 0.85, 0.50, "NDC");
-  ptFileName->SetTextSize(0.04);
-  ptFileName->SetFillColor(0);
-  ptFileName->SetTextAlign(12);
-  ptFileName->AddText("Current File Proccessing: ");
+  formatPaveText(ptFileName, 0.04, gStyle->GetTextColor(), 12, "Current File Processing: ");
 
   ptNFile = new TPaveText(0.20, 0.30, 0.85, 0.40, "NDC");
-  ptNFile->SetTextSize(0.04);
-  ptNFile->SetFillColor(0);
-  ptNFile->SetTextAlign(12);
-  ptNFile->AddText("File Processed: ");
+  formatPaveText(ptNFile, 0.04, gStyle->GetTextColor(), 12, "File Processed: ");  
 
   ptNEvent = new TPaveText(0.20, 0.20, 0.85, 0.30, "NDC");
-  ptNEvent->SetTextSize(0.04);
-  ptNEvent->SetFillColor(0);
-  ptNEvent->SetTextAlign(12);
-  ptNEvent->AddText("Event Processed: ");
+  formatPaveText(ptNEvent, 0.04, gStyle->GetTextColor(), 12, "Event Processed: ");    
 
   bulbRed = new TPaveText(0.60, 0.75, 0.90, 0.85, "NDC");
-  bulbRed->SetTextSize(0.04);
-  bulbRed->SetFillColor(0);
-  bulbRed->SetTextAlign(12);
-  bulbRed->SetTextColor(kRed);
-  bulbRed->AddText("Red = QC Waiting");
+  formatPaveText(bulbRed, 0.04, kRed, 12, "Red = QC Waiting");      
 
   bulbYellow = new TPaveText(0.60, 0.65, 0.90, 0.75, "NDC");
-  bulbYellow->SetTextSize(0.04);
-  bulbYellow->SetFillColor(0);
-  bulbYellow->SetTextAlign(12);
-  bulbYellow->SetTextColor(kYellow);
-  bulbYellow->AddText("Yellow = QC Pausing");
+  formatPaveText(bulbYellow, 0.04, kYellow, 12, "Yellow = QC Pausing");        
 
   bulbGreen = new TPaveText(0.60, 0.55, 0.90, 0.65, "NDC");
-  bulbGreen->SetTextSize(0.04);
-  bulbGreen->SetFillColor(0);
-  bulbGreen->SetTextAlign(12);
-  bulbGreen->SetTextColor(kGreen);
-  bulbGreen->AddText("GREEN = QC Processing");
+  formatPaveText(bulbGreen, 0.04, kGreen, 12, "Green= QC Processing");
 
   InfoCanvas->SetTitle("QC Process Information Canvas");
   InfoCanvas->GetListOfFunctions()->Add(ptFileName);
@@ -562,6 +538,14 @@ void SimpleDS::formatAxes(TH1 *h, const char* xTitle, const char* yTitle, float 
   h->GetYaxis()->SetTitleOffset(yOffset);
 }
 
+void SimpleDS::formatPaveText(TPaveText *aPT, float aTextSize, Color_t aTextColor, short aTextAlign, const char *aText)
+{
+  aPT->SetTextSize(aTextSize);
+  aPT->SetTextAlign(aTextAlign);
+  aPT->SetFillColor(0);
+  aPT->SetTextColor(aTextColor);
+  aPT->AddText(aText);  
+}
 void SimpleDS::ConfirmXAxis(TH1 *h)
 {
   // Remove the current axis
