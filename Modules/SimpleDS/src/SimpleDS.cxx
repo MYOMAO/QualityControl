@@ -222,10 +222,8 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   FileID = ctx.inputs().get<int>("File");
   //QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
 
-  TString RunName = Form("Run%d", RunID);
-  TString FileName = Form("infiles/run000%d/data-link%d", RunID, FileID);
-
   if (RunIDPre != RunID || FileIDPre != FileID) {
+    TString FileName = Form("infiles/run000%d/data-link%d", RunID, FileID);
     QcInfoLogger::GetInstance() << "For the Moment: RunID = " << RunID << "  FileID = " << FileID
         << AliceO2::InfoLogger::InfoLogger::endm;
     FileNameInfo->Fill(0.5);
@@ -336,9 +334,6 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       timefout2 << "Fill Occ =  " << difference << "ns" << std::endl;
     }
 
-//    if (lay < 6) {
-
-
     int ChipNumber = (ChipID - ChipBoundary[lay]) - sta * NStaveChip[lay];
 
     // TODO
@@ -398,16 +393,6 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       << AliceO2::InfoLogger::InfoLogger::endm;
   timefout << "Time After Loop = " << difference / 1000.0 << "s" << std::endl;
 
-  /*
-   for(int i = 0; i < NEvent; i++){
-   for(int j = 0; j < numOfChips; i++){
-   gm->getChipId (j, lay, sta, ssta, mod, chip);
-   if(Frequency[i][j] > 0) OccupancyPlot[lay]->Fill(Frequency[i][j]);
-   }
-
-   }
-   */
-
   cout << "NEventDone = " << NEvent << endl;
   cout << "START Noisy Pixel Hist" << endl;
   //  if (NEvent > 0 && ChipID > 0 && row > 0 && col > 0) {
@@ -425,82 +410,9 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   //    }
   //  }
 
-    cout << "Done Noisy Pixel Hist" << endl;
-
-    //}
-
-//colTask = col;
-//rowTask = row;
-//ChipIDTask = ChipID;
-
-  //MetaData Updating DONE//
+  cout << "Done Noisy Pixel Hist" << endl;
 
   digits.clear();
-
-  //	o2::ITSMFT::Digit digit = ctx.inputs().get<o2::ITSMFT::Digit>("digits");
-  //	LOG(INFO) << "Chip ID Getting " << digit.getChipIndex() << " Row = " << digit.getRow() << "   Column = " << digit.getColumn();
-
-  /*
-   ChipID = digit.getChipIndex();
-   col = digit.getColumn();
-   row = digit.getRow();
-
-   gm->getChipId (ChipID, lay, sta, ssta, mod, chip);
-   gm->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
-   Occupancy[ChipID] = Occupancy[ChipID] + 1;
-
-   //			LOG(INFO) << "ChipID = " << ChipID << "  row = " << row << "  Column = " << col << "   OCCCUPANCY = " << Occupancy[ChipID];
-
-
-   if(TotalDigits%1000==0) 	LOG(INFO) << "TotalDigits = " << TotalDigits  << "   ChipID = " << ChipID;
-   FileFinish
-   int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
-   if(sta == 0  && ChipID < NLay1){
-   HIGMAP[ChipID]->Fill(col,row);
-   }
-
-   if(lay == 0){
-   col = col + NColHis * ChipNumber;
-   Lay1HIG[sta]->Fill(col,row);
-   }
-
-   if(sta == 0 && lay == 6){
-   ChipIndex6 = ChipNumber/11;
-   int ChipLocal6 = ChipNumber - ChipIndex6 * 11;
-   if(ChipLocal6 < 0 ) ChipLocal6 = ChipNumber - (ChipIndex6 -1) * 11;
-   col = col + + ChipLocal6 * NColHis;
-   HIGMAP6[ChipIndex6]->Fill(col,row);
-   }
-
-
-
-   for(int i = 0; i < ChipBoundary[7]; i++){
-   gm->getChipId (i, lay, sta, ssta, mod, chip);
-
-   const Point3D<float> loc(0., 0.,0.);
-   auto glo = gm->getMatrixL2G(ChipID)(loc);
-
-   int ChipNumber = (i - ChipBoundary[lay])- sta*	NStaveChip[lay];
-
-   eta = glo.eta();
-   phi = glo.phi();
-
-   OccupancyPlot[lay]->Fill(Occupancy[ChipID]);
-   LayEtaPhi[lay]->Fill(eta,phi,Occupancy[ChipID]);
-   LayChipStave[lay]->Fill(ChipNumber,sta,Occupancy[ChipID]);
-   }
-
-   TFile * foutLayCheck = new TFile("LayCheck.root","RECREATE");
-
-   foutLayCheck->cd();
-   for(int j = 0; j < 1; j++){
-   for(int i = 0; i< NStaves[j]; i++){
-   LayHIT[i]->Write();
-   }
-   }
-
-   foutLayCheck->Close();
-   */
 
   end = std::chrono::high_resolution_clock::now();
   difference = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();
