@@ -16,8 +16,6 @@
 #include "FairSystemInfo.h"
 
 #include <TCanvas.h>
-#include <TH1.h>
-#include <TH2.h>
 
 #include "QualityControl/FileFinish.h"
 #include "QualityControl/QcInfoLogger.h"
@@ -81,15 +79,6 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
   numOfChips = geom->getNumberOfChips();
   cout << "numOfChips = " << numOfChips << endl;
   setNChips(numOfChips);
-  cout << "START LOOPING BR getObjectsManager()->startPublishingO" << endl;
-
-  cout << "START Inititing Publication " << endl;
-
-  getObjectsManager()->startPublishing(FileNameInfo);
-
-  ChipStave->SetMinimum(1);
-
-  getObjectsManager()->startPublishing(ChipStave);
 
   for (int i = 0; i < NError; i++) {
     pt[i] = new TPaveText(0.20, 0.80 - i * 0.05, 0.85, 0.85 - i * 0.05, "NDC");
@@ -99,24 +88,6 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
     pt[i]->AddText(ErrorType[i].Data());
     ErrorPlots->GetListOfFunctions()->Add(pt[i]);
   }
-
-  //TLegend* l = new TLegend(0.15,0.50,0.90,0.90);
-  ErrorMax = ErrorPlots->GetMaximum();
-
-  //cout << "ErrorMax = " << ErrorMax << endl;
-
-  //ErrorPlots->SetMaximum(ErrorMax * 4.1+1000);
-  //	ErrorPlots->SetName(Form("%s-%s",ErrorPlots->GetName(),HisRunID.Data()));
-  //	cout << "ErrorPlot Name = " << ErrorPlots->GetName() << endl;
-  getObjectsManager()->startPublishing(ErrorPlots);
-  cout << "Before Error Plot MetaData" << endl;
-  //		getObjectsManager()->addMetadata(ErrorPlots->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-  cout << "After Error Plot MetaData" << endl;
-
-  //cout << "Before MetaData" << endl;
-  //getObjectsManager()->addMetadata(ErrorPlots->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-  getObjectsManager()->startPublishing(ErrorFile);
-  //		getObjectsManager()->addMetadata(ErrorFile->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
   ptFileName = new TPaveText(0.20, 0.40, 0.85, 0.50, "NDC");
   ptFileName->SetTextSize(0.04);
@@ -167,41 +138,10 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
   InfoCanvas->GetListOfFunctions()->Add(bulbGreen);
   //		InfoCanvas->SetStats(false);
 
-  getObjectsManager()->startPublishing(InfoCanvas);
-
-  /*
-   for(int j = 0; j < 1; j++){
-   for(int i = 0; i < NStaveChip[j]; i++){
-   HITMAP[i]->GetZaxis()->SetTitle("Number of Hits");
-   HITMAP[i]->GetXaxis()->SetNdivisions(-32);
-   HITMAP[i]->Draw("COLZ");
-   ConfirmXAxis(HITMAP[i]);
-   ReverseYAxis(HITMAP[i]);
-   getObjectsManager()->startPublishing(HITMAP[i]);
-
-   }
-   }
-   */
-
-  for (int j = 0; j < 1; j++) {
-    for (int i = 0; i < NChipLay[j]; i++) {
-      HITMAP[i]->GetZaxis()->SetTitle("Number of Hits");
-      HITMAP[i]->GetXaxis()->SetNdivisions(-32);
-      HITMAP[i]->Draw("COLZ");
-      ConfirmXAxis(HITMAP[i]);
-      ReverseYAxis(HITMAP[i]);
-      getObjectsManager()->startPublishing(HITMAP[i]);
-      //	getObjectsManager()->addMetadata(HITMAP[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
-    }
-  }
-
-  for (int i = 0; i < NChipLay[0]; i++) {
-    getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
-  }
-
-  ReverseYAxis(HITMAP[0]);
-
+  publishHistos();
+  
+  // TODO: decide on these histos
+  
   for (int j = 0; j < 1; j++) {
     for (int i = 0; i < NStaves[j]; i++) {
 
@@ -224,30 +164,6 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
     }
   }
 
-  for (int j = 6; j < 7; j++) {
-    for (int i = 0; i < 18; i++) {
-      HITMAP6[i]->GetZaxis()->SetTitle("Number of Hits");
-      HITMAP6[i]->GetXaxis()->SetNdivisions(-32);
-      HITMAP6[i]->Draw("COLZ");
-      ConfirmXAxis(HITMAP6[i]);
-      ReverseYAxis(HITMAP6[i]);
-      //		getObjectsManager()->startPublishing(HITMAP6[i]);
-    }
-  }
-
-  for (int i = 0; i < NLayer; i++) {
-    getObjectsManager()->startPublishing(LayEtaPhi[i]);
-    //		getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
-    getObjectsManager()->startPublishing(LayChipStave[i]);
-    //	getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
-    getObjectsManager()->startPublishing(OccupancyPlot[i]);
-    //getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
-    getObjectsManager()->startPublishing(OccupancyPlotNoisy[i]);
-    //	getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-  }
 
   cout << "DONE Inititing Publication = " << endl;
 
@@ -322,54 +238,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     ptFileName->AddText(Form("File Being Proccessed: %s", FileName.Data()));
     ptNFile->AddText(Form("File Processed: %d ", TotalFileDone));
 
-    //MetaData Updating//
-    //	getObjectsManager()->addMetadata(ChipStave->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
-    getObjectsManager()->addMetadata(ErrorPlots->GetName(), "Run", Form("%d", RunID));
-    getObjectsManager()->addMetadata(ErrorPlots->GetName(), "File", Form("%d", FileID));
-
-    getObjectsManager()->addMetadata(ErrorFile->GetName(), "Run", Form("%d", RunID));
-    getObjectsManager()->addMetadata(ErrorFile->GetName(), "File", Form("%d", FileID));
-
-    for (int j = 0; j < 1; j++) {
-      for (int i = 0; i < NChipLay[j]; i++) {
-
-        getObjectsManager()->addMetadata(HITMAP[i]->GetName(), "Run", Form("%d", RunID));
-        getObjectsManager()->addMetadata(HITMAP[i]->GetName(), "File", Form("%d", FileID));
-        getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), "Run", Form("%d", RunID));
-        getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), "File", Form("%d", FileID));
-
-      }
-    }
-
-    for (int j = 0; j < 1; j++) {
-      for (int i = 0; i < NStaves[j]; i++) {
-        getObjectsManager()->addMetadata(LayHIT[i]->GetName(), "Run", Form("%d", RunID));
-        getObjectsManager()->addMetadata(LayHIT[i]->GetName(), "File", Form("%d", FileID));
-      }
-    }
-
-    for (int j = 6; j < 7; j++) {
-      for (int i = 0; i < 18; i++) {
-        //getObjectsManager()->startPublishing(HITMAP6[i]);
-      }
-    }
-
-    for (int i = 0; i < NLayer; i++) {
-
-      getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), "Run", Form("%d", RunID));
-      getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), "File", Form("%d", FileID));
-      getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), "Run", Form("%d", RunID));
-      getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), "File", Form("%d", FileID));
-      getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), "Run", Form("%d", RunID));
-      getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), "File", Form("%d", FileID));
-      getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), "Run", Form("%d", RunID));
-      getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), "File", Form("%d", FileID));
-
-    }
-
-    //MetaData Updating DONE//
-
+    addMetadata(RunID, FileID);
   }
   RunIDPre = RunID;
   FileIDPre = FileID;
@@ -477,10 +346,10 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
     int hicCol, hicRow;
     // Todo: check if chipID is really chip ID
-    getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow)
+    getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
 
     HITMAP[lay][sta][mod]->Fill(hicCol, hicRow);
-    chipHitmap[lay][sta][mod][chipID]->Fill(col, row);
+    chipHitmap[lay][sta][mod][ChipID]->Fill(col, row);
 
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
@@ -541,28 +410,28 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
   cout << "NEventDone = " << NEvent << endl;
   cout << "START Noisy Pixel Hist" << endl;
-  if (NEvent > 0 && ChipID > 0 && row > 0 && col > 0) {
-    for (int j = 0; j < 1; j++) {
-      for (int i = 0; i < NChipLay[j]; i++) {
-        LayHITNoisy[i]->Reset();
-        for (int k = 1; k < NColHis + 1; k++) {
-          for (int l = 1; l < NRowHis + 1; l++) {
-            TotalHits = HITMAP[i]->GetBinContent(k, l);
-            PixelOcc = double(TotalHits) / double(NEvent);
-            //if(TotalHits > 0) cout << "i = " << i << "   TotalHits = " << TotalHits << "  PixelOcc = " << PixelOcc << endl;
-            LayHITNoisy[i]->Fill(PixelOcc);
-          }
-        }
-      }
-    }
+  //  if (NEvent > 0 && ChipID > 0 && row > 0 && col > 0) {
+  //  for (int j = 0; j < 1; j++) {
+  //    for (int i = 0; i < NChipLay[j]; i++) {
+  //      LayHITNoisy[i]->Reset();
+  //      for (int k = 1; k < NColHis + 1; k++) {
+  //        for (int l = 1; l < NRowHis + 1; l++) {
+  //          TotalHits = HITMAP[i]->GetBinContent(k, l);
+  //          PixelOcc = double(TotalHits) / double(NEvent);
+  //          //if(TotalHits > 0) cout << "i = " << i << "   TotalHits = " << TotalHits << "  PixelOcc = " << PixelOcc << endl;
+  //          LayHITNoisy[i]->Fill(PixelOcc);
+  //        }
+  //      }
+  //    }
+  //  }
 
     cout << "Done Noisy Pixel Hist" << endl;
 
-  }
+    //}
 
-  colTask = col;
-  rowTask = row;
-  ChipIDTask = ChipID;
+//colTask = col;
+//rowTask = row;
+//ChipIDTask = ChipID;
 
   //MetaData Updating DONE//
 
@@ -669,9 +538,10 @@ void SimpleDS::createGlobalHistos()
 
   ChipStave = new TH2S("ChipStaveCheck", "Stave 1 Layer 1, NHits vs Chip ID", 9, 0, 9, 100, 0, 1500);
   formatAxes(ChipStave, "Chip ID", "Number of Hits", 1., 1.);
-
+  ChipStave->SetMinimum(1);
+  
   ErrorFile = new TH2D("ITSQC/General/ErrorFile", "Decoding Errors vs File ID", NFiles + 1, -0.5, NFiles + 0.5, NError, 0.5, NError + 0.5);
-  ErrorFile->FormatAxes("File ID (data-link)", "Error ID");
+  formatAxes(ErrorFile, "File ID (data-link)", "Error ID");
   ErrorFile->GetZaxis()->SetTitle("Counts");
   ErrorFile->SetMinimum(0);
 
@@ -694,7 +564,7 @@ void SimpleDS::createLayerHistos(int aLayer)
 
   LayEtaPhi[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi", aLayer, aLayer),
       Form("ITS Layer%d, Hits vs Eta and Phi", aLayer), NEta, EtaMin, EtaMax, NPhi, PhiMin, PhiMax);
-  formatAxes(LayEtaPhi[i], "#eta", "#phi", 1., 1.1);
+  formatAxes(LayEtaPhi[aLayer], "#eta", "#phi", 1., 1.1);
   LayEtaPhi[aLayer]->GetZaxis()->SetTitle("Number of Hits");
   LayEtaPhi[aLayer]->GetZaxis()->SetTitleOffset(1.4);
 
@@ -724,11 +594,16 @@ void SimpleDS::createLayerHistos(int aLayer)
       }
       nBinsX = maxX / SizeReduce;
       nBinsY = maxY / SizeReduce;
-      HITMAP[aLayer][iStave][iHic] = new TH2SparseS(Name, Title, nBinsX, 0, maxX, nBinsY, 0, maxY);
-      formatAxes(HITMAP[i], "Column", "Row", 1., 1.1);
-      HITMAP[i]->GetZaxis()->SetTitleOffset(1.50);
+      HITMAP[aLayer][iStave][iHic] = new TH2S(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
+      formatAxes(HITMAP[aLayer][iStave][iHic], "Column", "Row", 1., 1.1);
+      // formatting, moved here from initialize
+      HITMAP[aLayer][iStave][iHic]->GetZaxis()->SetTitleOffset(1.50);
+      HITMAP[aLayer][iStave][iHic]->GetZaxis()->SetTitle("Number of Hits");
+      HITMAP[aLayer][iStave][iHic]->GetXaxis()->SetNdivisions(-32);
+      HITMAP[aLayer][iStave][iHic]->Draw("COLZ"); // should this really be drawn here? 
+      
       for (int iChip = 0; iChip < nChips; iChip ++) {
-        chipHitmap[aLayer][iStave][iHic][iChip] = new TH2SparseS(Form("chipHitmapL%dS%dH%dC%d", aLayer, iStave, iHic, iChip), 
+        chipHitmap[aLayer][iStave][iHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, iStave, iHic, iChip), 
 	       Form("chipHitmapL%dS%dH%dC%d", aLayer, iStave, iHic, iChip),  1024, -.5, 1023.5, 512, -.5, 511.5);
       }
     }
@@ -736,11 +611,11 @@ void SimpleDS::createLayerHistos(int aLayer)
 
   // TODO: decide what to do with this... 
   if (aLayer == 0) {
-    for (int i = 0; i < NChipLay[0]; i++) {
+    for (int iChip = 0; iChip < NChipLay[0]; iChip++) {
       DoubleColOccupancyPlot[aLayer] = new TH1D(
           Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, iChip),
-          Form("DCol Occupancy Layer 0, Chip %d", 0, 0, iChip), NColHis / 2, 0, NColHis / 2);
-      formatAxes(DoubleColOccupancyPlot[i], "Double Column", "Hits", 1.1, 2.2);
+          Form("DCol Occupancy Layer 0, Chip %d", iChip), NColHis / 2, 0, NColHis / 2);
+      formatAxes(DoubleColOccupancyPlot[iChip], "Double Column", "Hits", 1.1, 2.2);
     }
   }
 }
@@ -767,7 +642,7 @@ void SimpleDS::getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int
   }
 }
 
-void SimpleDS::formatAxes(TH2 *h, const char* xTitle, const char* yTitle, float xOffset, float yOffset)
+void SimpleDS::formatAxes(TH1 *h, const char* xTitle, const char* yTitle, float xOffset, float yOffset)
 {
   h->GetXaxis()->SetTitle(xTitle);
   h->GetYaxis()->SetTitle(yTitle);
@@ -808,6 +683,83 @@ void SimpleDS::ReverseYAxis(TH1 *h)
   newaxis->Draw();
   h->GetListOfFunctions()->Add(newaxis);
 
+}
+
+void SimpleDS::publishHistos()
+{
+  getObjectsManager()->startPublishing(FileNameInfo);
+
+  getObjectsManager()->startPublishing(ChipStave);
+  getObjectsManager()->startPublishing(ErrorPlots);
+  getObjectsManager()->startPublishing(ErrorFile);
+
+  getObjectsManager()->startPublishing(InfoCanvas);
+
+  for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
+    if (!layerEnable[iLayer]) continue;
+    getObjectsManager()->startPublishing(LayEtaPhi[iLayer]);
+    getObjectsManager()->startPublishing(LayChipStave[iLayer]);
+    getObjectsManager()->startPublishing(OccupancyPlot[iLayer]);
+    getObjectsManager()->startPublishing(OccupancyPlotNoisy[iLayer]);
+    for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
+      for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {	 
+        getObjectsManager()->startPublishing(HITMAP[iLayer][iStave][iHic]);
+      }
+    }
+  }
+
+  for (int i = 0; i < NChipLay[0]; i++) {
+    getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
+  }
+  
+}
+
+void SimpleDS::addMetadata(int runID, int fileID)
+{
+    getObjectsManager()->addMetadata(ErrorPlots->GetName(), "Run", Form("%d", runID));
+    getObjectsManager()->addMetadata(ErrorPlots->GetName(), "File", Form("%d", fileID));
+
+    getObjectsManager()->addMetadata(ErrorFile->GetName(), "Run", Form("%d", runID));
+    getObjectsManager()->addMetadata(ErrorFile->GetName(), "File", Form("%d", fileID));
+
+    for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
+      if (!layerEnable[iLayer]) continue;
+      for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
+        for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {	 
+          getObjectsManager()->addMetadata(HITMAP[iLayer][iStave][iHic]->GetName(), "Run", Form("%d", runID));
+          getObjectsManager()->addMetadata(HITMAP[iLayer][iStave][iHic]->GetName(), "File", Form("%d", fileID));
+	} 
+      }
+    }
+
+    for (int j = 0; j < 1; j++) {
+      for (int i = 0; i < NChipLay[j]; i++) {
+        getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), "Run", Form("%d", runID));
+        getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), "File", Form("%d", fileID));
+
+      }
+    }
+
+    for (int j = 0; j < 1; j++) {
+      for (int i = 0; i < NStaves[j]; i++) {
+        getObjectsManager()->addMetadata(LayHIT[i]->GetName(), "Run", Form("%d", runID));
+        getObjectsManager()->addMetadata(LayHIT[i]->GetName(), "File", Form("%d", fileID));
+      }
+    }
+
+    
+    for (int i = 0; i < NLayer; i++) {
+      getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), "File", Form("%d", fileID));
+      getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), "File", Form("%d", fileID));
+      getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), "File", Form("%d", fileID));
+      getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), "File", Form("%d", fileID));
+
+    }
+  
 }
 
 void SimpleDS::endOfCycle()
@@ -851,19 +803,21 @@ void SimpleDS::reset()
    }
    }
    */
-
+  for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
+    if (!layerEnable[iLayer]) continue;
+    for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
+      for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
+        HITMAP[iLayer][iStave][iHic]->Reset();
+      }
+    }
+  }
+  
   for (int j = 0; j < 1; j++) {
     for (int i = 0; i < NChipLay[j]; i++) {
-      HITMAP[i]->Reset();
       LayHITNoisy[i]->Reset();
     }
   }
 
-  for (int j = 6; j < 7; j++) {
-    for (int i = 0; i < 18; i++) {
-      HITMAP6[i]->Reset();
-    }
-  }
   ErrorPlots->Reset();
   NEventInRun = 0;
   ErrorFile->Reset();

@@ -12,6 +12,9 @@
 #include <vector>
 #include <deque>
 #include <memory>
+#include <TH1.h>
+#include <TH2.h>
+#include <THnSparse.h>
 #include "Rtypes.h"		// for Digitizer::Class, Double_t, ClassDef, etc
 #include "TObject.h"		// for TObject
 #include "FairTask.h"
@@ -78,8 +81,10 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void createHistos();
     void createGlobalHistos();
     void createLayerHistos(int aLayer);
-    void formatAxes(TH2 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
-    void getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol)
+    void publishHistos();
+    void addMetadata(int runID, int fileID);
+    void formatAxes(TH1 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
+    void getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol);
    ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;
@@ -108,7 +113,7 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
 
     const int ChipBoundary[NLayer + 1] = { 0, 108, 252, 432, 3120, 6480, 14712, 24120 };
     const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
-    const int nHicPerStave[NLayer] = {1, 1, 1, 8, 8, 14, 14);
+    const int nHicPerStave[NLayer] = {1, 1, 1, 8, 8, 14, 14};
     const int nChipsPerHic[NLayer] = {9, 9, 9, 14, 14, 14, 14};
     const int layerEnable[NLayer] = {1, 0, 0, 0, 0, 0, 0};
     int NChipLay[NLayer];
@@ -136,11 +141,10 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TH2S *LayChipStave[NLayer];
     int NStaveChip[NLayer];
     //TH2S * HITMAP[9];
-    TH2SparseS *HITMAP[7][48][14];
-    TH2SparseS *chipHitmap[7][48][14][14];
+    TH2S *HITMAP[7][48][14];
+    TH2S *chipHitmap[7][48][14][14];
     TH2S *LayHIT[12];
     TH1D *LayHITNoisy[108];
-    TH2S *HITMAP6[18];
     int ChipIndex6;
 
     void swapColumnBuffers()
@@ -203,7 +207,6 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TH2S *ChipStave;
     const int NFiles = 6;
     TH2D *ErrorFile;
-        NError + 0.5);
     TH1D *InfoCanvas;
     TEllipse *bulb;
     TGaxis *newXaxis;
