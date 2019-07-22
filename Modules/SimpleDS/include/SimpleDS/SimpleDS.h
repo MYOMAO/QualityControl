@@ -81,15 +81,15 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void createHistos();
     void createGlobalHistos();
     void createLayerHistos(int aLayer);
-    void createStaveHistos(int aLayer, aStave);
-    void createHicHistos(int aLayer, aStave, aHic);
+    void createStaveHistos(int aLayer, int aStave);
+    void createHicHistos(int aLayer, int aStave, int aHic);
     void publishHistos();
     void addMetadata(int runID, int fileID);
     void formatAxes(TH1 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
     void formatPaveText(TPaveText *aPT, float aTextSize, Color_t aTextColor, short aTextAlign, const char *aText);
     void getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol);
     void getProcessStatus (int aInfoFile, int& aFileFinish);
-    void updateFile (int aRunId, int aFileId);
+    void updateFile (int aRunID, int aFileID);
     ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;

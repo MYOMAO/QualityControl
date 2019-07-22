@@ -165,8 +165,9 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
   QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
 
+  int FileID = ctx.inputs().get<int>("File");
   getProcessStatus(ctx.inputs().get<int>("Finish"), FileFinish);
-  updateFile(ctx.inputs().get<int>("Run"), FileID = ctx.inputs().get<int>("File"));
+  updateFile(ctx.inputs().get<int>("Run"), FileID); 
 
   //Will Fix Later//
 
@@ -445,7 +446,7 @@ void SimpleDS::createHicHistos(int aLayer, int aStave, int aHic)
 
   if (aLayer < NLayerIB) {
     Name = Form("ITSQC/Occupancy/Layer%d/Stave%d/Layer%dStave%dHITMAP", aLayer, aStave, aLayer, aStave);
-Title = Form("Hits on Layer %d, Stave %d", aLayer, iStave);
+Title = Form("Hits on Layer %d, Stave %d", aLayer, aStave);
     maxX = 9 * NColHis;
     maxY = NRowHis;
 nChips = 9;
@@ -640,10 +641,10 @@ void SimpleDS::getProcessStatus(int aInfoFile, int& aFileFinish)
     bulb->SetFillColor(kRed);
 }
 
-void SimpleDS::updateFile(int aRunId, int aFileId)
+void SimpleDS::updateFile(int aRunID, int aFileID)
 {
 
-  static int RunIdPre, FileIDPre;
+  static int RunIDPre, FileIDPre;
   if (RunIDPre != aRunID || FileIDPre != aFileID) {
     TString FileName = Form("infiles/run000%d/data-link%d", aRunID, aFileID);
     QcInfoLogger::GetInstance() << "For the Moment: RunID = " << aRunID << "  FileID = " << aFileID
