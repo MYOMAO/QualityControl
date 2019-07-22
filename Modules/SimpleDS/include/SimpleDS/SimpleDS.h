@@ -81,12 +81,16 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void createHistos();
     void createGlobalHistos();
     void createLayerHistos(int aLayer);
+    void createStaveHistos(int aLayer, aStave);
+    void createHicHistos(int aLayer, aStave, aHic);
     void publishHistos();
     void addMetadata(int runID, int fileID);
     void formatAxes(TH1 *h, const char* xTitle, const char* yTitle, float xOffset = 1., float yOffset = 1.);
     void formatPaveText(TPaveText *aPT, float aTextSize, Color_t aTextColor, short aTextAlign, const char *aText);
     void getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol);
-   ChipPixelData *mChipData = nullptr;
+    void getProcessStatus (int aInfoFile, int& aFileFinish);
+    void updateFile (int aRunId, int aFileId);
+    ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;
     o2::itsmft::PixelReader *mReader = nullptr;
@@ -220,16 +224,12 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     int OccupancyCounter;
     int ChipIDPre;
     TString FileNamePre;
-    int RunIDPre;
-    int FileIDPre;
     int TotalFileDone;
     //	int FileRest;
     std::chrono::time_point<std::chrono::high_resolution_clock> start;
     std::chrono::time_point<std::chrono::high_resolution_clock> startLoop;
     std::chrono::time_point<std::chrono::high_resolution_clock> end;
     int difference;
-    int RunID;
-    int FileID;
 
     /*
      std::chrono::time_point<std::chrono::high_resolution_clock> startDS;

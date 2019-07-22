@@ -71,9 +71,6 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
 {
   QcInfoLogger::GetInstance() << "initialize SimpleDS" << AliceO2::InfoLogger::InfoLogger::endm;
 
-  RunID = 0;
-  FileID = 0;
-
   o2::its::GeometryTGeo *geom = o2::its::GeometryTGeo::Instance();
   geom->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
   numOfChips = geom->getNumberOfChips();
@@ -127,24 +124,18 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
       ConfirmXAxis(LayHIT[i]);
       ReverseYAxis(LayHIT[i]);
       getObjectsManager()->startPublishing(LayHIT[i]);
-      ///		getObjectsManager()->addMetadata(LayHIT[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
     }
   }
 
   for (int j = 0; j < 1; j++) {
     for (int i = 0; i < NChipLay[j]; i++) {
       getObjectsManager()->startPublishing(LayHITNoisy[i]);
-      //		getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
-
     }
   }
 
 
   cout << "DONE Inititing Publication = " << endl;
 
-  RunIDPre = 0;
-  FileIDPre = 0;
   bulb->SetFillColor(kRed);
   TotalFileDone = 0;
   TotalHisTime = 0;
@@ -174,48 +165,8 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
   QcInfoLogger::GetInstance() << "BEEN HERE BRO" << AliceO2::InfoLogger::InfoLogger::endm;
 
-  int InfoFile = ctx.inputs().get<int>("Finish");
-
-  FileFinish = InfoFile % 10;
-  FileRest = (InfoFile - FileFinish) / 10;
-
-  QcInfoLogger::GetInstance() << "FileFinish = " << FileFinish << AliceO2::InfoLogger::InfoLogger::endm;
-  QcInfoLogger::GetInstance() << "FileRest = " << FileRest << AliceO2::InfoLogger::InfoLogger::endm;
-
-  //		if(FileFinish == 0) bulb->SetFillColor(kGreen);
-  //		if(FileFinish == 1) bulb->SetFillColor(kRed);
-
-  if (FileFinish == 0)
-    bulb->SetFillColor(kGreen);
-  if (FileFinish == 1 && FileRest > 1)
-    bulb->SetFillColor(kYellow);
-  if (FileFinish == 1 && FileRest == 1)
-    bulb->SetFillColor(kRed);
-
-  //For The Moment//
-
-  RunID = ctx.inputs().get<int>("Run");
-  FileID = ctx.inputs().get<int>("File");
-  //QcInfoLogger::GetInstance() << "RunID IN QC = "  << runID;
-
-  if (RunIDPre != RunID || FileIDPre != FileID) {
-    TString FileName = Form("infiles/run000%d/data-link%d", RunID, FileID);
-    QcInfoLogger::GetInstance() << "For the Moment: RunID = " << RunID << "  FileID = " << FileID
-        << AliceO2::InfoLogger::InfoLogger::endm;
-    FileNameInfo->Fill(0.5);
-    FileNameInfo->SetTitle(Form("Current File Name: %s", FileName.Data()));
-    TotalFileDone = TotalFileDone + 1;
-    //InfoCanvas->SetBinContent(1,FileID);
-    //InfoCanvas->SetBinContent(2,TotalFileDone);
-    ptFileName->Clear();
-    ptNFile->Clear();
-    ptFileName->AddText(Form("File Being Proccessed: %s", FileName.Data()));
-    ptNFile->AddText(Form("File Processed: %d ", TotalFileDone));
-
-    addMetadata(RunID, FileID);
-  }
-  RunIDPre = RunID;
-  FileIDPre = FileID;
+  getProcessStatus(ctx.inputs().get<int>("Finish"), FileFinish);
+  updateFile(ctx.inputs().get<int>("Run"), FileID = ctx.inputs().get<int>("File"));
 
   //Will Fix Later//
 
@@ -440,7 +391,7 @@ void SimpleDS::createGlobalHistos()
 void SimpleDS::createLayerHistos(int aLayer)
 {
   TString Name, Title;
-  int nBinsX, nBinsY, maxX, maxY, nChips;
+
   OccupancyPlot[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", aLayer),
       Form("ITS Layer %d Occupancy Distribution", aLayer), NEventMax[aLayer], 0, NEventMax[aLayer]);
   formatAxes(OccupancyPlot[aLayer], "Occupancy", "Counts", 1., 2.2);
@@ -465,36 +416,7 @@ void SimpleDS::createLayerHistos(int aLayer)
   // HITMAPS per HIC, binning in groups of SizeReduce * SizeReduce pixels
   // chipHitmap: fine binning, one hitmap per chip, but not to be saved to CCDB (only for determination of noisy pixels)
   for (int iStave = 0; iStave < NStaves[aLayer]; iStave ++) {
-    for (int iHic = 0; iHic < nHicPerStave[aLayer]; iHic++) {
-      if (aLayer < NLayerIB) {
-        Name = Form("ITSQC/Occupancy/Layer%d/Stave%d/Layer%dStave%dHITMAP", aLayer, iStave, aLayer, iStave);
-	Title = Form("Hits on Layer %d, Stave %d", aLayer, iStave);
-        maxX = 9 * NColHis;
-        maxY = NRowHis;
-	nChips = 9;
-      }
-      else {
-        Name = Form("ITSQC/Occupancy/Layer%d/Stave%d/HIC%d/Layer%dStave%dHIC%dHITMAP", aLayer, iStave, iHic, aLayer, iStave, iHic);
-	Title = Form("Hits on Layer %d, Stave %d, Hic %d", aLayer, iStave, iHic);
-        maxX = 7 * NColHis;
-        maxY = 2 * NRowHis;
-        nChips = 14;
-      }
-      nBinsX = maxX / SizeReduce;
-      nBinsY = maxY / SizeReduce;
-      HITMAP[aLayer][iStave][iHic] = new TH2S(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
-      formatAxes(HITMAP[aLayer][iStave][iHic], "Column", "Row", 1., 1.1);
-      // formatting, moved here from initialize
-      HITMAP[aLayer][iStave][iHic]->GetZaxis()->SetTitleOffset(1.50);
-      HITMAP[aLayer][iStave][iHic]->GetZaxis()->SetTitle("Number of Hits");
-      HITMAP[aLayer][iStave][iHic]->GetXaxis()->SetNdivisions(-32);
-      HITMAP[aLayer][iStave][iHic]->Draw("COLZ"); // should this really be drawn here? 
-      
-      for (int iChip = 0; iChip < nChips; iChip ++) {
-        chipHitmap[aLayer][iStave][iHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, iStave, iHic, iChip), 
-	       Form("chipHitmapL%dS%dH%dC%d", aLayer, iStave, iHic, iChip),  1024, -.5, 1023.5, 512, -.5, 511.5);
-      }
-    }
+    createStaveHistos(aLayer, iStave);
   }
 
   // TODO: decide what to do with this... 
@@ -505,6 +427,49 @@ void SimpleDS::createLayerHistos(int aLayer)
           Form("DCol Occupancy Layer 0, Chip %d", iChip), NColHis / 2, 0, NColHis / 2);
       formatAxes(DoubleColOccupancyPlot[iChip], "Double Column", "Hits", 1.1, 2.2);
     }
+  }
+}
+
+void SimpleDS::createStaveHistos(int aLayer, int aStave)
+{
+  for (int iHic = 0; iHic < nHicPerStave[aLayer]; iHic++) {
+     createHicHistos(aLayer, aStave, iHic);
+  }
+}
+
+
+void SimpleDS::createHicHistos(int aLayer, int aStave, int aHic)
+{
+  TString Name, Title;
+  int nBinsX, nBinsY, maxX, maxY, nChips;
+
+  if (aLayer < NLayerIB) {
+    Name = Form("ITSQC/Occupancy/Layer%d/Stave%d/Layer%dStave%dHITMAP", aLayer, aStave, aLayer, aStave);
+Title = Form("Hits on Layer %d, Stave %d", aLayer, iStave);
+    maxX = 9 * NColHis;
+    maxY = NRowHis;
+nChips = 9;
+  }
+  else {
+    Name = Form("ITSQC/Occupancy/Layer%d/Stave%d/HIC%d/Layer%dStave%dHIC%dHITMAP", aLayer, aStave, aHic, aLayer, aStave, aHic);
+Title = Form("Hits on Layer %d, Stave %d, Hic %d", aLayer, aStave, aHic);
+    maxX = 7 * NColHis;
+    maxY = 2 * NRowHis;
+    nChips = 14;
+  }
+  nBinsX = maxX / SizeReduce;
+  nBinsY = maxY / SizeReduce;
+  HITMAP[aLayer][aStave][aHic] = new TH2S(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
+  formatAxes(HITMAP[aLayer][aStave][aHic], "Column", "Row", 1., 1.1);
+  // formatting, moved here from initialize
+  HITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitleOffset(1.50);
+  HITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitle("Number of Hits");
+  HITMAP[aLayer][aStave][aHic]->GetXaxis()->SetNdivisions(-32);
+  HITMAP[aLayer][aStave][aHic]->Draw("COLZ"); // should this really be drawn here?
+
+  for (int iChip = 0; iChip < nChips; iChip ++) {
+    chipHitmap[aLayer][aStave][aHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),
+     Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),  1024, -.5, 1023.5, 512, -.5, 511.5);
   }
 }
 
@@ -546,6 +511,7 @@ void SimpleDS::formatPaveText(TPaveText *aPT, float aTextSize, Color_t aTextColo
   aPT->SetTextColor(aTextColor);
   aPT->AddText(aText);  
 }
+
 void SimpleDS::ConfirmXAxis(TH1 *h)
 {
   // Remove the current axis
@@ -658,6 +624,46 @@ void SimpleDS::addMetadata(int runID, int fileID)
   
 }
 
+void SimpleDS::getProcessStatus(int aInfoFile, int& aFileFinish)
+{
+  aFileFinish = aInfoFile % 10;
+  int FileRest = (aInfoFile - aFileFinish) / 10;
+
+  QcInfoLogger::GetInstance() << "FileFinish = " << aFileFinish << AliceO2::InfoLogger::InfoLogger::endm;
+  QcInfoLogger::GetInstance() << "FileRest = " << FileRest << AliceO2::InfoLogger::InfoLogger::endm;
+
+  if (aFileFinish == 0)
+    bulb->SetFillColor(kGreen);
+  if (aFileFinish == 1 && FileRest > 1)
+    bulb->SetFillColor(kYellow);
+  if (aFileFinish == 1 && FileRest == 1)
+    bulb->SetFillColor(kRed);
+}
+
+void SimpleDS::updateFile(int aRunId, int aFileId)
+{
+
+  static int RunIdPre, FileIDPre;
+  if (RunIDPre != aRunID || FileIDPre != aFileID) {
+    TString FileName = Form("infiles/run000%d/data-link%d", aRunID, aFileID);
+    QcInfoLogger::GetInstance() << "For the Moment: RunID = " << aRunID << "  FileID = " << aFileID
+        << AliceO2::InfoLogger::InfoLogger::endm;
+    FileNameInfo->Fill(0.5);
+    FileNameInfo->SetTitle(Form("Current File Name: %s", FileName.Data()));
+    TotalFileDone = TotalFileDone + 1;
+    //InfoCanvas->SetBinContent(1,FileID);
+    //InfoCanvas->SetBinContent(2,TotalFileDone);
+    ptFileName->Clear();
+    ptNFile->Clear();
+    ptFileName->AddText(Form("File Being Proccessed: %s", FileName.Data()));
+    ptNFile->AddText(Form("File Processed: %d ", TotalFileDone));
+
+    addMetadata(aRunID, aFileID);
+  }
+  RunIDPre = aRunID;
+  FileIDPre = aFileID;
+}
+
 void SimpleDS::endOfCycle()
 {
   QcInfoLogger::GetInstance() << "endOfCycle" << AliceO2::InfoLogger::InfoLogger::endm;
@@ -726,7 +732,6 @@ void SimpleDS::reset()
       LayHIT[i]->GetXaxis()->SetNdivisions(-32);
       ConfirmXAxis(LayHIT[i]);
       ReverseYAxis(LayHIT[i]);
-      ///		getObjectsManager()->addMetadata(LayHIT[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
     }
   }
 
