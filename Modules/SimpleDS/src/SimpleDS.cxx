@@ -113,27 +113,6 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
 
   publishHistos();
   
-  // TODO: decide on these histos
-  
-  for (int j = 0; j < 1; j++) {
-    for (int i = 0; i < NStaves[j]; i++) {
-
-      LayHIT[i]->GetZaxis()->SetTitle("Number of Hits");
-      LayHIT[i]->GetXaxis()->SetNdivisions(-32);
-      LayHIT[i]->Draw("COLZ");
-      ConfirmXAxis(LayHIT[i]);
-      ReverseYAxis(LayHIT[i]);
-      getObjectsManager()->startPublishing(LayHIT[i]);
-    }
-  }
-
-  for (int j = 0; j < 1; j++) {
-    for (int i = 0; i < NChipLay[j]; i++) {
-      getObjectsManager()->startPublishing(LayHITNoisy[i]);
-    }
-  }
-
-
   cout << "DONE Inititing Publication = " << endl;
 
   bulb->SetFillColor(kRed);
@@ -221,7 +200,6 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
     if (NEvent % 1000000 == 0 && NEvent > 0)
       cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
-    //InfoCanvas->SetBinContent(3,NEvent);
 
     if (NEvent % 1000 == 0 || NEventPre != NEvent) {
       ptNEvent->Clear();
@@ -249,8 +227,9 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       timefout2 << "After Geo =  " << difference << "ns" << std::endl;
     }
 
+    // TODO: change this to real occupancy
     if (ChipID != ChipIDPre) {
-      OccupancyPlot[lay]->Fill(OccupancyCounter);
+      hOccupancyPlot[lay]->Fill(OccupancyCounter);
       OccupancyCounter = 0;
     }
     OccupancyCounter = OccupancyCounter + 1;
@@ -264,15 +243,15 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
     int ChipNumber = (ChipID - ChipBoundary[lay]) - sta * NStaveChip[lay];
 
-    // TODO
-    LayChipStave[lay]->Fill(ChipNumber, sta);
+    // TODO: correct filling
+    hChipStaveOccupancy[lay]->Fill(ChipNumber, sta);
 
     int hicCol, hicRow;
     // Todo: check if chipID is really chip ID
     getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
 
-    HITMAP[lay][sta][mod]->Fill(hicCol, hicRow);
-    chipHitmap[lay][sta][mod][ChipID]->Fill(col, row);
+    hHITMAP[lay][sta][mod]->Fill(hicCol, hicRow);
+    hChipHitmap[lay][sta][mod][ChipID]->Fill(col, row);
 
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
@@ -293,7 +272,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
     eta = glo.eta();
     phi = glo.phi();
-    LayEtaPhi[lay]->Fill(eta, phi);
+    hEtaPhiHitmap[lay]->Fill(eta, phi);
 
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
@@ -322,23 +301,6 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   timefout << "Time After Loop = " << difference / 1000.0 << "s" << std::endl;
 
   cout << "NEventDone = " << NEvent << endl;
-  cout << "START Noisy Pixel Hist" << endl;
-  //  if (NEvent > 0 && ChipID > 0 && row > 0 && col > 0) {
-  //  for (int j = 0; j < 1; j++) {
-  //    for (int i = 0; i < NChipLay[j]; i++) {
-  //      LayHITNoisy[i]->Reset();
-  //      for (int k = 1; k < NColHis + 1; k++) {
-  //        for (int l = 1; l < NRowHis + 1; l++) {
-  //          TotalHits = HITMAP[i]->GetBinContent(k, l);
-  //          PixelOcc = double(TotalHits) / double(NEvent);
-  //          //if(TotalHits > 0) cout << "i = " << i << "   TotalHits = " << TotalHits << "  PixelOcc = " << PixelOcc << endl;
-  //          LayHITNoisy[i]->Fill(PixelOcc);
-  //        }
-  //      }
-  //    }
-  //  }
-
-  cout << "Done Noisy Pixel Hist" << endl;
 
   digits.clear();
 
@@ -391,28 +353,13 @@ void SimpleDS::createGlobalHistos()
 
 void SimpleDS::createLayerHistos(int aLayer)
 {
-  TString Name, Title;
+  createEtaPhiHitmap(aLayer);
+  
+  // 1d- occupancy histogram of the full layer, x-axis units = log (occupancy)
+  hOccupancyPlot[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", aLayer),
+				    Form("ITS Layer %d Occupancy Distribution", aLayer), 300, -15, 0);
+  formatAxes(hOccupancyPlot[aLayer], "Occupancy", "Counts", 1., 2.2);
 
-  OccupancyPlot[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", aLayer),
-      Form("ITS Layer %d Occupancy Distribution", aLayer), NEventMax[aLayer], 0, NEventMax[aLayer]);
-  formatAxes(OccupancyPlot[aLayer], "Occupancy", "Counts", 1., 2.2);
-
-  OccupancyPlotNoisy[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancyNoisy", aLayer),
-      Form("ITS Layer %d, Noisy Pixel Occupancy", aLayer), NEventMax[aLayer], 0, NEventMax[aLayer]);
-  formatAxes(OccupancyPlotNoisy[aLayer], "Noisy Pixel Occupancy", "Counts", 1., 2.2);
-
-
-  LayEtaPhi[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi", aLayer, aLayer),
-      Form("ITS Layer%d, Hits vs Eta and Phi", aLayer), NEta, EtaMin, EtaMax, NPhi, PhiMin, PhiMax);
-  formatAxes(LayEtaPhi[aLayer], "#eta", "#phi", 1., 1.1);
-  LayEtaPhi[aLayer]->GetZaxis()->SetTitle("Number of Hits");
-  LayEtaPhi[aLayer]->GetZaxis()->SetTitleOffset(1.4);
-
-  LayChipStave[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave", aLayer, aLayer),
-      Form("ITS Layer%d, Hits vs Chip and Stave", aLayer), NStaveChip[aLayer], 0, NStaveChip[aLayer], NStaves[aLayer], 0, NStaves[aLayer]);
-  formatAxes(LayChipStave[aLayer], "Chip Number", "Stave Number", 1., 1.1);
-  LayChipStave[aLayer]->GetZaxis()->SetTitle("Number of Hits");
-  LayChipStave[aLayer]->GetZaxis()->SetTitleOffset(1.4);
 
   // HITMAPS per HIC, binning in groups of SizeReduce * SizeReduce pixels
   // chipHitmap: fine binning, one hitmap per chip, but not to be saved to CCDB (only for determination of noisy pixels)
@@ -431,6 +378,49 @@ void SimpleDS::createLayerHistos(int aLayer)
   }
 }
 
+// hChipStaveOccupancy: Occupancy histograms for complete layer
+// y-axis: number of stave
+// x-axis: number of chip (IB) or number of HIC (OB)
+void SimpleDS::createChipStaveOcc(int aLayer)
+{
+  int nBinsX;
+  if (aLayer < NLayerIB) {
+    nBinsX = nChipsPerHic[aLayer];
+    hChipStaveOccupancy[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave", aLayer, aLayer),
+        Form("ITS Layer%d, Hits vs Chip and Stave", aLayer), nBinsX, -.5 , nBinsX-.5 , NStaves[aLayer], -.5, NStaves[aLayer]-.5);
+    formatAxes(hChipStaveOccupancy[aLayer], "Chip Number", "Stave Number", 1., 1.1);
+  }
+  else {
+    nBinsX = nHicPerStave[aLayer];
+    hChipStaveOccupancy[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dHicStave", aLayer, aLayer),
+        Form("ITS Layer%d, Hits vs Hic and Stave", aLayer), nBinsX, -.5 , nBinsX-.5 , NStaves[aLayer], -.5, NStaves[aLayer]-.5);
+    formatAxes(hChipStaveOccupancy[aLayer], "Hic Number", "Stave Number", 1., 1.1);
+  }
+  
+  hChipStaveOccupancy[aLayer]->GetZaxis()->SetTitle("Number of Hits");
+  hChipStaveOccupancy[aLayer]->GetZaxis()->SetTitleOffset(1.4);
+}
+
+// hEtaPhiHitmap: eta-phi hitmaps for complete layers, binning 100 x 100 pixels
+// using eta coverage of TDR, assuming phi runs from 0 ... 2*Pi
+void SimpleDS::createEtaPhiHitmap(int aLayer)
+{
+  int NEta, NPhi;
+  if (aLayer < NLayerIB) {
+    NEta = 9 * 10;
+    NPhi = NStaves[aLayer] * 5;
+  }
+  else {
+    NEta = nHicPerStave[aLayer] * 70;
+    NPhi = NStaves[aLayer] * 10;    
+  }
+  hEtaPhiHitmap[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi", aLayer, aLayer),
+      Form("ITS Layer%d, Hits vs Eta and Phi", aLayer), NEta, (-1)*etaCoverage[aLayer], etaCoverage[aLayer], NPhi, PhiMin, PhiMax);
+  formatAxes(hEtaPhiHitmap[aLayer], "#eta", "#phi", 1., 1.1);
+  hEtaPhiHitmap[aLayer]->GetZaxis()->SetTitle("Number of Hits");
+  hEtaPhiHitmap[aLayer]->GetZaxis()->SetTitleOffset(1.4);
+}
+
 void SimpleDS::createStaveHistos(int aLayer, int aStave)
 {
   for (int iHic = 0; iHic < nHicPerStave[aLayer]; iHic++) {
@@ -446,7 +436,7 @@ void SimpleDS::createHicHistos(int aLayer, int aStave, int aHic)
 
   if (aLayer < NLayerIB) {
     Name = Form("ITSQC/Occupancy/Layer%d/Stave%d/Layer%dStave%dHITMAP", aLayer, aStave, aLayer, aStave);
-Title = Form("Hits on Layer %d, Stave %d", aLayer, aStave);
+    Title = Form("Hits on Layer %d, Stave %d", aLayer, aStave);
     maxX = 9 * NColHis;
     maxY = NRowHis;
 nChips = 9;
@@ -460,17 +450,17 @@ Title = Form("Hits on Layer %d, Stave %d, Hic %d", aLayer, aStave, aHic);
   }
   nBinsX = maxX / SizeReduce;
   nBinsY = maxY / SizeReduce;
-  HITMAP[aLayer][aStave][aHic] = new TH2S(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
-  formatAxes(HITMAP[aLayer][aStave][aHic], "Column", "Row", 1., 1.1);
+  hHITMAP[aLayer][aStave][aHic] = new TH2S(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
+  formatAxes(hHITMAP[aLayer][aStave][aHic], "Column", "Row", 1., 1.1);
   // formatting, moved here from initialize
-  HITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitleOffset(1.50);
-  HITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitle("Number of Hits");
-  HITMAP[aLayer][aStave][aHic]->GetXaxis()->SetNdivisions(-32);
-  HITMAP[aLayer][aStave][aHic]->Draw("COLZ"); // should this really be drawn here?
+  hHITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitleOffset(1.50);
+  hHITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitle("Number of Hits");
+  hHITMAP[aLayer][aStave][aHic]->GetXaxis()->SetNdivisions(-32);
+  hHITMAP[aLayer][aStave][aHic]->Draw("COLZ"); // should this really be drawn here?
 
   for (int iChip = 0; iChip < nChips; iChip ++) {
-    chipHitmap[aLayer][aStave][aHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),
-     Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),  1024, -.5, 1023.5, 512, -.5, 511.5);
+    hChipHitmap[aLayer][aStave][aHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),
+    Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),  1024, -.5, 1023.5, 512, -.5, 511.5);
   }
 }
 
@@ -560,13 +550,12 @@ void SimpleDS::publishHistos()
 
   for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
     if (!layerEnable[iLayer]) continue;
-    getObjectsManager()->startPublishing(LayEtaPhi[iLayer]);
-    getObjectsManager()->startPublishing(LayChipStave[iLayer]);
-    getObjectsManager()->startPublishing(OccupancyPlot[iLayer]);
-    getObjectsManager()->startPublishing(OccupancyPlotNoisy[iLayer]);
+    getObjectsManager()->startPublishing(hEtaPhiHitmap[iLayer]);
+    getObjectsManager()->startPublishing(hChipStaveOccupancy[iLayer]);
+    getObjectsManager()->startPublishing(hOccupancyPlot[iLayer]);
     for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
       for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {	 
-        getObjectsManager()->startPublishing(HITMAP[iLayer][iStave][iHic]);
+        getObjectsManager()->startPublishing(hHITMAP[iLayer][iStave][iHic]);
       }
     }
   }
@@ -589,38 +578,19 @@ void SimpleDS::addMetadata(int runID, int fileID)
       if (!layerEnable[iLayer]) continue;
       for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
         for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {	 
-          getObjectsManager()->addMetadata(HITMAP[iLayer][iStave][iHic]->GetName(), "Run", Form("%d", runID));
-          getObjectsManager()->addMetadata(HITMAP[iLayer][iStave][iHic]->GetName(), "File", Form("%d", fileID));
+          getObjectsManager()->addMetadata(hHITMAP[iLayer][iStave][iHic]->GetName(), "Run", Form("%d", runID));
+          getObjectsManager()->addMetadata(hHITMAP[iLayer][iStave][iHic]->GetName(), "File", Form("%d", fileID));
 	} 
       }
     }
 
-    for (int j = 0; j < 1; j++) {
-      for (int i = 0; i < NChipLay[j]; i++) {
-        getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), "Run", Form("%d", runID));
-        getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), "File", Form("%d", fileID));
-
-      }
-    }
-
-    for (int j = 0; j < 1; j++) {
-      for (int i = 0; i < NStaves[j]; i++) {
-        getObjectsManager()->addMetadata(LayHIT[i]->GetName(), "Run", Form("%d", runID));
-        getObjectsManager()->addMetadata(LayHIT[i]->GetName(), "File", Form("%d", fileID));
-      }
-    }
-
-    
     for (int i = 0; i < NLayer; i++) {
-      getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), "Run", Form("%d", runID));
-      getObjectsManager()->addMetadata(LayEtaPhi[i]->GetName(), "File", Form("%d", fileID));
-      getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), "Run", Form("%d", runID));
-      getObjectsManager()->addMetadata(LayChipStave[i]->GetName(), "File", Form("%d", fileID));
-      getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), "Run", Form("%d", runID));
-      getObjectsManager()->addMetadata(OccupancyPlot[i]->GetName(), "File", Form("%d", fileID));
-      getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), "Run", Form("%d", runID));
-      getObjectsManager()->addMetadata(OccupancyPlotNoisy[i]->GetName(), "File", Form("%d", fileID));
-
+      getObjectsManager()->addMetadata(hEtaPhiHitmap[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(hEtaPhiHitmap[i]->GetName(), "File", Form("%d", fileID));
+      getObjectsManager()->addMetadata(hChipStaveOccupancy[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(hChipStaveOccupancy[i]->GetName(), "File", Form("%d", fileID));
+      getObjectsManager()->addMetadata(hOccupancyPlot[i]->GetName(), "Run", Form("%d", runID));
+      getObjectsManager()->addMetadata(hOccupancyPlot[i]->GetName(), "File", Form("%d", fileID));
     }
   
 }
@@ -682,17 +652,9 @@ void SimpleDS::reset()
   QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
   ChipStave->Reset();
   for (int i = 0; i < NLayer; i++) {
-    OccupancyPlot[i]->Reset();
-    OccupancyPlotNoisy[i]->Reset();
-    LayEtaPhi[i]->Reset();
-    LayChipStave[i]->Reset();
-  }
-
-  for (int j = 0; j < 1; j++) {
-    for (int i = 0; i < NStaves[j]; i++) {
-      LayHIT[i]->Reset();
-
-    }
+    hOccupancyPlot[i]->Reset();
+    hEtaPhiHitmap[i]->Reset();
+    hChipStaveOccupancy[i]->Reset();
   }
 
   for (int i = 0; i < NChipLay[0]; i++) {
@@ -710,14 +672,11 @@ void SimpleDS::reset()
     if (!layerEnable[iLayer]) continue;
     for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
       for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
-        HITMAP[iLayer][iStave][iHic]->Reset();
+        hHITMAP[iLayer][iStave][iHic]->Reset();
+        for (int iChip = 0; iChip < nChipsPerHic[iLayer]; iChip ++) {
+          hChipHitmap[iLayer][iStave][iHic][iChip]->Reset();
+	}
       }
-    }
-  }
-  
-  for (int j = 0; j < 1; j++) {
-    for (int i = 0; i < NChipLay[j]; i++) {
-      LayHITNoisy[i]->Reset();
     }
   }
 
@@ -728,13 +687,6 @@ void SimpleDS::reset()
   ptNFile->Clear();
   ptNFile->AddText(Form("File Processed: %d ", TotalFileDone));
   Yellowed = 0;
-  for (int j = 0; j < 1; j++) {
-    for (int i = 0; i < NStaves[j]; i++) {
-      LayHIT[i]->GetXaxis()->SetNdivisions(-32);
-      ConfirmXAxis(LayHIT[i]);
-      ReverseYAxis(LayHIT[i]);
-    }
-  }
 
   QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
 

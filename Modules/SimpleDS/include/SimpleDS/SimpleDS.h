@@ -82,6 +82,8 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void createGlobalHistos();
     void createLayerHistos(int aLayer);
     void createStaveHistos(int aLayer, int aStave);
+    void createEtaPhiHitmap(int aLayer);
+    void createChipStaveOcc(int aLayer);
     void createHicHistos(int aLayer, int aStave, int aHic);
     void publishHistos();
     void addMetadata(int runID, int fileID);
@@ -114,13 +116,14 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     const int NLay1 = 108;
     static constexpr int NLayer = 7;
     static constexpr int NLayerIB = 3;
-    const int NEventMax[NLayer] = { 150, 150, 150, 150, 150, 150, 150 };
 
     const int ChipBoundary[NLayer + 1] = { 0, 108, 252, 432, 3120, 6480, 14712, 24120 };
     const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
     const int nHicPerStave[NLayer] = {1, 1, 1, 8, 8, 14, 14};
     const int nChipsPerHic[NLayer] = {9, 9, 9, 14, 14, 14, 14};
     const int layerEnable[NLayer] = {1, 0, 0, 0, 0, 0, 0};
+    const float etaCoverage[NLayer] = {2.5, 2.3, 2.0, 1.5, 1.4, 1.4, 1.3};
+    
     int NChipLay[NLayer];
     int NColStave[NLayer];
 
@@ -137,19 +140,16 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
 
     int lay, sta, ssta, mod, chip;
     //	TH2D * ChipStave[NLayer];
-    TH1D *OccupancyPlot[NLayer];
-    TH1D *OccupancyPlotNoisy[NLayer];
+    TH1D *hOccupancyPlot[NLayer];
 
     TH1D *DoubleColOccupancyPlot[108];
 
-    TH2S *LayEtaPhi[NLayer];
-    TH2S *LayChipStave[NLayer];
+    TH2S *hEtaPhiHitmap[NLayer];
+    TH2S *hChipStaveOccupancy[NLayer];
     int NStaveChip[NLayer];
     //TH2S * HITMAP[9];
-    TH2S *HITMAP[7][48][14];
-    TH2S *chipHitmap[7][48][14][14];
-    TH2S *LayHIT[12];
-    TH1D *LayHITNoisy[108];
+    TH2S *hHITMAP[7][48][14];
+    TH2S *hChipHitmap[7][48][14][14];
     int ChipIndex6;
 
     void swapColumnBuffers()
@@ -174,12 +174,8 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     UShort_t ChipID;
 
     TFile *fout;
-    const int NEta = 9;
-    const double EtaMin = -2.40;
-    const double EtaMax = 2.40;
-    const int NPhi = 12;
-    const double PhiMin = -2.90;
-    const double PhiMax = 2.90;
+    const double PhiMin = 0;
+    const double PhiMax = 3.284;
     const int NChipsSta = 9;
     const int NSta1 = NLay1 / NChipsSta;
     int numOfChips;
