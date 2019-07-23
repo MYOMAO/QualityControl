@@ -5,7 +5,7 @@
 ///
 
 #include <sstream>
-
+#include <math.h>
 #include <TStopwatch.h>
 #include "DataFormatsParameters/GRPObject.h"
 #include "FairLogger.h"
@@ -201,6 +201,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     if (NEvent % 1000000 == 0 && NEvent > 0)
       cout << "ChipID = " << ChipID << "  col = " << col << "  row = " << row << "  NEvent = " << NEvent << endl;
 
+    // wouldnt this update this update the text for every digit in events 1000, 2000 ... ?
     if (NEvent % 1000 == 0 || NEventPre != NEvent) {
       ptNEvent->Clear();
       ptNEvent->AddText(Form("Event Being Processed: %d", NEvent));
@@ -227,24 +228,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       timefout2 << "After Geo =  " << difference << "ns" << std::endl;
     }
 
-    // TODO: change this to real occupancy
-    if (ChipID != ChipIDPre) {
-      hOccupancyPlot[lay]->Fill(OccupancyCounter);
-      OccupancyCounter = 0;
-    }
-    OccupancyCounter = OccupancyCounter + 1;
-
-    if (Counted < TotalCounted) {
-      end = std::chrono::high_resolution_clock::now();
-      difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
-      //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-      timefout2 << "Fill Occ =  " << difference << "ns" << std::endl;
-    }
-
     int ChipNumber = (ChipID - ChipBoundary[lay]) - sta * NStaveChip[lay];
-
-    // TODO: correct filling
-    hChipStaveOccupancy[lay]->Fill(ChipNumber, sta);
 
     int hicCol, hicRow;
     // Todo: check if chipID is really chip ID
@@ -279,18 +263,10 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
       //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
       timefout2 << "After glo etaphi =  " << difference << "ns" << std::endl;
+      Counted = Counted + 1;
     }
 
     NEventPre = NEvent;
-    ChipIDPre = ChipID;
-
-    if (Counted < TotalCounted) {
-      end = std::chrono::high_resolution_clock::now();
-      difference = std::chrono::duration_cast < std::chrono::milliseconds > (end - startLoop).count();
-      //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
-      timefout2 << "End of Vec " << difference << "ns" << std::endl;
-      Counted = Counted + 1;
-    }
 
   } // end digits loop
 
@@ -338,10 +314,6 @@ void SimpleDS::createGlobalHistos()
   FileNameInfo = new TH1D("ITSQC/General/FileNameInfo", "FileNameInfo", 5, 0, 1);  
   formatAxes(FileNameInfo, "InputFile", "Total Files Processed", 1.1);
 
-  ChipStave = new TH2S("ChipStaveCheck", "Stave 1 Layer 1, NHits vs Chip ID", 9, 0, 9, 100, 0, 1500);
-  formatAxes(ChipStave, "Chip ID", "Number of Hits", 1., 1.);
-  ChipStave->SetMinimum(1);
-  
   ErrorFile = new TH2D("ITSQC/General/ErrorFile", "Decoding Errors vs File ID", NFiles + 1, -0.5, NFiles + 0.5, NError, 0.5, NError + 0.5);
   formatAxes(ErrorFile, "File ID (data-link)", "Error ID");
   ErrorFile->GetZaxis()->SetTitle("Counts");
@@ -542,7 +514,6 @@ void SimpleDS::publishHistos()
 {
   getObjectsManager()->startPublishing(FileNameInfo);
 
-  getObjectsManager()->startPublishing(ChipStave);
   getObjectsManager()->startPublishing(ErrorPlots);
   getObjectsManager()->startPublishing(ErrorFile);
 
@@ -580,7 +551,7 @@ void SimpleDS::addMetadata(int runID, int fileID)
         for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {	 
           getObjectsManager()->addMetadata(hHITMAP[iLayer][iStave][iHic]->GetName(), "Run", Form("%d", runID));
           getObjectsManager()->addMetadata(hHITMAP[iLayer][iStave][iHic]->GetName(), "File", Form("%d", fileID));
-	} 
+      	}
       }
     }
 
@@ -650,47 +621,89 @@ void SimpleDS::reset()
 {
   // clean all the monitor objects here
   QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
-  ChipStave->Reset();
-  for (int i = 0; i < NLayer; i++) {
-    hOccupancyPlot[i]->Reset();
-    hEtaPhiHitmap[i]->Reset();
-    hChipStaveOccupancy[i]->Reset();
-  }
 
-  for (int i = 0; i < NChipLay[0]; i++) {
-    DoubleColOccupancyPlot[i]->Reset();
-  }
-
-  /*
-   for(int j = 0; j < 1; j++){
-   for(int i = 0; i < NStaveChip[j]; i++){
-   HITMAP[i]->Reset();
-   }
-   }
-   */
-  for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
-    if (!layerEnable[iLayer]) continue;
-    for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
-      for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
-        hHITMAP[iLayer][iStave][iHic]->Reset();
-        for (int iChip = 0; iChip < nChipsPerHic[iLayer]; iChip ++) {
-          hChipHitmap[iLayer][iStave][iHic][iChip]->Reset();
-	}
-      }
-    }
-  }
-
-  ErrorPlots->Reset();
   NEventInRun = 0;
-  ErrorFile->Reset();
   TotalFileDone = 0;
   ptNFile->Clear();
   ptNFile->AddText(Form("File Processed: %d ", TotalFileDone));
   Yellowed = 0;
 
+  resetHitmaps();
+  resetOccupancyPlots();
+
   QcInfoLogger::GetInstance() << "DONE the histogram Resetting" << AliceO2::InfoLogger::InfoLogger::endm;
+}
+
+// reset method for all plots that are supposed to be reset once
+void SimpleDS::resetHitmaps()
+{
+  ErrorPlots->Reset();
+  ErrorFile->Reset();
+  for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
+    if (!layerEnable[iLayer]) continue;
+    hEtaPhiHitmap[iLayer]->Reset();
+    for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
+      for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
+        hHITMAP[iLayer][iStave][iHic]->Reset();
+        for (int iChip = 0; iChip < nChipsPerHic[iLayer]; iChip ++) {
+          hChipHitmap[iLayer][iStave][iHic][iChip]->Reset();
+        }
+      }
+    }
+  }
+  for (int i = 0; i < NChipLay[0]; i++) {
+    DoubleColOccupancyPlot[i]->Reset();
+  }
 
 }
+
+// reset method for all histos that are to be reset regularly
+// (occupancy plots when recalculating / updating the occupancies)
+void SimpleDS::resetOccupancyPlots()
+{
+  for (int iLayer = 0; iLayer < NLayer; iLayer++) {
+    if (!layerEnable[iLayer]) continue;
+    hOccupancyPlot[iLayer]->Reset();
+    hChipStaveOccupancy[iLayer]->Reset();
+  }
+}
+
+void SimpleDS::updateOccupancyPlots(int nEvents)
+{
+  double pixelOccupancy, chipOccupancy;
+  int nPixels = 512 * 1024;
+
+  resetOccupancyPlots();
+
+  for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
+    if (!layerEnable[iLayer]) continue;
+    hEtaPhiHitmap[iLayer]->Reset();
+    for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
+      for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
+        for (int iChip = 0; iChip < nChipsPerHic[iLayer]; iChip ++) {
+          chipOccupancy = hChipHitmap[iLayer][iStave][iHic][iChip]->Integral();
+          chipOccupancy /= (nEvents * nPixels);
+          if (iLayer < NLayerIB) {
+            hChipStaveOccupancy[iLayer]->Fill(iChip, iStave, chipOccupancy);
+          }
+          else {
+            hChipStaveOccupancy[iLayer]->Fill(iHic, iStave, chipOccupancy / nChipsPerHic[iLayer]);
+          }
+          for (int iCol = 0; iCol < 1024; iCol++){
+            for (int iRow = 0; iRow < 512; iRow ++) {
+              pixelOccupancy = hChipHitmap[iLayer][iStave][iHic][iChip]->GetBinContent(iCol + 1, iRow + 1);
+              if (pixelOccupancy > 0) {
+                pixelOccupancy /= nEvents;
+                hOccupancyPlot->Fill(log10(pixelOccupancy));
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 
 } // namespace simpleds
 } // namespace quality_control_modules

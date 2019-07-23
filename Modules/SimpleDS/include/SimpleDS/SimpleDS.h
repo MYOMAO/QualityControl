@@ -92,6 +92,9 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol);
     void getProcessStatus (int aInfoFile, int& aFileFinish);
     void updateFile (int aRunID, int aFileID);
+    void resetHitmaps();
+    void resetOccupancyPlots();
+    void updateOccupancyPlots(int nEvents);
     ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;
@@ -139,7 +142,7 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     double HitMax = 1;
 
     int lay, sta, ssta, mod, chip;
-    //	TH2D * ChipStave[NLayer];
+
     TH1D *hOccupancyPlot[NLayer];
 
     TH1D *DoubleColOccupancyPlot[108];
@@ -147,7 +150,6 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TH2S *hEtaPhiHitmap[NLayer];
     TH2S *hChipStaveOccupancy[NLayer];
     int NStaveChip[NLayer];
-    //TH2S * HITMAP[9];
     TH2S *hHITMAP[7][48][14];
     TH2S *hChipHitmap[7][48][14][14];
     int ChipIndex6;
