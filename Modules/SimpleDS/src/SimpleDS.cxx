@@ -275,6 +275,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   timefout << "Time After Loop = " << difference / 1000.0 << "s" << std::endl;
 
   cout << "NEventDone = " << NEvent << endl;
+  cout <<  "Test  " << endl;
 
   digits.clear();
 
@@ -324,6 +325,7 @@ void SimpleDS::createGlobalHistos()
 void SimpleDS::createLayerHistos(int aLayer)
 {
   createEtaPhiHitmap(aLayer);
+  createChipStaveOcc(aLayer);
   
   // 1d- occupancy histogram of the full layer, x-axis units = log (occupancy)
   hOccupancyPlot[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", aLayer),
@@ -338,14 +340,14 @@ void SimpleDS::createLayerHistos(int aLayer)
   }
 
   // TODO: decide what to do with this... 
-  if (aLayer == 0) {
+  //  if (aLayer == 0) {
     for (int iChip = 0; iChip < NChipLay[0]; iChip++) {
       DoubleColOccupancyPlot[aLayer] = new TH1D(
           Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, iChip),
           Form("DCol Occupancy Layer 0, Chip %d", iChip), NColHis / 2, 0, NColHis / 2);
-      formatAxes(DoubleColOccupancyPlot[iChip], "Double Column", "Hits", 1.1, 2.2);
+      formatAxes(DoubleColOccupancyPlot[aLayer], "Double Column", "Hits", 1.1, 2.2);
     }
-  }
+    //}
 }
 
 // hChipStaveOccupancy: Occupancy histograms for complete layer
