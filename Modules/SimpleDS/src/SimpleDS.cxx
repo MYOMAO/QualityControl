@@ -341,12 +341,12 @@ void SimpleDS::createLayerHistos(int aLayer)
 
   // TODO: decide what to do with this... 
   //  if (aLayer == 0) {
-    for (int iChip = 0; iChip < NChipLay[0]; iChip++) {
-      DoubleColOccupancyPlot[aLayer] = new TH1D(
-          Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, iChip),
-          Form("DCol Occupancy Layer 0, Chip %d", iChip), NColHis / 2, 0, NColHis / 2);
-      formatAxes(DoubleColOccupancyPlot[aLayer], "Double Column", "Hits", 1.1, 2.2);
-    }
+  //  for (int iChip = 0; iChip < NChipLay[0]; iChip++) {
+  //    DoubleColOccupancyPlot[aLayer] = new TH1D(
+  //        Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, iChip),
+  //        Form("DCol Occupancy Layer 0, Chip %d", iChip), NColHis / 2, 0, NColHis / 2);
+  //    formatAxes(DoubleColOccupancyPlot[aLayer], "Double Column", "Hits", 1.1, 2.2);
+  //  }
     //}
 }
 
@@ -531,9 +531,9 @@ void SimpleDS::publishHistos()
     }
   }
 
-  for (int i = 0; i < NChipLay[0]; i++) {
-    getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
-  }
+//  for (int i = 0; i < NChipLay[0]; i++) {
+//    getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
+//  }
   
 }
 
@@ -651,9 +651,9 @@ void SimpleDS::resetHitmaps()
       }
     }
   }
-  for (int i = 0; i < NChipLay[0]; i++) {
-    DoubleColOccupancyPlot[i]->Reset();
-  }
+  //for (int i = 0; i < NChipLay[0]; i++) {
+  //  DoubleColOccupancyPlot[i]->Reset();
+  //}
 
 }
 
