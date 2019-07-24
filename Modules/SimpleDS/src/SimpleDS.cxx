@@ -228,8 +228,6 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       timefout2 << "After Geo =  " << difference << "ns" << std::endl;
     }
 
-    int ChipNumber = (ChipID - ChipBoundary[lay]) - sta * NStaveChip[lay];
-
     int hicCol, hicRow;
     // Todo: check if chipID is really chip ID
     getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
@@ -694,7 +692,7 @@ void SimpleDS::updateOccupancyPlots(int nEvents)
               pixelOccupancy = hChipHitmap[iLayer][iStave][iHic][iChip]->GetBinContent(iCol + 1, iRow + 1);
               if (pixelOccupancy > 0) {
                 pixelOccupancy /= nEvents;
-                hOccupancyPlot->Fill(log10(pixelOccupancy));
+                hOccupancyPlot[iLayer]->Fill(log10(pixelOccupancy));
               }
             }
           }
