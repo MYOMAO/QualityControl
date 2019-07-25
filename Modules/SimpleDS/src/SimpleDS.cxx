@@ -235,7 +235,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
 
     hHITMAP[lay][sta][mod]->Fill(hicCol, hicRow);
-    hChipHitmap[lay][sta][mod][ChipID]->Fill(col, row);
+    hChipHitmap[lay][sta][mod][chip]->Fill(col, row);
 
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
@@ -303,7 +303,7 @@ void SimpleDS::addObject(TObject* aObject, bool published)
   }
   m_objects.push_back(aObject);
   if (published) {
-    m_publishedObjects(aObject);
+    m_publishedObjects.push_back(aObject);
   }
 }
 
@@ -348,7 +348,7 @@ void SimpleDS::createLayerHistos(int aLayer)
   hOccupancyPlot[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", aLayer),
 				    Form("ITS Layer %d Occupancy Distribution", aLayer), 300, -15, 0);
   formatAxes(hOccupancyPlot[aLayer], "Occupancy", "Counts", 1., 2.2);
-  addObject(hOccupancyPloy[aLayer]);
+  addObject(hOccupancyPlot[aLayer]);
 
   // HITMAPS per HIC, binning in groups of SizeReduce * SizeReduce pixels
   // chipHitmap: fine binning, one hitmap per chip, but not to be saved to CCDB (only for determination of noisy pixels)
@@ -448,7 +448,7 @@ Title = Form("Hits on Layer %d, Stave %d, Hic %d", aLayer, aStave, aHic);
   hHITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitle("Number of Hits");
   hHITMAP[aLayer][aStave][aHic]->GetXaxis()->SetNdivisions(-32);
   hHITMAP[aLayer][aStave][aHic]->Draw("COLZ"); // should this really be drawn here?
-  addObject(hHitmap[aLayer][aStave][aHic]);
+  addObject(hHITMAP[aLayer][aStave][aHic]);
 
   for (int iChip = 0; iChip < nChips; iChip ++) {
     hChipHitmap[aLayer][aStave][aHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),
@@ -533,14 +533,14 @@ void SimpleDS::ReverseYAxis(TH1 *h)
 
 void SimpleDS::publishHistos()
 {
-  for (int iObj = 0; iObj < m_publishedObjects.size(); iObj++) {
+  for (unsigned int iObj = 0; iObj < m_publishedObjects.size(); iObj++) {
     getObjectsManager()->startPublishing(m_publishedObjects.at(iObj));
   }
 }
 
 void SimpleDS::addMetadata(int runID, int fileID)
 {
-  for (int iObj = 0; iObj < m_publishedObjects.size(); iObj++) {
+  for (unsigned int iObj = 0; iObj < m_publishedObjects.size(); iObj++) {
     getObjectsManager()->addMetadata(m_publishedObjects.at(iObj)->GetName(), "Run", Form("%d", runID));
     getObjectsManager()->addMetadata(m_publishedObjects.at(iObj)->GetName(), "File", Form("%d", fileID));
   }

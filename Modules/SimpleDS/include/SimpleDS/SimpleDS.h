@@ -125,7 +125,7 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     const int ChipBoundary[NLayer + 1] = { 0, 108, 252, 432, 3120, 6480, 14712, 24120 };
     const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
     const int nHicPerStave[NLayer] = {1, 1, 1, 8, 8, 14, 14};
-    const int nChipsPerHic[NLayer] = {9, 9, 9, 14, 14, 14, 14};
+    const int nChipsPerHic[NLayer] = {9, 9, 9, 15, 15, 15, 15};
     const int layerEnable[NLayer] = {1, 0, 0, 0, 0, 0, 0};
     const float etaCoverage[NLayer] = {2.5, 2.3, 2.0, 1.5, 1.4, 1.4, 1.3};
     
