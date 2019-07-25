@@ -95,6 +95,8 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     void resetHitmaps();
     void resetOccupancyPlots();
     void updateOccupancyPlots(int nEvents);
+    void addObject(TObject* aObject, bool published = true);
+
     ChipPixelData *mChipData = nullptr;
     std::vector<ChipPixelData> mChips;
     std::vector<ChipPixelData> mChipsOld;
@@ -199,6 +201,9 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     TPaveText *bulbGreen;
     TPaveText *bulbRed;
     TPaveText *bulbYellow;
+
+    std::vector<TObject*> m_objects;
+    std::vector<TObject*> m_publishedObjects;
 
     TH1D *ErrorPlots;
     TH1D *FileNameInfo;
