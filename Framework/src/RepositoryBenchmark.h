@@ -22,11 +22,7 @@
 #include <TH1F.h>
 #include <boost/asio.hpp>
 
-namespace o2
-{
-namespace quality_control
-{
-namespace core
+namespace o2::quality_control::core
 {
 
 class RepositoryBenchmark : public FairMQDevice
@@ -61,7 +57,7 @@ class RepositoryBenchmark : public FairMQDevice
   // internal state
   std::unique_ptr<o2::quality_control::repository::DatabaseInterface> mDatabase;
   std::vector<std::shared_ptr<MonitorObject>> mMyObjects;
-//  TH1* mMyHisto;
+  //  TH1* mMyHisto;
 
   // variables for the timer
   boost::asio::deadline_timer* mTimer; /// the asynchronous timer to send monitoring data
@@ -69,8 +65,6 @@ class RepositoryBenchmark : public FairMQDevice
   std::thread* th;
 };
 
-} // namespace core
-} // namespace quality_control
-} // namespace o2
+} // namespace o2::quality_control::core
 
 #endif // QC_REPOSITORYBENCHMARK_H

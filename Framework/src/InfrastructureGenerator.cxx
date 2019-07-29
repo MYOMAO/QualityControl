@@ -1,3 +1,13 @@
+// Copyright CERN and copyright holders of ALICE O2. This software is
+// distributed under the terms of the GNU General Public License v3 (GPL
+// Version 3), copied verbatim in the file "COPYING".
+//
+// See http://alice-o2.web.cern.ch/license for full licensing information.
+//
+// In applying this license CERN does not waive the privileges and immunities
+// granted to it by virtue of its status as an Intergovernmental Organization
+// or submit itself to any jurisdiction.
+
 ///
 /// \file   QualityControlFactory.cxx
 /// \author Piotr Konopka
@@ -16,11 +26,7 @@ using namespace o2::configuration;
 using namespace o2::quality_control::checker;
 using boost::property_tree::ptree;
 
-namespace o2
-{
-namespace quality_control
-{
-namespace core
+namespace o2::quality_control::core
 {
 
 WorkflowSpec InfrastructureGenerator::generateLocalInfrastructure(std::string configurationSource, std::string host)
@@ -34,15 +40,19 @@ WorkflowSpec InfrastructureGenerator::generateLocalInfrastructure(std::string co
       // ids are assigned to local tasks in order to distinguish monitor objects outputs from each other and be able to
       // merge them. If there is no need to merge (only one qc task), it gets subspec 0.
       // todo: use matcher for subspec when available in DPL
-      size_t id = taskConfig.get_child("machines").size() > 1 ? 1 : 0;
-      for (const auto& machine : taskConfig.get_child("machines")) {
+      if (host.empty()) {
+        workflow.emplace_back(taskRunnerFactory.create(taskName, configurationSource, 0, false));
+      } else {
+        size_t id = taskConfig.get_child("machines").size() > 1 ? 1 : 0;
+        for (const auto& machine : taskConfig.get_child("machines")) {
 
-        if (machine.second.get<std::string>("") == host) {
-          // todo: optimize it by using the same ptree?
-          workflow.emplace_back(taskRunnerFactory.create(taskName, configurationSource, id, true));
-          break;
+          if (machine.second.get<std::string>("") == host) {
+            // todo: optimize it by using the same ptree?
+            workflow.emplace_back(taskRunnerFactory.create(taskName, configurationSource, id, true));
+            break;
+          }
+          id++;
         }
-        id++;
       }
     }
   }
@@ -54,7 +64,6 @@ void InfrastructureGenerator::generateLocalInfrastructure(framework::WorkflowSpe
   auto qcInfrastructure = InfrastructureGenerator::generateLocalInfrastructure(configurationSource, host);
   workflow.insert(std::end(workflow), std::begin(qcInfrastructure), std::end(qcInfrastructure));
 }
-
 
 o2::framework::WorkflowSpec InfrastructureGenerator::generateRemoteInfrastructure(std::string configurationSource)
 {
@@ -105,6 +114,9 @@ void InfrastructureGenerator::generateRemoteInfrastructure(framework::WorkflowSp
   workflow.insert(std::end(workflow), std::begin(qcInfrastructure), std::end(qcInfrastructure));
 }
 
+void InfrastructureGenerator::customizeInfrastructure(std::vector<framework::CompletionPolicy>& policies)
+{
+  TaskRunnerFactory::customizeInfrastructure(policies);
 }
-}
-}
+
+} // namespace o2::quality_control::core

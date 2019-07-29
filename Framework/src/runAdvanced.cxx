@@ -25,7 +25,7 @@
 ///   \code{.sh}
 ///   > aliBuild build QualityControl --defaults o2
 ///   > alienv enter QualityControl/latest
-///   > qcRunAdvanced
+///   > o2-qc-run-advanced
 ///   \endcode
 /// If you have glfw installed, you should see a window with the workflow visualization and sub-windows for each Data
 /// Processor where their logs can be seen. The processing will continue until the main window it is closed. Regardless
@@ -34,7 +34,9 @@
 #include <Framework/CompletionPolicyHelpers.h>
 #include <Framework/DataSampling.h>
 #include <Framework/DataSpecUtils.h>
+#include "QualityControl/InfrastructureGenerator.h"
 
+using namespace o2;
 using namespace o2::framework;
 
 // Additional configuration of the topology, which is done by implementing `customize` functions and placing them
@@ -43,13 +45,13 @@ using namespace o2::framework;
 void customize(std::vector<CompletionPolicy>& policies)
 {
   DataSampling::CustomizeInfrastructure(policies);
-
+  quality_control::customizeInfrastructure(policies);
   CompletionPolicy mergerConsumesASAP{
     "mergers-always-consume",
     [](DeviceSpec const& device) {
       return device.name.find("merger") != std::string::npos;
     },
-    [](gsl::span<PartRef const> const& inputs) {
+    [](gsl::span<PartRef const> const& /*inputs*/) {
       return CompletionPolicy::CompletionOp::Consume;
     }
   };
@@ -61,7 +63,6 @@ void customize(std::vector<ChannelConfigurationPolicy>& policies)
   DataSampling::CustomizeInfrastructure(policies);
 }
 
-#include "QualityControl/InfrastructureGenerator.h"
 #include <Framework/runDataProcessing.h>
 #include <random>
 
@@ -96,7 +97,6 @@ WorkflowSpec processingTopology(SubSpecificationType subspec)
     Outputs{{ "TST", "SUM", subspec }},
     AlgorithmSpec{
       (AlgorithmSpec::ProcessCallback)[subspec](ProcessingContext & ctx) {
-        const auto* header = get<DataHeader*>(ctx.inputs().get("data").header);
         auto data = DataRefUtils::as<int>(ctx.inputs().get("data"));
         long long sum = 0;
         for (auto d : data) { sum += d; }
@@ -136,13 +136,21 @@ WorkflowSpec defineDataProcessing(ConfigContext const&)
     DataSampling::GenerateInfrastructure(localTopology, qcConfigurationSource);
     // a fix to make the topologies work when merged together
     localTopology.back().name += std::to_string(i);
+    if (i != 2) {
+      localTopology.back().inputs.erase(localTopology.back().inputs.begin(), localTopology.back().inputs.end() - 1);
+      localTopology.back().outputs.erase(localTopology.back().outputs.begin(), localTopology.back().outputs.end() - 1);
+    }
+    DataSpecUtils::updateMatchingSubspec(localTopology.back().inputs.back(), i);
+    DataSpecUtils::updateMatchingSubspec(localTopology.back().outputs.back(), i);
 
     std::string host = "o2flptst" + std::to_string(i);
     quality_control::generateLocalInfrastructure(localTopology, qcConfigurationSource, host);
     // a fix to make the topologies work when merged together
     localTopology.back().name += std::to_string(i);
-    // temporary fix, which shouldn't be necessary when data sampling uses matchers
     DataSpecUtils::updateMatchingSubspec(localTopology.back().inputs[0], i);
+    DataSpecUtils::updateMatchingSubspec(localTopology.back().inputs[1], i);
+
+    LOG(INFO) << localTopology.back().name << " " << localTopology.back().inputs.size() << " " << localTopology.back().inputs[0].binding << " " << localTopology.back().inputs[1].binding;
 
     specs.insert(std::end(specs), std::begin(localTopology), std::end(localTopology));
   }

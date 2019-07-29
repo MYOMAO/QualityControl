@@ -1,3 +1,13 @@
+// Copyright CERN and copyright holders of ALICE O2. This software is
+// distributed under the terms of the GNU General Public License v3 (GPL
+// Version 3), copied verbatim in the file "COPYING".
+//
+// See http://alice-o2.web.cern.ch/license for full licensing information.
+//
+// In applying this license CERN does not waive the privileges and immunities
+// granted to it by virtue of its status as an Intergovernmental Organization
+// or submit itself to any jurisdiction.
+
 ///
 /// \file   TaskInterface.h
 /// \author Piotr Konopka
@@ -13,17 +23,15 @@
 #include <cassert>
 
 // O2
-#include "Framework/InitContext.h"
-#include "Framework/ProcessingContext.h"
+#include <Framework/InitContext.h>
+#include <Framework/ProcessingContext.h>
+// Configuration
+#include <Configuration/ConfigurationInterface.h>
 // QC
 #include "QualityControl/Activity.h"
 #include "QualityControl/ObjectsManager.h"
 
-namespace o2
-{
-namespace quality_control
-{
-namespace core
+namespace o2::quality_control::core
 {
 
 /// \brief  Skeleton of a QC task.
@@ -41,7 +49,6 @@ class TaskInterface
  public:
   /// \brief Constructor
   /// Can't be used when dynamically loading the class with ROOT.
-  /// @param name
   /// @param objectsManager
   explicit TaskInterface(ObjectsManager* objectsManager);
 
@@ -71,10 +78,12 @@ class TaskInterface
   // Setters and getters
   void setObjectsManager(std::shared_ptr<ObjectsManager> objectsManager);
   void setName(const std::string& name);
+  void setCustomParameters(const o2::configuration::KeyValueMap& parameters);
   const std::string& getName() const;
 
  protected:
   std::shared_ptr<ObjectsManager> getObjectsManager();
+  o2::configuration::KeyValueMap mCustomParameters;
 
  private:
   // TODO should we rather have a global/singleton for the objectsManager ?
@@ -82,8 +91,6 @@ class TaskInterface
   std::string mName;
 };
 
-} // namespace core
-} // namespace quality_control
-} // namespace o2
+} // namespace o2::quality_control::core
 
 #endif // QC_CORE_TASKINTERFACE_H
