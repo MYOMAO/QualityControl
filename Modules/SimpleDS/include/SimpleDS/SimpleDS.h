@@ -149,11 +149,11 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
 
     TH1D *DoubleColOccupancyPlot[108];
 
-    TH2S *hEtaPhiHitmap[NLayer];
-    TH2S *hChipStaveOccupancy[NLayer];
+    TH2I *hEtaPhiHitmap[NLayer];
+    TH2I *hChipStaveOccupancy[NLayer];
     int NStaveChip[NLayer];
-    TH2S *hHITMAP[7][48][14];
-    TH2S *hChipHitmap[7][48][14][14];
+    TH2I *hHicHitmap[7][48][14];
+    TH2I *hChipHitmap[7][48][14][14];
     int ChipIndex6;
 
     void swapColumnBuffers()

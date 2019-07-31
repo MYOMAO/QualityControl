@@ -234,7 +234,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     // Todo: check if chipID is really chip ID
     getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
 
-    hHITMAP[lay][sta][mod]->Fill(hicCol, hicRow);
+    hHicHitmap[lay][sta][mod]->Fill(hicCol, hicRow);
     hChipHitmap[lay][sta][mod][chip]->Fill(col, row);
 
     if (Counted < TotalCounted) {
@@ -375,13 +375,13 @@ void SimpleDS::createChipStaveOcc(int aLayer)
   int nBinsX;
   if (aLayer < NLayerIB) {
     nBinsX = nChipsPerHic[aLayer];
-    hChipStaveOccupancy[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave", aLayer, aLayer),
+    hChipStaveOccupancy[aLayer] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave", aLayer, aLayer),
         Form("ITS Layer%d, Hits vs Chip and Stave", aLayer), nBinsX, -.5 , nBinsX-.5 , NStaves[aLayer], -.5, NStaves[aLayer]-.5);
     formatAxes(hChipStaveOccupancy[aLayer], "Chip Number", "Stave Number", 1., 1.1);
   }
   else {
     nBinsX = nHicPerStave[aLayer];
-    hChipStaveOccupancy[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dHicStave", aLayer, aLayer),
+    hChipStaveOccupancy[aLayer] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dHicStave", aLayer, aLayer),
         Form("ITS Layer%d, Hits vs Hic and Stave", aLayer), nBinsX, -.5 , nBinsX-.5 , NStaves[aLayer], -.5, NStaves[aLayer]-.5);
     formatAxes(hChipStaveOccupancy[aLayer], "Hic Number", "Stave Number", 1., 1.1);
   }
@@ -404,7 +404,7 @@ void SimpleDS::createEtaPhiHitmap(int aLayer)
     NEta = nHicPerStave[aLayer] * 70;
     NPhi = NStaves[aLayer] * 10;    
   }
-  hEtaPhiHitmap[aLayer] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi", aLayer, aLayer),
+  hEtaPhiHitmap[aLayer] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi", aLayer, aLayer),
       Form("ITS Layer%d, Hits vs Eta and Phi", aLayer), NEta, (-1)*etaCoverage[aLayer], etaCoverage[aLayer], NPhi, PhiMin, PhiMax);
   formatAxes(hEtaPhiHitmap[aLayer], "#eta", "#phi", 1., 1.1);
   hEtaPhiHitmap[aLayer]->GetZaxis()->SetTitle("Number of Hits");
@@ -441,17 +441,17 @@ Title = Form("Hits on Layer %d, Stave %d, Hic %d", aLayer, aStave, aHic);
   }
   nBinsX = maxX / SizeReduce;
   nBinsY = maxY / SizeReduce;
-  hHITMAP[aLayer][aStave][aHic] = new TH2S(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
-  formatAxes(hHITMAP[aLayer][aStave][aHic], "Column", "Row", 1., 1.1);
+  hHicHitmap[aLayer][aStave][aHic] = new TH2I(Name, Title, nBinsX, 0, maxX, nBinsY, 0,  maxY);
+  formatAxes(hHicHitmap[aLayer][aStave][aHic], "Column", "Row", 1., 1.1);
   // formatting, moved here from initialize
-  hHITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitleOffset(1.50);
-  hHITMAP[aLayer][aStave][aHic]->GetZaxis()->SetTitle("Number of Hits");
-  hHITMAP[aLayer][aStave][aHic]->GetXaxis()->SetNdivisions(-32);
-  hHITMAP[aLayer][aStave][aHic]->Draw("COLZ"); // should this really be drawn here?
-  addObject(hHITMAP[aLayer][aStave][aHic]);
+  hHicHitmap[aLayer][aStave][aHic]->GetZaxis()->SetTitleOffset(1.50);
+  hHicHitmap[aLayer][aStave][aHic]->GetZaxis()->SetTitle("Number of Hits");
+  hHicHitmap[aLayer][aStave][aHic]->GetXaxis()->SetNdivisions(-32);
+  hHicHitmap[aLayer][aStave][aHic]->Draw("COLZ"); // should this really be drawn here?
+  addObject(hHicHitmap[aLayer][aStave][aHic]);
 
   for (int iChip = 0; iChip < nChips; iChip ++) {
-    hChipHitmap[aLayer][aStave][aHic][iChip] = new TH2S(Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),
+    hChipHitmap[aLayer][aStave][aHic][iChip] = new TH2I(Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),
     Form("chipHitmapL%dS%dH%dC%d", aLayer, aStave, aHic, iChip),  1024, -.5, 1023.5, 512, -.5, 511.5);
     addObject(hChipHitmap[aLayer][aStave][aHic][iChip], false);
   }
@@ -624,7 +624,7 @@ void SimpleDS::resetHitmaps()
     hEtaPhiHitmap[iLayer]->Reset();
     for (int iStave = 0; iStave < NStaves[iLayer]; iStave ++) {
       for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
-        hHITMAP[iLayer][iStave][iHic]->Reset();
+        hHicHitmap[iLayer][iStave][iHic]->Reset();
         for (int iChip = 0; iChip < nChipsPerHic[iLayer]; iChip ++) {
           hChipHitmap[iLayer][iStave][iHic][iChip]->Reset();
         }
