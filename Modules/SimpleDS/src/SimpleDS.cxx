@@ -47,12 +47,6 @@ SimpleDS::SimpleDS()
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
 
-  for (int i = 0; i < NLayer; i++) {
-    NChipLay[i] = ChipBoundary[i + 1] - ChipBoundary[i];
-    NStaveChip[i] = NChipLay[i] / NStaves[i];
-    NColStave[i] = NStaveChip[i] * NColHis;
-  }
-  
   m_objects.clear();
   m_publishedObjects.clear();
   createHistos();
@@ -75,14 +69,14 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
 
   o2::its::GeometryTGeo *geom = o2::its::GeometryTGeo::Instance();
   geom->fillMatrixCache(o2::utils::bit2Mask(o2::TransformType::L2G));
-  numOfChips = geom->getNumberOfChips();
+  int numOfChips = geom->getNumberOfChips();
   cout << "numOfChips = " << numOfChips << endl;
   setNChips(numOfChips);
 
   for (int i = 0; i < NError; i++) {
     pt[i] = new TPaveText(0.20, 0.80 - i * 0.05, 0.85, 0.85 - i * 0.05, "NDC");
     formatPaveText(pt[i], 0.04, gStyle->GetTextColor(), 12, ErrorType[i].Data());
-    ErrorPlots->GetListOfFunctions()->Add(pt[i]);
+    hErrorPlots->GetListOfFunctions()->Add(pt[i]);
   }
 
   ptFileName = new TPaveText(0.20, 0.40, 0.85, 0.50, "NDC");
@@ -103,14 +97,14 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
   bulbGreen = new TPaveText(0.60, 0.55, 0.90, 0.65, "NDC");
   formatPaveText(bulbGreen, 0.04, kGreen, 12, "Green= QC Processing");
 
-  InfoCanvas->SetTitle("QC Process Information Canvas");
-  InfoCanvas->GetListOfFunctions()->Add(ptFileName);
-  InfoCanvas->GetListOfFunctions()->Add(ptNFile);
-  InfoCanvas->GetListOfFunctions()->Add(ptNEvent);
-  InfoCanvas->GetListOfFunctions()->Add(bulb);
-  InfoCanvas->GetListOfFunctions()->Add(bulbRed);
-  InfoCanvas->GetListOfFunctions()->Add(bulbYellow);
-  InfoCanvas->GetListOfFunctions()->Add(bulbGreen);
+  hInfoCanvas->SetTitle("QC Process Information Canvas");
+  hInfoCanvas->GetListOfFunctions()->Add(ptFileName);
+  hInfoCanvas->GetListOfFunctions()->Add(ptNFile);
+  hInfoCanvas->GetListOfFunctions()->Add(ptNEvent);
+  hInfoCanvas->GetListOfFunctions()->Add(bulb);
+  hInfoCanvas->GetListOfFunctions()->Add(bulbRed);
+  hInfoCanvas->GetListOfFunctions()->Add(bulbYellow);
+  hInfoCanvas->GetListOfFunctions()->Add(bulbGreen);
   //		InfoCanvas->SetStats(false);
 
   publishHistos();
@@ -137,6 +131,13 @@ void SimpleDS::startOfCycle()
 
 void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 {
+  double eta, phi;
+  int lay, sta, ssta, mod, chip;
+  UShort_t col, row, ChipID;
+  std::chrono::time_point<std::chrono::high_resolution_clock> start;
+  std::chrono::time_point<std::chrono::high_resolution_clock> startLoop;
+  std::chrono::time_point<std::chrono::high_resolution_clock> end;
+  int difference;  
 
   start = std::chrono::high_resolution_clock::now();
 
@@ -170,8 +171,8 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   for (int i = 0; i < NError; i++) {
     QcInfoLogger::GetInstance() << " i = " << i << "   Error = " << Errors[i] << "   ErrorPre = " << ErrorPre[i]
         << "   ErrorPerFile = " << ErrorPerFile[i] << AliceO2::InfoLogger::InfoLogger::endm;
-    ErrorPlots->SetBinContent(i + 1, Errors[i]);
-    ErrorFile->SetBinContent(FileID + 1, i + 1, ErrorPerFile[i]);
+    hErrorPlots->SetBinContent(i + 1, Errors[i]);
+    hErrorFile->SetBinContent(FileID + 1, i + 1, ErrorPerFile[i]);
   }
 
   if (FileFinish == 1) {
@@ -188,6 +189,10 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   for (auto &&pixeldata : digits) {
     startLoop = std::chrono::high_resolution_clock::now();
 
+    if (NEvent % occUpdateFrequency == 0 && NEvent > 0 && NEvent != NEventPre) {
+      updateOccupancyPlots (NEventPre);
+    }
+    
     ChipID = pixeldata.getChipIndex();
     col = pixeldata.getColumn();
     row = pixeldata.getRow();
@@ -235,7 +240,13 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
 
     hHicHitmap[lay][sta][mod]->Fill(hicCol, hicRow);
-    hChipHitmap[lay][sta][mod][chip]->Fill(col, row);
+    if (lay > NLayerIB && chip > 6) {
+      // OB HICs: take into account that chip IDs are 0 .. 6, 8 .. 14
+      hChipHitmap[lay][sta][mod][chip-1]->Fill(col, row);
+    }
+    else {
+      hChipHitmap[lay][sta][mod][chip]->Fill(col, row);      
+    }
 
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
@@ -243,9 +254,6 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       //	QcInfoLogger::GetInstance() << "After Geo = " << difference << "ns" <<  AliceO2::InfoLogger::InfoLogger::endm;
       timefout2 << "Fill HitMaps =  " << difference << "ns" << std::endl;
     }
-
-    // if (lay == 0)
-    //   DoubleColOccupancyPlot[ChipID]->Fill(col / 2);
 
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
@@ -270,6 +278,8 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
   } // end digits loop
 
+  updateOccupancyPlots(NEventPre);
+  
   end = std::chrono::high_resolution_clock::now();
   difference = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();
   QcInfoLogger::GetInstance() << "Time After Loop = " << difference / 1000.0 << "s"
@@ -319,24 +329,24 @@ void SimpleDS::createHistos()
 
 void SimpleDS::createGlobalHistos()
 {
-  ErrorPlots = new TH1D("ITSQC/General/ErrorPlots", "Decoding Errors", NError, 0.5, NError + 0.5);
-  formatAxes(ErrorPlots, "Error ID", "Counts");
-  ErrorPlots->SetMinimum(0);
-  ErrorPlots->SetFillColor(kRed);
+  hErrorPlots = new TH1D("ITSQC/General/ErrorPlots", "Decoding Errors", NError, 0.5, NError + 0.5);
+  formatAxes(hErrorPlots, "Error ID", "Counts");
+  hErrorPlots->SetMinimum(0);
+  hErrorPlots->SetFillColor(kRed);
 
-  FileNameInfo = new TH1D("ITSQC/General/FileNameInfo", "FileNameInfo", 5, 0, 1);  
-  formatAxes(FileNameInfo, "InputFile", "Total Files Processed", 1.1);
+  hFileNameInfo = new TH1D("ITSQC/General/FileNameInfo", "FileNameInfo", 5, 0, 1);  
+  formatAxes(hFileNameInfo, "InputFile", "Total Files Processed", 1.1);
 
-  ErrorFile = new TH2D("ITSQC/General/ErrorFile", "Decoding Errors vs File ID", NFiles + 1, -0.5, NFiles + 0.5, NError, 0.5, NError + 0.5);
-  formatAxes(ErrorFile, "File ID (data-link)", "Error ID");
-  ErrorFile->GetZaxis()->SetTitle("Counts");
-  ErrorFile->SetMinimum(0);
+  hErrorFile = new TH2D("ITSQC/General/ErrorFile", "Decoding Errors vs File ID", NFiles + 1, -0.5, NFiles + 0.5, NError, 0.5, NError + 0.5);
+  formatAxes(hErrorFile, "File ID (data-link)", "Error ID");
+  hErrorFile->GetZaxis()->SetTitle("Counts");
+  hErrorFile->SetMinimum(0);
 
-  InfoCanvas = new TH1D("ITSQC/General/InfoCanvas", "InfoCanvas", 3, -0.5, 2.5);
+  hInfoCanvas = new TH1D("ITSQC/General/InfoCanvas", "InfoCanvas", 3, -0.5, 2.5);
   bulb = new TEllipse(0.2, 0.75, 0.30, 0.20);
 
-  addObject(ErrorPlots);
-  addObject(ErrorFile);
+  addObject(hErrorPlots);
+  addObject(hErrorFile);
 }
 
 void SimpleDS::createLayerHistos(int aLayer)
@@ -355,16 +365,6 @@ void SimpleDS::createLayerHistos(int aLayer)
   for (int iStave = 0; iStave < NStaves[aLayer]; iStave ++) {
     createStaveHistos(aLayer, iStave);
   }
-
-  // TODO: decide what to do with this... 
-  //  if (aLayer == 0) {
-  //  for (int iChip = 0; iChip < NChipLay[0]; iChip++) {
-  //    DoubleColOccupancyPlot[aLayer] = new TH1D(
-  //        Form("ITSQC/Occupancy/Layer%d/DoubleCol/Layer%dChip%dDoubleColumnOcc", 0, 0, iChip),
-  //        Form("DCol Occupancy Layer 0, Chip %d", iChip), NColHis / 2, 0, NColHis / 2);
-  //    formatAxes(DoubleColOccupancyPlot[aLayer], "Double Column", "Hits", 1.1, 2.2);
-  //  }
-    //}
 }
 
 // hChipStaveOccupancy: Occupancy histograms for complete layer
@@ -503,7 +503,7 @@ void SimpleDS::ConfirmXAxis(TH1 *h)
   h->GetXaxis()->SetTickLength(0);
   // Redraw the new axis
   gPad->Update();
-  XTicks = (h->GetXaxis()->GetXmax() - h->GetXaxis()->GetXmin()) / DivisionStep;
+  int XTicks = (h->GetXaxis()->GetXmax() - h->GetXaxis()->GetXmin()) / DivisionStep;
 
   TGaxis *newaxis = new TGaxis(gPad->GetUxmin(), gPad->GetUymin(), gPad->GetUxmax(), gPad->GetUymin(),
       h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax(), XTicks, "N");
@@ -521,7 +521,7 @@ void SimpleDS::ReverseYAxis(TH1 *h)
   // Redraw the new axis
   gPad->Update();
 
-  YTicks = (h->GetYaxis()->GetXmax() - h->GetYaxis()->GetXmin()) / DivisionStep;
+  int YTicks = (h->GetYaxis()->GetXmax() - h->GetYaxis()->GetXmin()) / DivisionStep;
   TGaxis *newaxis = new TGaxis(gPad->GetUxmin(), gPad->GetUymax(), gPad->GetUxmin() - 0.001, gPad->GetUymin(),
       h->GetYaxis()->GetXmin(), h->GetYaxis()->GetXmax(), YTicks, "N");
 
@@ -570,11 +570,11 @@ void SimpleDS::updateFile(int aRunID, int aFileID)
     TString FileName = Form("infiles/run000%d/data-link%d", aRunID, aFileID);
     QcInfoLogger::GetInstance() << "For the Moment: RunID = " << aRunID << "  FileID = " << aFileID
         << AliceO2::InfoLogger::InfoLogger::endm;
-    FileNameInfo->Fill(0.5);
-    FileNameInfo->SetTitle(Form("Current File Name: %s", FileName.Data()));
+    hFileNameInfo->Fill(0.5);
+    hFileNameInfo->SetTitle(Form("Current File Name: %s", FileName.Data()));
     TotalFileDone = TotalFileDone + 1;
-    //InfoCanvas->SetBinContent(1,FileID);
-    //InfoCanvas->SetBinContent(2,TotalFileDone);
+    //hInfoCanvas->SetBinContent(1,FileID);
+    //hInfoCanvas->SetBinContent(2,TotalFileDone);
     ptFileName->Clear();
     ptNFile->Clear();
     ptFileName->AddText(Form("File Being Proccessed: %s", FileName.Data()));
@@ -602,7 +602,6 @@ void SimpleDS::reset()
   // clean all the monitor objects here
   QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
 
-  NEventInRun = 0;
   TotalFileDone = 0;
   ptNFile->Clear();
   ptNFile->AddText(Form("File Processed: %d ", TotalFileDone));
@@ -617,8 +616,8 @@ void SimpleDS::reset()
 // reset method for all plots that are supposed to be reset once
 void SimpleDS::resetHitmaps()
 {
-  ErrorPlots->Reset();
-  ErrorFile->Reset();
+  hErrorPlots->Reset();
+  hErrorFile->Reset();
   for (int iLayer = 0; iLayer < NLayer; iLayer ++) {
     if (!layerEnable[iLayer]) continue;
     hEtaPhiHitmap[iLayer]->Reset();
@@ -631,10 +630,6 @@ void SimpleDS::resetHitmaps()
       }
     }
   }
-  //for (int i = 0; i < NChipLay[0]; i++) {
-  //  DoubleColOccupancyPlot[i]->Reset();
-  //}
-
 }
 
 // reset method for all histos that are to be reset regularly
@@ -651,7 +646,6 @@ void SimpleDS::resetOccupancyPlots()
 void SimpleDS::updateOccupancyPlots(int nEvents)
 {
   double pixelOccupancy, chipOccupancy;
-  int nPixels = 512 * 1024;
 
   resetOccupancyPlots();
 
@@ -662,15 +656,15 @@ void SimpleDS::updateOccupancyPlots(int nEvents)
       for (int iHic = 0; iHic < nHicPerStave[iLayer]; iHic++) {
         for (int iChip = 0; iChip < nChipsPerHic[iLayer]; iChip ++) {
           chipOccupancy = hChipHitmap[iLayer][iStave][iHic][iChip]->Integral();
-          chipOccupancy /= (nEvents * nPixels);
+          chipOccupancy /= (nEvents * NPixels);
           if (iLayer < NLayerIB) {
             hChipStaveOccupancy[iLayer]->Fill(iChip, iStave, chipOccupancy);
           }
           else {
             hChipStaveOccupancy[iLayer]->Fill(iHic, iStave, chipOccupancy / nChipsPerHic[iLayer]);
           }
-          for (int iCol = 0; iCol < 1024; iCol++){
-            for (int iRow = 0; iRow < 512; iRow ++) {
+          for (int iCol = 0; iCol < NCols; iCol++){
+            for (int iRow = 0; iRow < NRows; iRow ++) {
               pixelOccupancy = hChipHitmap[iLayer][iStave][iHic][iChip]->GetBinContent(iCol + 1, iRow + 1);
               if (pixelOccupancy > 0) {
                 pixelOccupancy /= nEvents;

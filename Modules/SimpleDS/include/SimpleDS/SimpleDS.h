@@ -102,7 +102,6 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     std::vector<ChipPixelData> mChipsOld;
     o2::itsmft::PixelReader *mReader = nullptr;
     std::unique_ptr<o2::itsmft::DigitPixelReader> mReaderMC;
-    //std::unique_ptr<o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS>> mReaderRaw;
     o2::itsmft::RawPixelReader<o2::itsmft::ChipMappingITS> mReaderRaw;
     o2::itsmft::ChipInfo chipInfo;
     UInt_t mCurrROF = o2::itsmft::PixelData::DummyROF;
@@ -112,80 +111,39 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     static constexpr int NRows = 512;
     const int NColHis = 1024;
     const int NRowHis = 512;
-    int XTicks;
-    int YTicks;
+
     int SizeReduce = 4;
 
+    const int occUpdateFrequency = 1000000;
+    
     int DivisionStep = 32;
     static constexpr int NPixels = NRows * NCols;
-    const int NLay1 = 108;
     static constexpr int NLayer = 7;
     static constexpr int NLayerIB = 3;
 
     const int ChipBoundary[NLayer + 1] = { 0, 108, 252, 432, 3120, 6480, 14712, 24120 };
     const int NStaves[NLayer] = { 12, 16, 20, 24, 30, 42, 48 };
     const int nHicPerStave[NLayer] = {1, 1, 1, 8, 8, 14, 14};
-    const int nChipsPerHic[NLayer] = {9, 9, 9, 15, 15, 15, 15};
+    const int nChipsPerHic[NLayer] = {9, 9, 9, 14, 14, 14, 14};
     const int layerEnable[NLayer] = {1, 0, 0, 0, 0, 0, 0};
     const float etaCoverage[NLayer] = {2.5, 2.3, 2.0, 1.5, 1.4, 1.4, 1.3};
-    
-    int NChipLay[NLayer];
-    int NColStave[NLayer];
+    const double PhiMin = 0;
+    const double PhiMax = 3.284; //???
 
-    UShort_t row;
-    UShort_t col;
-    UShort_t rowCS;
-    UShort_t colCS;
-    UShort_t rowLay6;
-    UShort_t colLay6;
-
-    const int NOccBin = 1000;
-    double HitMin = -0.01;
-    double HitMax = 1;
-
-    int lay, sta, ssta, mod, chip;
-
+    TH1D *hErrorPlots;
+    TH1D *hFileNameInfo;
+    TH2D *hErrorFile;
+    TH1D *hInfoCanvas;
+        
     TH1D *hOccupancyPlot[NLayer];
-
-    TH1D *DoubleColOccupancyPlot[108];
-
     TH2I *hEtaPhiHitmap[NLayer];
     TH2I *hChipStaveOccupancy[NLayer];
-    int NStaveChip[NLayer];
     TH2I *hHicHitmap[7][48][14];
     TH2I *hChipHitmap[7][48][14][14];
-    int ChipIndex6;
 
-    void swapColumnBuffers()
-    {
-      int *tmp = mCurr;
-      mCurr = mPrev;
-      mPrev = tmp;
-    }
     const std::vector<o2::itsmft::Digit> *mDigits = nullptr;
-    void resetColumn(int *buff)
-    {
-      std::memset(buff, -1, sizeof(int) * NRows);
-
-    }
-    Int_t mIdx = 0;
-    //const std::string inpName = "rawits.bin";
-    //const std::string inpName = "thrscan3_nchips8_ninj25_chrange0-50_rows512.raw";
-    std::string inpName = "Split9.bin";
 
     o2::its::GeometryTGeo *gm = o2::its::GeometryTGeo::Instance();
-    double AveOcc;
-    UShort_t ChipID;
-
-    TFile *fout;
-    const double PhiMin = 0;
-    const double PhiMax = 3.284;
-    const int NChipsSta = 9;
-    const int NSta1 = NLay1 / NChipsSta;
-    int numOfChips;
-    double eta;
-    double phi;
-    double PixelOcc;
 
     static constexpr int NError = 11;
     std::array<unsigned int, NError> Errors;
@@ -193,7 +151,6 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     std::array<unsigned int, NError> ErrorPerFile;
 
     //unsigned int Error[NError];
-    double ErrorMax;
     TPaveText *pt[NError];
     TPaveText *ptFileName;
     TPaveText *ptNFile;
@@ -205,41 +162,20 @@ class SimpleDS /*final*/: public TaskInterface // todo add back the "final" when
     std::vector<TObject*> m_objects;
     std::vector<TObject*> m_publishedObjects;
 
-    TH1D *ErrorPlots;
-    TH1D *FileNameInfo;
     TString ErrorType[NError] = { "Error ID 1: ErrPageCounterDiscontinuity", "Error ID 2: ErrRDHvsGBTHPageCnt",
         "Error ID 3: ErrMissingGBTHeader", "Error ID 4: ErrMissingGBTTrailer", "Error ID 5: ErrNonZeroPageAfterStop",
         "Error ID 6: ErrUnstoppedLanes", "Error ID 7: ErrDataForStoppedLane", "Error ID 8: ErrNoDataForActiveLane",
         "Error ID 9: ErrIBChipLaneMismatch", "Error ID 10: ErrCableDataHeadWrong",
         "Error ID 11: Jump in RDH_packetCounter" };
-    TH2S *ChipStave;
     const int NFiles = 6;
-    TH2D *ErrorFile;
-    TH1D *InfoCanvas;
     TEllipse *bulb;
-    TGaxis *newXaxis;
-    TGaxis *newYaxis;
 
     int TotalDigits = 0;
     int NEvent;
-    int NEventInRun;
     int NEventPre;
-    int OccupancyCounter;
-    int ChipIDPre;
-    TString FileNamePre;
     int TotalFileDone;
     //	int FileRest;
-    std::chrono::time_point<std::chrono::high_resolution_clock> start;
-    std::chrono::time_point<std::chrono::high_resolution_clock> startLoop;
-    std::chrono::time_point<std::chrono::high_resolution_clock> end;
-    int difference;
 
-    /*
-     std::chrono::time_point<std::chrono::high_resolution_clock> startDS;
-     std::chrono::time_point<std::chrono::high_resolution_clock> endDS;
-     int differenceDS;
-     */
-    int TotalHits;
     int Counted;
     int TotalCounted = 10000;
     int Yellowed;
