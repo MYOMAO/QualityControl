@@ -8,6 +8,48 @@
 
 The ITS Quality Control during the commissioning at B167 reads raw data files, perform the analysis, and publish them to the database and GUI interface. At present QC runs as a service and checks if there is a new folder for a new run in a dedicated directory. If there is a new folder Run*, the histograms will be reset reset. The string * in the folder name is being used to tag the processed data in the database. If a new data file is detected in the folder, the data will be processed and the histograms updated. 
 
+## Installing QC with Alibuild
+
+The commands to install QC with Alibuild is shown as follows. You can make it into a shell script and run it:
+
+git clone https://github.com/alisw/alidist.git alidist
+
+git clone https://github.com/alisw/alibuild.git alibuild
+
+git clone -b LatestDSO2 https://github.com/MYOMAO/AliceO2.git O2
+
+git clone -b LatestDSQC https://github.com/MYOMAO/QualityControl.git QualityControl
+
+alibuild/aliBuild build O2 --defaults o2
+
+alibuild/aliBuild build QualityControl --default o2
+
+## Entering the QC environment and rebuilding the QC after make changes:
+
+To enter the QC environment, simply do:
+
+alienv enter QualityControl/latest
+
+(Note that this is in the folder before the QualityControl/ folder)
+
+After entering the QC environment, you can rebuild the QC by
+
+cd sw/BUILD/QualityControl-latest/QualityControl/
+
+make -j12 install
+
+%## Start Running the QC General Task
+
+%To start running the QC general task, first go to the working folder:
+
+%cd  /home/its/QCGeneral/workdir/
+
+%Then start running the QC with the command:
+
+%qcRunSimple
+
+%You should be able to see the print out from the QC and it runs.
+
 ## Using QC to display data files
 
 In principle, QC is always running at FLP01 and you do not need to start the QC. To check if the QC is running, we can do the following steps:
@@ -32,7 +74,6 @@ First do
 qcRunSimple
 
 Then you will see some print out messages indicating the QC is actually running
-
 
 Then open another terminal, login to FLP01, go to the working folder /home/its/QCNew/workdir/ and do
 
