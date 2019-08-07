@@ -136,6 +136,10 @@ namespace o2
 
 				FileFinish = InfoFile % 10;
 				FileRest = (InfoFile - FileFinish)/10;
+				
+				QcInfoLogger::GetInstance() << "FileFinish = " <<  FileFinish << AliceO2::InfoLogger::InfoLogger::endm;
+				QcInfoLogger::GetInstance() << "FileRest = " <<  FileRest << AliceO2::InfoLogger::InfoLogger::endm;
+
 				if(FileFinish == 0) bulb->SetFillColor(kGreen);
 				if(FileFinish == 1 && FileRest > 1) bulb->SetFillColor(kYellow);
 				if(FileFinish == 1 && FileRest == 1) bulb->SetFillColor(kRed);
@@ -176,6 +180,7 @@ namespace o2
 					//Add Your Analysis Here if you use digits as input//
 
 				}
+				
 
 				digits.clear();
 			}
@@ -193,6 +198,11 @@ namespace o2
 			void QCGeneralTask::reset()
 			{
 				// clean all the monitor objects here
+
+				TotalFileDone = 0;
+
+				ptNFile->Clear();
+				ptNFile->AddText(Form("File Processed: %d ",TotalFileDone));
 
 				QcInfoLogger::GetInstance() << "Resetting the histogram" << AliceO2::InfoLogger::InfoLogger::endm;
 			}

@@ -81,56 +81,31 @@ using namespace o2::framework;
 using namespace o2::quality_control::checker;
 using namespace std::chrono;
 
-
-
 WorkflowSpec defineDataProcessing(const ConfigContext& config)
 {
+  WorkflowSpec specs;
 
-	WorkflowSpec specs;
-
-
-//	const std::string qcConfigurationSource = std::string("json://") + getenv("QUALITYCONTROL_ROOT") + "/etc/QCGeneral.json";
-/*
-	int fanoutsize = 0;
-
-	std::vector<o2::detectors::DetID> detList;
-	detList.emplace_back(o2::detectors::DetID::ITS);
-	// connect the ITS digitization
-	specs.emplace_back(o2::ITSMFT::getITSDigitizerSpec(fanoutsize++));
-	//  specs.emplace_back(o2::its::getDigitReaderSpec());
-	specs.emplace_back(o2::itsMFT::getitsDigitWriterSpec());
-*/
 
 	o2::base::GeometryManager::loadGeometry();
 
-//	QcInfoLogger::GetInstance() << "START READER" << AliceO2::InfoLogger::InfoLogger::endm;
+		QcInfoLogger::GetInstance() << "START READER" << AliceO2::InfoLogger::InfoLogger::endm;
 
 
 	specs.emplace_back(o2::its::getRawPixelReaderSpec());
 
-	QcInfoLogger::GetInstance() << "DONE READER" << AliceO2::InfoLogger::InfoLogger::endm;
+  // Path to the config file
+  std::string qcConfigurationSource = getConfigPath(config);
+  LOG(INFO) << "Using config file '" << qcConfigurationSource << "'";
 
-	std::string qcConfigurationSource = getConfigPath(config);
-    LOG(INFO) << "Using config file '" << qcConfigurationSource << "'";
+  // Generation of Data Sampling infrastructure
+  DataSampling::GenerateInfrastructure(specs, qcConfigurationSource);
 
-	
-	QcInfoLogger::GetInstance() << "START INFRASTRUCTURE" << AliceO2::InfoLogger::InfoLogger::endm;
-
-	// Generation of Data Sampling infrastructure
-	DataSampling::GenerateInfrastructure(specs, qcConfigurationSource);
-
-
-	QcInfoLogger::GetInstance() << "DONE INFRASTRUCTURE" << AliceO2::InfoLogger::InfoLogger::endm;
-	//std::string	detStrL = "its";
-	// Generation of the QC topology (one task, one checker in this case)
-	quality_control::generateRemoteInfrastructure(specs, qcConfigurationSource);
+  // Generation of the QC topology (one task, one checker in this case)
+  quality_control::generateRemoteInfrastructure(specs, qcConfigurationSource);
 
 
-	// Finally the printer
-
-	return specs;
+  return specs;
 }
-
 
 // TODO merge this with the one from runReadout.cxx
 std::string getConfigPath(const ConfigContext& config)
