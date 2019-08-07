@@ -142,6 +142,15 @@ There is a config folder called "Config/". There are 3 config files: RunType.dat
 
 ## Developing Your Own Modules and Customize Its Functionality
 
-I have developed the skeleton module for QC expert to build on their own codes. The folder is named QCGeneral under
+I have developed a skeleton module for QC expert to build on their own codes. The folder is named QCGeneral under "QualityControl/Modules/QCGeneral/". For developer to develop their codes for QC, they can modify the file https://github.com/MYOMAO/QualityControl/blob/LatestDSQC/Modules/QCGeneral/src/QCGeneralTask.cxx 
+
+Note that the developer need to rename the task name for the json file at the line https://github.com/MYOMAO/QualityControl/blob/LatestDSQC/Framework/QCGeneral.json#L23 to your own task name. If you don't do that, the histograms will go to the CCDB at http://ccdb-test.cern.ch:8080/browse/ITSQCGeneral and the GUI at https://qcg-test.cern.ch/?page=layoutShow&layoutId=5d02cfb496d0a17f6394135a&layoutName=QC+General+Task+Skeleton+Layout
+
+The QC processing information canvas (light bulb + Run/File/Event processed) is general for all QC tasks and should be kept when you develop your own QC tasks.
+
+My presentation for QC experts to develop their own codes for their own QC tasks can be found at: https://indico.cern.ch/event/828357/contributions/3467116/attachments/1862300/3061435/ALICE_QC_Implementation.pdf
+
+
+
 
 
