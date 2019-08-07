@@ -38,10 +38,6 @@ cd sw/BUILD/QualityControl-latest/QualityControl/
 
 make -j12 install
 
-<br/><br/>
-<br/><br/>
-<br/><br/>
-
 
 ## Using QC to display data files
 
@@ -137,6 +133,9 @@ There is a config folder called "Config/". There are 3 config files: RunType.dat
 
 
 
+<br/><br/>
+<br/><br/>
+<br/><br/>
 
 
 # QC Instructions for Experts
