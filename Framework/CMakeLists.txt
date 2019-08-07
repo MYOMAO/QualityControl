@@ -139,6 +139,8 @@ set(
   src/runReadoutForDataDump.cxx
   src/runRepositoryBenchmark.cxx
   src/runSimpleDS.cxx
+  src/runQCGeneral.cxx
+ 
 )
 
 set(
@@ -152,6 +154,7 @@ set(
   o2-qc-run-readout-for-data-dump
   o2-qc-repository-benchmark
   o2-qc-run-simple	
+  o2-qc-run-general	 
 )
 
 # These were the original names before the convention changed.
@@ -167,6 +170,7 @@ set(
   qcRunReadoutForDataDump
   repositoryBenchmark
   qcRunSimple
+  qcRunGeneral 
 )
 
 # As per https://stackoverflow.com/questions/35765106/symbolic-links-cmake
@@ -191,6 +195,12 @@ endforeach()
 target_include_directories(o2-qc-run-simple	 PRIVATE ${O2_ROOT}/include/AliTPCCommon)
 target_include_directories(o2-qc-run-simple	 PRIVATE ${O2_ROOT}/include/GPU)
 target_include_directories(o2-qc-run-simple	 PRIVATE ${O2_ROOT}include/ITSRawWorkflow)
+
+
+
+target_include_directories(o2-qc-run-general PRIVATE ${O2_ROOT}/include/AliTPCCommon)
+target_include_directories(o2-qc-run-general PRIVATE ${O2_ROOT}/include/GPU)
+target_include_directories(o2-qc-run-general PRIVATE ${O2_ROOT}include/ITSRawWorkflow)
 
 
 # ---- Gui ----
@@ -325,6 +335,7 @@ install(
     script/RepoCleaner/config.yaml
     streamerinfos.root
     SimpleDS.json
+	QCGeneral.json	
   DESTINATION etc
 )
 

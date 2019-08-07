@@ -5,3 +5,5 @@ add_subdirectory(Daq)
 add_subdirectory(Example)
 add_subdirectory(Skeleton)
 add_subdirectory(SimpleDS)
+add_subdirectory(QCGeneral)
+
