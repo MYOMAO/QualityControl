@@ -83,16 +83,16 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
   formatPaveText(ptFileName, 0.04, gStyle->GetTextColor(), 12, "Current File Processing: ");
 
   ptNFile = new TPaveText(0.20, 0.30, 0.85, 0.40, "NDC");
-  formatPaveText(ptNFile, 0.04, gStyle->GetTextColor(), 12, "File Processed: ");  
+  formatPaveText(ptNFile, 0.04, gStyle->GetTextColor(), 12, "File Processed: ");
 
   ptNEvent = new TPaveText(0.20, 0.20, 0.85, 0.30, "NDC");
-  formatPaveText(ptNEvent, 0.04, gStyle->GetTextColor(), 12, "Event Processed: ");    
+  formatPaveText(ptNEvent, 0.04, gStyle->GetTextColor(), 12, "Event Processed: ");
 
   bulbRed = new TPaveText(0.60, 0.75, 0.90, 0.85, "NDC");
-  formatPaveText(bulbRed, 0.04, kRed, 12, "Red = QC Waiting");      
+  formatPaveText(bulbRed, 0.04, kRed, 12, "Red = QC Waiting");
 
   bulbYellow = new TPaveText(0.60, 0.65, 0.90, 0.75, "NDC");
-  formatPaveText(bulbYellow, 0.04, kYellow, 12, "Yellow = QC Pausing");        
+  formatPaveText(bulbYellow, 0.04, kYellow, 12, "Yellow = QC Pausing");
 
   bulbGreen = new TPaveText(0.60, 0.55, 0.90, 0.65, "NDC");
   formatPaveText(bulbGreen, 0.04, kGreen, 12, "Green= QC Processing");
@@ -108,7 +108,7 @@ void SimpleDS::initialize(o2::framework::InitContext &ctx)
   //		InfoCanvas->SetStats(false);
 
   publishHistos();
-  
+
   cout << "DONE Inititing Publication = " << endl;
 
   bulb->SetFillColor(kRed);
@@ -137,7 +137,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   std::chrono::time_point<std::chrono::high_resolution_clock> start;
   std::chrono::time_point<std::chrono::high_resolution_clock> startLoop;
   std::chrono::time_point<std::chrono::high_resolution_clock> end;
-  int difference;  
+  int difference;
 
   start = std::chrono::high_resolution_clock::now();
 
@@ -149,7 +149,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
   int FileID = ctx.inputs().get<int>("File");
   getProcessStatus(ctx.inputs().get<int>("Finish"), FileFinish);
-  updateFile(ctx.inputs().get<int>("Run"), FileID); 
+  updateFile(ctx.inputs().get<int>("Run"), FileID);
 
   //Will Fix Later//
 
@@ -192,7 +192,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     if (NEvent % occUpdateFrequency == 0 && NEvent > 0 && NEvent != NEventPre) {
       updateOccupancyPlots (NEventPre);
     }
-    
+
     ChipID = pixeldata.getChipIndex();
     col = pixeldata.getColumn();
     row = pixeldata.getRow();
@@ -227,7 +227,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
     auto glo = gm->getMatrixL2G(ChipID)(loc);
 
     if (!layerEnable[lay]) continue;
-    
+
     if (Counted < TotalCounted) {
       end = std::chrono::high_resolution_clock::now();
       difference = std::chrono::duration_cast < std::chrono::nanoseconds > (end - startLoop).count();
@@ -237,7 +237,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
 
     int hicCol, hicRow;
     // Todo: check if chipID is really chip ID
-    getHicCoordinates(lay, ChipID, col, row, hicCol, hicRow);
+    getHicCoordinates(lay, chip, col, row, hicCol, hicRow);
 
     hHicHitmap[lay][sta][mod]->Fill(hicCol, hicRow);
     if (lay > NLayerIB && chip > 6) {
@@ -245,7 +245,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
       hChipHitmap[lay][sta][mod][chip-1]->Fill(col, row);
     }
     else {
-      hChipHitmap[lay][sta][mod][chip]->Fill(col, row);      
+      hChipHitmap[lay][sta][mod][chip]->Fill(col, row);
     }
 
     if (Counted < TotalCounted) {
@@ -279,7 +279,7 @@ void SimpleDS::monitorData(o2::framework::ProcessingContext &ctx)
   } // end digits loop
 
   updateOccupancyPlots(NEventPre);
-  
+
   end = std::chrono::high_resolution_clock::now();
   difference = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();
   QcInfoLogger::GetInstance() << "Time After Loop = " << difference / 1000.0 << "s"
@@ -320,7 +320,7 @@ void SimpleDS::addObject(TObject* aObject, bool published)
 void SimpleDS::createHistos()
 {
   createGlobalHistos();
-  
+
   for (int iLayer = 0; iLayer < NLayer; iLayer++) {
     if (!layerEnable[iLayer]) continue;
     createLayerHistos(iLayer);
@@ -334,7 +334,7 @@ void SimpleDS::createGlobalHistos()
   hErrorPlots->SetMinimum(0);
   hErrorPlots->SetFillColor(kRed);
 
-  hFileNameInfo = new TH1D("ITSQC/General/FileNameInfo", "FileNameInfo", 5, 0, 1);  
+  hFileNameInfo = new TH1D("ITSQC/General/FileNameInfo", "FileNameInfo", 5, 0, 1);
   formatAxes(hFileNameInfo, "InputFile", "Total Files Processed", 1.1);
 
   hErrorFile = new TH2D("ITSQC/General/ErrorFile", "Decoding Errors vs File ID", NFiles + 1, -0.5, NFiles + 0.5, NError, 0.5, NError + 0.5);
@@ -353,7 +353,7 @@ void SimpleDS::createLayerHistos(int aLayer)
 {
   createEtaPhiHitmap(aLayer);
   createChipStaveOcc(aLayer);
-  
+
   // 1d- occupancy histogram of the full layer, x-axis units = log (occupancy)
   hOccupancyPlot[aLayer] = new TH1D(Form("ITSQC/Occupancy/Layer%dOccupancy", aLayer),
 				    Form("ITS Layer %d Occupancy Distribution", aLayer), 300, -15, 0);
@@ -385,7 +385,7 @@ void SimpleDS::createChipStaveOcc(int aLayer)
         Form("ITS Layer%d, Hits vs Hic and Stave", aLayer), nBinsX, -.5 , nBinsX-.5 , NStaves[aLayer], -.5, NStaves[aLayer]-.5);
     formatAxes(hChipStaveOccupancy[aLayer], "Hic Number", "Stave Number", 1., 1.1);
   }
-  
+
   hChipStaveOccupancy[aLayer]->GetZaxis()->SetTitle("Number of Hits");
   hChipStaveOccupancy[aLayer]->GetZaxis()->SetTitleOffset(1.4);
   addObject(hChipStaveOccupancy[aLayer]);
@@ -402,7 +402,7 @@ void SimpleDS::createEtaPhiHitmap(int aLayer)
   }
   else {
     NEta = nHicPerStave[aLayer] * 70;
-    NPhi = NStaves[aLayer] * 10;    
+    NPhi = NStaves[aLayer] * 10;
   }
   hEtaPhiHitmap[aLayer] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi", aLayer, aLayer),
       Form("ITS Layer%d, Hits vs Eta and Phi", aLayer), NEta, (-1)*etaCoverage[aLayer], etaCoverage[aLayer], NPhi, PhiMin, PhiMax);
@@ -457,7 +457,7 @@ Title = Form("Hits on Layer %d, Stave %d, Hic %d", aLayer, aStave, aHic);
   }
 }
 
-// To be checked: 
+// To be checked:
 // - something like this should exist in the official geometry already
 // - is aChip really the chipID (i.e. 0..6, 8.. 14 in case of OB HICs)?
 void SimpleDS::getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int& aHicRow, int& aHicCol)
@@ -470,10 +470,10 @@ void SimpleDS::getHicCoordinates (int aLayer, int aChip, int aCol, int aRow, int
   else { // OB Hic: chip row 0 at center of HIC
     if (aChip < 7) {
       aHicCol = aChip * NCols + aCol;
-      aHicRow = NRows - aRow - 1;      
+      aHicRow = NRows - aRow - 1;
     }
     else {
-      aHicRow = NRows + aRow; 
+      aHicRow = NRows + aRow;
       aHicCol = 7 * NCols - ((aChip - 8) * NCols + aCol);
     }
   }
@@ -493,7 +493,7 @@ void SimpleDS::formatPaveText(TPaveText *aPT, float aTextSize, Color_t aTextColo
   aPT->SetTextAlign(aTextAlign);
   aPT->SetFillColor(0);
   aPT->SetTextColor(aTextColor);
-  aPT->AddText(aText);  
+  aPT->AddText(aText);
 }
 
 void SimpleDS::ConfirmXAxis(TH1 *h)
@@ -682,4 +682,3 @@ void SimpleDS::updateOccupancyPlots(int nEvents)
 } // namespace simpleds
 } // namespace quality_control_modules
 } // namespace o2
-
