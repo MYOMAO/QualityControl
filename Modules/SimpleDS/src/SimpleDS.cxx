@@ -79,7 +79,7 @@ namespace o2
 					OccupancyPlotNoisy[i]->GetYaxis()->SetTitleOffset(2.2);	
 					OccupancyPlotNoisy[i]->SetTitle(Form("Noisy Pixel Occupancy Distribution for ITS Layer %d",i));
 
-					LayEtaPhi[i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi",i,i),Form("Layer%dEtaPhi",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
+					LayEtaPhi[i] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dEtaPhi",i,i),Form("Layer%dEtaPhi",i),NEta,EtaMin,EtaMax,NPhi,PhiMin,PhiMax);
 					LayEtaPhi[i]->GetXaxis()->SetTitle("#eta");
 					LayEtaPhi[i]->GetYaxis()->SetTitle("#phi");
 					LayEtaPhi[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -92,7 +92,7 @@ namespace o2
 					NStaveChip[i] = NChipLay[i]/NStaves[i];
 					NColStave[i] = NStaveChip[i] * NColHis;
 
-					LayChipStave[i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave",i,i),Form("Layer%dChipStave",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
+					LayChipStave[i] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dChipStave",i,i),Form("Layer%dChipStave",i),NStaveChip[i],0,NStaveChip[i],NStaves[i],0,NStaves[i]);
 					LayChipStave[i]->GetXaxis()->SetTitle("Chip Number");
 					LayChipStave[i]->GetYaxis()->SetTitle("Stave Number");
 					LayChipStave[i]->GetZaxis()->SetTitle("Number of Hits");
@@ -122,7 +122,7 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i< NStaves[j]; i++){
-						LayHIT[i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP",j,j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*NStaveChip[j]/SizeReduce,0,NColHis*NStaveChip[j],NRowHis/SizeReduce,0,NRowHis);
+						LayHIT[i] = new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP",j,j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*NStaveChip[j]/SizeReduce,0,NColHis*NStaveChip[j],NRowHis/SizeReduce,0,NRowHis);
 						//		LayHIT[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
 						LayHIT[i]->GetXaxis()->SetTitle("Column");
 						LayHIT[i]->GetYaxis()->SetTitle("Row");
@@ -172,7 +172,7 @@ namespace o2
 				/*
 				   for(int j = 0; j < 1; j++){
 				   for(int i = 0; i < NStaveChip[j]; i++){
-				   HITMAP[i]	= new TH2S(Form("ITSQC/Occupancy/Layer%d/Stave0/Layer%dChip%dHITMAP",j,j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
+				   HITMAP[i]	= new TH2I(Form("ITSQC/Occupancy/Layer%d/Stave0/Layer%dChip%dHITMAP",j,j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
 				//		HITMAP[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
 				HITMAP[i]->GetXaxis()->SetTitle("Column");
 				HITMAP[i]->GetYaxis()->SetTitle("Row");
@@ -186,7 +186,7 @@ namespace o2
 				*/
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NChipLay[j]; i++){
-						HITMAP[i]	= new TH2S(Form("ITSQC/Occupancy/Layer%d/ChipHITMAP/Layer%dChip%dHITMAP",j,j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
+						HITMAP[i]	= new TH2I(Form("ITSQC/Occupancy/Layer%d/ChipHITMAP/Layer%dChip%dHITMAP",j,j,i),Form("Layer%dChip%dHITMAP",j,i),NColHis,0,NColHis,NRowHis,0,NRowHis);
 						//		HITMAP[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis,100,0,NRowHis);
 						HITMAP[i]->GetXaxis()->SetTitle("Column");
 						HITMAP[i]->GetYaxis()->SetTitle("Row");
@@ -204,7 +204,7 @@ namespace o2
 
 				for(int j = 6; j < 7; j++){
 					for(int i = 0; i < 18; i++){
-						HITMAP6[i]	= new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP",j,j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
+						HITMAP6[i]	= new TH2I(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP",j,j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*11,0,NColHis*11,NRowHis,0,NRowHis);
 						//		HITMAP6[i]	= new TH2D(Form("HITMAP%dLay%d",i,j),Form("HIGMAP%dLay%d",i,j),100,0,NColHis*11,100,0,NRowHis);
 						HITMAP6[i]->GetXaxis()->SetTitle("Column");
 						HITMAP6[i]->GetYaxis()->SetTitle("Row");
