@@ -20,6 +20,8 @@ git clone -b LatestDSO2 https://github.com/MYOMAO/AliceO2.git O2
 
 git clone -b LatestDSQC https://github.com/MYOMAO/QualityControl.git QualityControl
 
+git clone https://github.com/MYOMAO/workdir
+
 alibuild/aliBuild build O2 --defaults o2
 
 alibuild/aliBuild build QualityControl --default o2
