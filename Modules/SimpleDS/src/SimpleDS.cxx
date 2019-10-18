@@ -120,15 +120,16 @@ namespace o2
 				}
 
 
-				for(int j = 0; j < 1; j++){
-					for(int i = 0; i< NStaves[j]; i++){
-						LayHIT[i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP",j,j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*NStaveChip[j]/SizeReduce,0,NColHis*NStaveChip[j],NRowHis/SizeReduce,0,NRowHis);
+				for(int j = 0; j < 3; j++){
+				//	for(int i = 0; i< NStaves[j]; i++){
+					for(int i = 0; i< 12; i++){
+					LayHIT[j][i] = new TH2S(Form("ITSQC/Occupancy/Layer%d/Layer%dStave%dHITMAP",j,j,i),Form("Layer%dStave%dHITMAP",j,i),NColHis*NStaveChip[j]/SizeReduce,0,NColHis*NStaveChip[j],NRowHis/SizeReduce,0,NRowHis);
 						//		LayHIT[i] = new TH2D(Form("HICMAPLay%dStave%d",j,i),Form("HICMAPLay%dStave%d",j,i),100,0,NColHis*NStaveChip[j],100,0,NRowHis);
-						LayHIT[i]->GetXaxis()->SetTitle("Column");
-						LayHIT[i]->GetYaxis()->SetTitle("Row");
-						LayHIT[i]->GetYaxis()->SetTitleOffset(1.10);
-						LayHIT[i]->GetZaxis()->SetTitleOffset(1.50);
-						LayHIT[i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
+						LayHIT[j][i]->GetXaxis()->SetTitle("Column");
+						LayHIT[j][i]->GetYaxis()->SetTitle("Row");
+						LayHIT[j][i]->GetYaxis()->SetTitleOffset(1.10);
+						LayHIT[j][i]->GetZaxis()->SetTitleOffset(1.50);
+						LayHIT[j][i]->SetTitle(Form("Hits Map on Layer %d Stave %d",j,i));
 						//			LayHIT[i]->SetStats(false);
 
 					}
@@ -369,7 +370,7 @@ namespace o2
 						HITMAP[i]->Draw("COLZ");
 						ConfirmXAxis(HITMAP[i]);
 						ReverseYAxis(HITMAP[i]);
-						getObjectsManager()->startPublishing(HITMAP[i]);
+					//	getObjectsManager()->startPublishing(HITMAP[i]);
 						//	getObjectsManager()->addMetadata(HITMAP[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					}
@@ -378,21 +379,22 @@ namespace o2
 
 
 				for(int i = 0; i < Lay0Chip; i++){
-					getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
+				//	getObjectsManager()->startPublishing(DoubleColOccupancyPlot[i]);
 				}
 
 				ReverseYAxis(HITMAP[0]);
 
 
-				for(int j = 0; j < 1; j++){
-					for(int i = 0; i < NStaves[j]; i++){
+				for(int j = 0; j < 3; j++){
+				//	for(int i = 0; i < NStaves[j]; i++){
+					for(int i = 0; i < 12; i++){
 
-						LayHIT[i]->GetZaxis()->SetTitle("Number of Hits");
-						LayHIT[i]->GetXaxis()->SetNdivisions(-32);
-						LayHIT[i]->Draw("COLZ");
-						ConfirmXAxis(LayHIT[i]);
-						ReverseYAxis(LayHIT[i]);
-						getObjectsManager()->startPublishing(LayHIT[i]);
+						LayHIT[j][i]->GetZaxis()->SetTitle("Number of Hits");
+						LayHIT[j][i]->GetXaxis()->SetNdivisions(-32);
+						LayHIT[j][i]->Draw("COLZ");
+						ConfirmXAxis(LayHIT[j][i]);
+						ReverseYAxis(LayHIT[j][i]);
+						getObjectsManager()->startPublishing(LayHIT[j][i]);
 						///		getObjectsManager()->addMetadata(LayHIT[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					}
@@ -402,7 +404,7 @@ namespace o2
 
 				for(int j = 0; j < 1; j++){
 					for(int i = 0; i < NChipLay[j]; i++){
-						getObjectsManager()->startPublishing(LayHITNoisy[i]);
+						//getObjectsManager()->startPublishing(LayHITNoisy[i]);
 						//		getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 
 					}
@@ -448,6 +450,7 @@ namespace o2
 				TotalHisTime = 0;
 			    Counted = 0;
 				Yellowed = 0;
+				statprint = 0;
 			}
 
 			void SimpleDS::startOfActivity(Activity& activity)
@@ -498,7 +501,7 @@ namespace o2
 
 
 				TString RunName = Form("Run%d",RunID);
-				TString FileName = Form("infiles/run000%d/data-link%d",RunID,FileID);
+				TString FileName = Form("infiles/run%d/data-link%d",RunID,FileID);
 
 				if(RunIDPre != RunID || FileIDPre != FileID){
 					QcInfoLogger::GetInstance() << "For the Moment: RunID = "  << RunID << "  FileID = " << FileID << AliceO2::InfoLogger::InfoLogger::endm;
@@ -512,6 +515,7 @@ namespace o2
 					ptFileName->AddText(Form("File Being Proccessed: %s",FileName.Data()));
 					ptNFile->AddText(Form("File Processed: %d ",TotalFileDone));
 
+					statprint = 0;
 
 					//MetaData Updating//
 					//	getObjectsManager()->addMetadata(ChipStave->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
@@ -525,18 +529,19 @@ namespace o2
 					for(int j = 0; j < 1; j++){
 						for(int i = 0; i < NChipLay[j]; i++){
 
-							getObjectsManager()->addMetadata(HITMAP[i]->GetName(),"Run", Form("%d",RunID));
-							getObjectsManager()->addMetadata(HITMAP[i]->GetName(),"File", Form("%d",FileID));
-							getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(),"Run", Form("%d",RunID));
-							getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(),"File", Form("%d",FileID));
+				//			getObjectsManager()->addMetadata(HITMAP[i]->GetName(),"Run", Form("%d",RunID));
+				//			getObjectsManager()->addMetadata(HITMAP[i]->GetName(),"File", Form("%d",FileID));
+				//			getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(),"Run", Form("%d",RunID));
+				//			getObjectsManager()->addMetadata(LayHITNoisy[i]->GetName(),"File", Form("%d",FileID));
 
 						}
 					}
 
-					for(int j = 0; j < 1; j++){
-						for(int i = 0; i < NStaves[j]; i++){
-							getObjectsManager()->addMetadata(LayHIT[i]->GetName(),"Run", Form("%d",RunID));
-							getObjectsManager()->addMetadata(LayHIT[i]->GetName(),"File", Form("%d",FileID));
+					for(int j = 0; j < 3; j++){
+					//	for(int i = 0; i < NStaves[j]; i++){
+						for(int i = 0; i < 12; i++){
+							getObjectsManager()->addMetadata(LayHIT[j][i]->GetName(),"Run", Form("%d",RunID));
+							getObjectsManager()->addMetadata(LayHIT[j][i]->GetName(),"File", Form("%d",FileID));
 						}
 					}
 
@@ -683,6 +688,11 @@ namespace o2
 
 						//Layer Occupancy Plot//
 
+				
+						if(statprint == 0){
+							cout << "Layer = " << lay << "    Stave =  " << sta << endl;
+							statprint = 1;
+						}
 
 						int ChipNumber = (ChipID - ChipBoundary[lay])- sta*	NStaveChip[lay];
 
@@ -728,11 +738,11 @@ namespace o2
 						}
 
 
-						if(lay == 0){
+						if(lay < 3){
 							rowCS = row;
 							colCS = col + NColHis * ChipNumber;
 							//	cout << "ChipID in Stave 0 = " << ChipID << "  colCS = " << colCS <<  "  ChipNumber = " << ChipNumber<< endl; 
-							if(row > 0 && col > 0) LayHIT[sta]->Fill(colCS,rowCS);
+							if(row > 0 && col > 0) LayHIT[lay][sta]->Fill(colCS,rowCS);
 
 						}
 
@@ -978,9 +988,10 @@ namespace o2
 					LayChipStave[i]->Reset();
 				}
 
-				for(int j = 0; j < 1; j++){
-					for(int i = 0; i< NStaves[j]; i++){
-						LayHIT[i]->Reset();
+				for(int j = 0; j < 3; j++){
+			//		for(int i = 0; i< NStaves[j]; i++){
+					for(int i = 0; i< 12; i++){
+						LayHIT[j][i]->Reset();
 
 					}
 				}
@@ -1015,12 +1026,15 @@ namespace o2
 				NEventInRun = 0;
 				ErrorFile->Reset();	
 				TotalFileDone = 0;
+				ptNFile->Clear();
+				ptNFile->AddText(Form("File Processed: %d ",TotalFileDone));
 				Yellowed = 0; 
-				for(int j = 0; j < 1; j++){
-					for(int i = 0; i < NStaves[j]; i++){
-						LayHIT[i]->GetXaxis()->SetNdivisions(-32);
-						ConfirmXAxis(LayHIT[i]);
-						ReverseYAxis(LayHIT[i]);
+				for(int j = 0; j < 3; j++){
+					//for(int i = 0; i < NStaves[j]; i++){
+						for(int i = 0; i < 12; i++){
+						LayHIT[j][i]->GetXaxis()->SetNdivisions(-32);
+						ConfirmXAxis(LayHIT[j][i]);
+						ReverseYAxis(LayHIT[j][i]);
 						///		getObjectsManager()->addMetadata(LayHIT[i]->GetName(), Form("Run%d-File%d",RunID,FileID), "34");
 					}
 				}

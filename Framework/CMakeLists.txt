@@ -190,7 +190,7 @@ endforeach()
 
 target_include_directories(o2-qc-run-simple	 PRIVATE ${O2_ROOT}/include/AliTPCCommon)
 target_include_directories(o2-qc-run-simple	 PRIVATE ${O2_ROOT}/include/GPU)
-target_include_directories(o2-qc-run-simple	 PRIVATE /data/zhaozhong/aliceInstallLatest/O2/Detectors/ITSMFT/ITS/RawPixelReaderWorkflow/include)
+target_include_directories(o2-qc-run-simple	 PRIVATE /home/its/QCNew/O2/Detectors/ITSMFT/ITS/RawPixelReaderWorkflow/include)
 
 # ---- Gui ----
 
